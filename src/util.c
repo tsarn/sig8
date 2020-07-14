@@ -44,6 +44,9 @@ FloatColor ColorToFloatColor(Color color)
 
 void* TempAlloc(size_t n)
 {
+    // round up for alignment
+    n = (n + sizeof(size_t) - 1) / sizeof(size_t) * sizeof(size_t);
+    
     size_t oldSize = scratchMemorySize;
     scratchMemorySize += n;
 
