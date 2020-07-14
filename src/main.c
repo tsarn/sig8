@@ -45,9 +45,7 @@ int main(int argc, char **argv)
     InitializeOpenGL();
 
     int quit = 0;
-
-    ClearScreen(DARK_BLUE);
-    DrawString(5, 5, PEACH, "Hello, world!");
+    float lastTime = 0.0f;
 
     while (!quit) {
         SDL_Event e;
@@ -62,8 +60,17 @@ int main(int argc, char **argv)
                 }
             }
         }
+
+        char buf[32];
+        float curTime = SDL_GetTicks() / 1000.0f;
+        sprintf(buf, "FPS: %.1f\n", 1.0f / (curTime - lastTime));
+        lastTime = curTime;
+        ClearScreen(DARK_BLUE);
+        DrawString(5, 5, PEACH, buf);
+
         DrawScreen();
         SDL_GL_SwapWindow(window);
+
     }
 
     SDL_DestroyWindow(window);

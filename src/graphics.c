@@ -17,7 +17,7 @@ void InitializeScreen(void)
     currentFont = &fontMono5x7;
 
     for (int i = 0; i < N_COLORS; ++i) {
-        colorMap[i] = ColorToFloatColor(ColorFromHex(ColorNames[i]));
+        colorMap[i] = ColorFromHex(ColorNames[i]);
     }
 
     ClearScreen(0);
@@ -27,7 +27,7 @@ void ClearScreen(int color)
 {
     for (int i = 0; i < SCREEN_WIDTH; ++i) {
         for (int j = 0; j < SCREEN_HEIGHT; ++j) {
-            screenBuffer[i * SCREEN_HEIGHT + j] = color;
+            DrawPixel(i, j, color);
         }
     }
 }
@@ -38,7 +38,7 @@ void SetFont(const Font *font)
 }
 
 void DrawPixel(int x, int y, int color) {
-    screenBuffer[x * SCREEN_HEIGHT + y] = color;
+    screenBuffer[x + SCREEN_WIDTH * y] = colorMap[color];
 }
 
 void DrawCharacter(int x, int y, int color, char ch)

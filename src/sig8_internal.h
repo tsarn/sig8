@@ -17,9 +17,9 @@ typedef struct {
 void DrawScreen(void);
 void InitializeOpenGL(void);
 void OnResize(void);
-void UpdateVertexData(void);
+void UpdateBufferData(void);
 FloatColor ColorToFloatColor(Color color);
 
 extern SDL_Window *window;
-extern int screenBuffer[SCREEN_WIDTH * SCREEN_HEIGHT];
-extern FloatColor colorMap[N_COLORS];
+extern Color screenBuffer[SCREEN_WIDTH * SCREEN_HEIGHT];
+extern Color colorMap[N_COLORS];
