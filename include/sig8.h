@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stddef.h>
 
 #ifdef  __cplusplus
 extern "C" {
@@ -23,13 +24,25 @@ typedef struct {
 
 extern const Font fontMono5x7;
 
+// System functions
+void Initialize(void);
+void Finalize(void);
+int ShouldQuit(void);
+
+// Utility functions
 Color ColorFromHex(const char *hex);
 int GetScreenWidth(void);
 int GetScreenHeight(void);
-void InitializeScreen(void);
+void* TempAlloc(size_t n);
+char *Format(const char *fmt, ...);
+
+// Time functions
+float GetDelta(void);
+
+// Drawing functions
 void ClearScreen(int color);
-void SetFont(const Font* font);
 void DrawPixel(int x, int y, int color);
+void SetFont(const Font* font);
 void DrawCharacter(int x, int y, int color, char ch);
 void DrawString(int x, int y, int color, const char *string);
 

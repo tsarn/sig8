@@ -1,7 +1,5 @@
 #include "sig8_internal.h"
 
-SDL_Window *window;
-
 const char *vertexShaderSource =
     "#version 330 core\n"
     "layout (location = 0) in vec2 pos;\n"
@@ -23,7 +21,6 @@ const char *fragmentShaderSource =
     "  fragColor = texture(tex, uv);\n"
     "}\n";
 
-
 Color screenBuffer[SCREEN_WIDTH * SCREEN_HEIGHT];
 Color colorMap[N_COLORS];
 static int width, height, pixelScale;
@@ -44,6 +41,47 @@ static const float screenRect[] = {
     0.0f, 1.0f,
     1.0f, 1.0f,
 };
+
+void ReportSDLError(void)
+{
+    fprintf(stderr, "SDL Error: %s\n", SDL_GetError());
+    Finalize();
+    exit(EXIT_FAILURE);
+}
+
+void InitializeWindow(void)
+{
+    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+        ReportSDLError();
+    }
+
+    window = SDL_CreateWindow(
+            WINDOW_TITLE,
+            SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+            DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT,
+            SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
+
+    if (!window) {
+        ReportSDLError();
+    }
+
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
+    glContext = SDL_GL_CreateContext(window);
+
+    if (!glContext) {
+        ReportSDLError();
+    }
+
+    if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)) {
+        fprintf(stderr, "gladLoadGLLoader failed");
+        Finalize();
+        exit(EXIT_FAILURE);
+    }
+
+}
 
 void InitializeOpenGL(void)
 {
@@ -156,7 +194,7 @@ void UpdateBufferData(void)
     glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
 }
 
-void DrawScreen(void)
+void RedrawScreen(void)
 {
     UpdateBufferData();
     glViewport(0, 0, width, height);
@@ -169,4 +207,5 @@ void DrawScreen(void)
     glUniform2f(offLoc, offsetX, offsetY);
 
     glDrawArrays(GL_TRIANGLES, 0, SCREEN_WIDTH * SCREEN_HEIGHT * 6);
+    SDL_GL_SwapWindow(window);
 }
