@@ -15,7 +15,6 @@ typedef struct {
 typedef struct {
     uint8_t firstCharCode;
     uint8_t lastCharCode;
-    uint8_t isMono;
     uint8_t width;
     uint8_t height;
     uint8_t horizontalStep;
@@ -24,6 +23,7 @@ typedef struct {
 } Font;
 
 extern const Font fontMono5x7;
+extern const Font fontMono3x5;
 
 // System functions
 void Initialize(void);

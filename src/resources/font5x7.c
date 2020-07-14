@@ -198,7 +198,6 @@ static const uint8_t fontData_mono5x7[] = {
 const Font fontMono5x7 = {
         .firstCharCode = 32,
         .lastCharCode = 127,
-        .isMono = 1,
         .width = 5,
         .height = 7,
         .horizontalStep = 1,
