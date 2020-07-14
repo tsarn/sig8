@@ -5,47 +5,74 @@ SDL_Window *window;
 const char *vertexShaderSource =
     "#version 330 core\n"
     "layout (location = 0) in vec2 pos;\n"
-    "layout (location = 1) in vec4 aColor;\n"
-    "out vec4 color;\n"
-    "uniform vec2 size;\n"
+    "out vec2 uv;\n"
     "uniform vec2 off;\n"
     "void main()\n"
     "{\n"
-    "  color = aColor;\n"
-    "  gl_Position = vec4(2.0 * (pos / size * (1 - 2.0 * off) + off - vec2(0.5)), 0.0, 1.0);\n"
+    "  uv = vec2(pos.x, 1.0 - pos.y);\n"
+    "  gl_Position = vec4(2.0 * (pos * (1 - 2.0 * off) + off - vec2(0.5)), 0.0, 1.0);\n"
     "}";
 
 const char *fragmentShaderSource =
     "#version 330 core\n"
     "out vec4 fragColor;\n"
-    "in vec4 color;\n"
+    "in vec2 uv;\n"
+    "uniform sampler2D tex;\n"
     "void main()\n"
     "{\n"
-    "  fragColor = color;\n"
+    "  fragColor = texture(tex, uv);\n"
     "}\n";
 
 
-int screenBuffer[SCREEN_WIDTH * SCREEN_HEIGHT];
-FloatColor colorMap[N_COLORS];
+Color screenBuffer[SCREEN_WIDTH * SCREEN_HEIGHT];
+Color colorMap[N_COLORS];
 static int width, height, pixelScale;
 static float offsetX, offsetY;
 
-static unsigned int screenVBO, screenVAO;
+static unsigned int screenVBO;
+static unsigned int screenVAO;
+static unsigned int screenPBO;
+static unsigned int screenTexture;
 static unsigned int shader;
-static int sizeLoc, offLoc;
-static int isBufferCreated = 0;
+static int offLoc;
 
-typedef struct {
-    float x, y;
-    FloatColor color;
-} VertexData;
-
-VertexData vertexData[SCREEN_WIDTH * SCREEN_HEIGHT * 6];
+static const float screenRect[] = {
+    0.0f, 0.0f,
+    0.0f, 1.0f,
+    1.0f, 0.0f,
+    1.0f, 0.0f,
+    0.0f, 1.0f,
+    1.0f, 1.0f,
+};
 
 void InitializeOpenGL(void)
 {
     glGenBuffers(1, &screenVBO);
+    glGenBuffers(1, &screenPBO);
+    glGenTextures(1, &screenTexture);
     glGenVertexArrays(1, &screenVAO);
+
+    // Configure buffer objects
+
+    glBindVertexArray(screenVAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, screenVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof screenRect, screenRect, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, screenPBO);
+    glBufferData(GL_PIXEL_UNPACK_BUFFER, sizeof screenBuffer, screenBuffer, GL_DYNAMIC_DRAW);
+
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    // Configure texture
+
+    glBindTexture(GL_TEXTURE_2D, screenTexture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
     // Compile shaders
 
@@ -94,28 +121,10 @@ void InitializeOpenGL(void)
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
-    sizeLoc = glGetUniformLocation(shader, "size");
     offLoc = glGetUniformLocation(shader, "off");
 
-    for (int i = 0; i < SCREEN_WIDTH; ++i) {
-        for (int j = 0; j < SCREEN_HEIGHT; ++j) {
-            int idx = (i * SCREEN_HEIGHT + j) * 6;
-
-            float x = (float)i;
-            float y = (float)(SCREEN_HEIGHT - j - 1);
-
-            vertexData[idx + 0] = (VertexData){ .x = x, .y = y };
-            vertexData[idx + 1] = (VertexData){ .x = x + 1.0f, .y = y };
-            vertexData[idx + 2] = (VertexData){ .x = x, .y = y + 1.0f };
-
-            vertexData[idx + 3] = (VertexData){ .x = x, .y = y + 1.0f };
-            vertexData[idx + 4] = (VertexData){ .x = x + 1.0f, .y = y };
-            vertexData[idx + 5] = (VertexData){ .x = x + 1.0f, .y = y + 1.0f };
-        }
-    }
-
     OnResize();
-    UpdateVertexData();
+    UpdateBufferData();
 }
 
 void OnResize(void)
@@ -135,51 +144,28 @@ void OnResize(void)
     offsetY = (1.0f - SCREEN_HEIGHT * pixelScale * 1.0f / height) / 2.0f;
 }
 
-void UpdateVertexData(void)
+void UpdateBufferData(void)
 {
-    for (int i = 0; i < SCREEN_WIDTH; ++i) {
-        for (int j = 0; j < SCREEN_HEIGHT; ++j) {
-            int idx = i * SCREEN_HEIGHT + j;
-            for (int k = 0; k < 6; ++k) {
-                vertexData[6 * idx + k].color = colorMap[screenBuffer[idx]];
-            }
-        }
-    }
+    glBindTexture(GL_TEXTURE_2D, screenTexture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
-    glBindVertexArray(screenVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, screenVBO);
-
-    if (isBufferCreated) {
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof vertexData, vertexData);
-    } else {
-        glBufferData(GL_ARRAY_BUFFER, sizeof vertexData, vertexData, GL_DYNAMIC_DRAW);
-
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(VertexData), (void*)0);
-        glEnableVertexAttribArray(0);
-
-        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(VertexData), (void*)(2 * sizeof(float)));
-        glEnableVertexAttribArray(1);
-
-        isBufferCreated = 1;
-    }
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, screenPBO);
+    glBufferData(GL_PIXEL_UNPACK_BUFFER, sizeof screenBuffer, NULL, GL_DYNAMIC_DRAW);
+    uint8_t *ptr = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+    memcpy(ptr, screenBuffer, sizeof screenBuffer);
+    glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
 }
 
 void DrawScreen(void)
 {
-    UpdateVertexData();
+    UpdateBufferData();
     glViewport(0, 0, width, height);
-    glClearColor(
-            colorMap[0].r,
-            colorMap[0].g,
-            colorMap[0].b,
-            colorMap[0].a
-    );
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     glUseProgram(shader);
     glBindVertexArray(screenVAO);
 
-    glUniform2f(sizeLoc, (float)SCREEN_WIDTH, (float)SCREEN_HEIGHT);
     glUniform2f(offLoc, offsetX, offsetY);
 
     glDrawArrays(GL_TRIANGLES, 0, SCREEN_WIDTH * SCREEN_HEIGHT * 6);
