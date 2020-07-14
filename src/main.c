@@ -7,6 +7,8 @@ int main(int argc, char **argv)
     int bg = DARK_BLUE;
     int fg = PEACH;
 
+    SetFont(&fontMono3x5);
+
     while (!ShouldQuit()) {
         if (KeyJustPressed("Space")) {
             bg = rand() % 16;
@@ -14,7 +16,7 @@ int main(int argc, char **argv)
         }
 
         ClearScreen(bg);
-        DrawString(0, 0, fg, "Test!");
+        DrawString(50, 5, fg, "**** SIG-8 ****");
     }
 
     Finalize();
