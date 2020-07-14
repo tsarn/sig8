@@ -4,9 +4,17 @@ int main(int argc, char **argv)
 {
     Initialize();
 
+    int bg = DARK_BLUE;
+    int fg = PEACH;
+
     while (!ShouldQuit()) {
-        ClearScreen(DARK_BLUE);
-        DrawString(5, 5, PEACH, Format("FPS: %.1f", 1.0f / GetDelta()));
+        if (KeyJustPressed("Space")) {
+            bg = rand() % 16;
+            fg = rand() % 16;
+        }
+
+        ClearScreen(bg);
+        DrawString(0, 0, fg, "Test!");
     }
 
     Finalize();

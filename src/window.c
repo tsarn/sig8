@@ -30,23 +30,40 @@ void HandleEvents(void)
 {
     SDL_Event e;
     while (SDL_PollEvent(&e) != 0) {
-        if (e.type == SDL_QUIT) {
+        switch (e.type) {
+        case SDL_QUIT:
             shouldQuit = 1;
-        }
+            break;
 
-        if (e.type == SDL_WINDOWEVENT) {
+        case SDL_WINDOWEVENT:
             if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
                 OnResize();
             }
+            break;
+
+        case SDL_KEYDOWN:
+            keyboardState[ConvertKeyCode(e.key.keysym.sym)] = KEY_PRESSED | KEY_JUST_PRESSED;
+            if (e.key.repeat) {
+                keyboardState[ConvertKeyCode(e.key.keysym.sym)] |= KEY_IS_REPEAT;
+            }
+            break;
+
+        case SDL_KEYUP:
+            keyboardState[ConvertKeyCode(e.key.keysym.sym)] = KEY_JUST_RELEASED;
+            break;
         }
     }
 }
 
-void FrameBegin(void)
+void UpdateDelta(void)
 {
     float curTime = SDL_GetTicks() / 1000.0f;
     curDelta = curTime - lastTime;
     lastTime = curTime;
+}
+
+void ResetScratchMemory(void)
+{
     scratchMemorySize = 0;
 }
 
@@ -61,8 +78,15 @@ int ShouldQuit(void)
 
     // previous frame ends here
 
-    FrameBegin();
+    UpdateDelta();
+    ResetScratchMemory();
+    FlushInputs();
     HandleEvents();
 
     return shouldQuit;
+}
+
+void Quit(void)
+{
+    shouldQuit = 1;
 }

@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <stdbool.h>
 
 #ifdef  __cplusplus
 extern "C" {
@@ -28,6 +29,7 @@ extern const Font fontMono5x7;
 void Initialize(void);
 void Finalize(void);
 int ShouldQuit(void);
+void Quit(void);
 
 // Utility functions
 Color ColorFromHex(const char *hex);
@@ -35,9 +37,12 @@ int GetScreenWidth(void);
 int GetScreenHeight(void);
 void* TempAlloc(size_t n);
 char *Format(const char *fmt, ...);
-
-// Time functions
 float GetDelta(void);
+
+// Input functions
+bool KeyPressed(const char *key);
+bool KeyJustPressed(const char *key);
+bool KeyJustReleased(const char *key);
 
 // Drawing functions
 void ClearScreen(int color);
