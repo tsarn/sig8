@@ -1,5 +1,8 @@
 #include "sig8_internal.h"
 
+char *scratchMemory = NULL;
+size_t scratchMemorySize = 0;
+size_t scratchMemoryCapacity = 0;
 
 Color ColorFromHex(const char *hex)
 {
@@ -37,4 +40,40 @@ FloatColor ColorToFloatColor(Color color)
         .b = color.b / 255.0f,
         .a = color.a / 255.0f,
     };
+}
+
+void* TempAlloc(size_t n)
+{
+    size_t oldSize = scratchMemorySize;
+    scratchMemorySize += n;
+
+    if (scratchMemorySize > scratchMemoryCapacity)
+    {
+        size_t allocSize = scratchMemorySize * 2;
+        void *newPtr = realloc(scratchMemory, allocSize);
+        if (!newPtr) {
+            fprintf(stderr, "TempAlloc: reallocation failed\n");
+            Finalize();
+            exit(EXIT_FAILURE);
+        }
+        scratchMemory = (char*)newPtr;
+        scratchMemoryCapacity = allocSize;
+    }
+
+    return (void*)(scratchMemory + oldSize);
+}
+
+char *Format(const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    int len = vsnprintf(NULL, 0, fmt, args);
+    va_end(args);
+
+    char *str = TempAlloc(len + 1);
+    va_start(args, fmt);
+    vsnprintf(str, len + 1, fmt, args);
+    va_end(args);
+
+    return str;
 }

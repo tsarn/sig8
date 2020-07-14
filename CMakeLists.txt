@@ -18,7 +18,7 @@ add_executable(sig8
         src/glad.c
         src/graphics.c
         src/resources/font5x7.c
-        )
+        src/window.c)
 
 target_include_directories(sig8
 PRIVATE
