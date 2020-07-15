@@ -1,6 +1,10 @@
 #include "sig8tk.h"
 
-SpriteEditor spriteEditor;
+
+static ResourceSprite sprite;
+static int fg, bg;
+static int zoom;
+static int brush;
 
 ResourceSprite NewSprite(int w, int h)
 {
@@ -16,14 +20,27 @@ ResourceSprite NewSprite(int w, int h)
 
 void InitSpriteEditor(void)
 {
-    spriteEditor.bg = BLACK;
-    spriteEditor.fg = WHITE;
+    bg = BLACK;
+    fg = WHITE;
+    sprite = NewSprite(8, 8);
+    zoom = 8;
+    brush = 1;
 }
 
-bool IsLightColor(int color)
+int GetPixel(int x, int y)
 {
-    return !(color == BLACK || color == DARK_BLUE ||
-    color == DARK_PURPLE || color == DARK_GREEN);
+    if (x < 0 || y < 0 || x >= sprite.width || y >= sprite.height) {
+        return TRANSPARENT;
+    }
+    return sprite.data[y * sprite.width + x];
+}
+
+void SetPixel(int x, int y, int color)
+{
+    if (x < 0 || y < 0 || x >= sprite.width || y >= sprite.height) {
+        return;
+    }
+    sprite.data[y * sprite.width + x] = color;
 }
 
 void DrawColorPicker(void)
@@ -49,7 +66,7 @@ void DrawColorPicker(void)
             BeginItem(7);
             ColorLayout(color);
 
-            if (color == spriteEditor.fg) {
+            if (color == fg) {
                 DrawPixel(0, 0, IsLightColor(color) ? BLACK : WHITE);
                 DrawPixel(1, 0, IsLightColor(color) ? BLACK : WHITE);
                 DrawPixel(2, 0, IsLightColor(color) ? BLACK : WHITE);
@@ -58,18 +75,18 @@ void DrawColorPicker(void)
                 DrawPixel(0, 2, IsLightColor(color) ? BLACK : WHITE);
             }
 
-            if (color == spriteEditor.bg) {
+            if (color == bg) {
                 DrawPixel(6, 6, IsLightColor(color) ? BLACK : WHITE);
                 DrawPixel(5, 6, IsLightColor(color) ? BLACK : WHITE);
                 DrawPixel(6, 5, IsLightColor(color) ? BLACK : WHITE);
             }
 
-            if (Clickable(MOUSE_LEFT)) {
-                spriteEditor.fg = color;
+            if (Button(MOUSE_LEFT)) {
+                fg = color;
             }
 
-            if (Clickable(MOUSE_RIGHT)) {
-                spriteEditor.bg = color;
+            if (Button(MOUSE_RIGHT)) {
+                bg = color;
             }
 
             EndLayout();
@@ -85,10 +102,77 @@ void DrawColorPicker(void)
     EndLayout();
 }
 
+void DrawEditedSprite()
+{
+    BeginCenter(zoom * sprite.width + 2,
+            zoom * sprite.height + 2);
+
+    ColorLayout(WHITE);
+    BeginMargin(1, 1, 1, 1);
+
+    BeginVBox(0);
+
+    for (int j = 0; j < sprite.height; ++j) {
+        BeginItem(zoom);
+        BeginHBox(0);
+
+        for (int i = 0; i < sprite.width; ++i) {
+            BeginItem(zoom);
+            ColorLayout(GetPixel(i, j));
+
+            EndLayout();
+        }
+
+        EndLayout();
+        EndLayout();
+    }
+
+    EndLayout();
+
+    if (Button(MOUSE_HOVER)) {
+        int cx = GetMousePosition().x - GetArea().x;
+        int cy = GetMousePosition().y - GetArea().y;
+        int t = zoom * brush;
+
+        cx -= brush * zoom / 2;
+        cy -= brush * zoom / 2;
+
+        cx = (cx + zoom / 2) / zoom;
+        cy = (cy + zoom / 2) / zoom;
+
+        StrokeRect(cx * zoom - 1, cy * zoom - 1, t + 2, t + 2, WHITE);
+        StrokeRect(cx * zoom, cy * zoom, t, t, BLACK);
+
+        if (MousePressed(MOUSE_LEFT)) {
+            for (int i = cx; i < cx + brush; ++i) {
+                for (int j = cy; j < cy + brush; ++j) {
+                    SetPixel(i, j, fg);
+                }
+            }
+        }
+
+        if (MousePressed(MOUSE_RIGHT)) {
+            for (int i = cx; i < cx + brush; ++i) {
+                for (int j = cy; j < cy + brush; ++j) {
+                    SetPixel(i, j, bg);
+                }
+            }
+        }
+    }
+
+    EndLayout();
+    EndLayout();
+}
+
 void DrawSpriteEditor(void)
 {
+    if (KeyJustPressed("1")) brush = 1;
+    if (KeyJustPressed("2")) brush = 2;
+    if (KeyJustPressed("3")) brush = 3;
+    if (KeyJustPressed("4")) brush = 4;
+
     ClearScreen(BACKGROUND_COLOR);
-    ResetLayout();
+    BeginUI();
 
     BeginVBox(0); // MainVBox
 
@@ -108,6 +192,7 @@ void DrawSpriteEditor(void)
 
     BeginItem(-1);
     ColorLayout(BACKGROUND_COLOR);
+    DrawEditedSprite();
     EndLayout();
 
     EndLayout();

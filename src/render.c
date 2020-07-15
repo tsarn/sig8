@@ -165,10 +165,10 @@ void InitializeOpenGL(void)
 
 void OnResize(void)
 {
-    SDL_GetWindowSize(window, &width, &height);
+    SDL_GetWindowSize(window, &windowWidth, &windowHeight);
 
-    int pixelScaleX = width / SCREEN_WIDTH;
-    int pixelScaleY = height / SCREEN_HEIGHT;
+    int pixelScaleX = windowWidth / SCREEN_WIDTH;
+    int pixelScaleY = windowHeight / SCREEN_HEIGHT;
 
     if (pixelScaleX < pixelScaleY) {
         pixelScale = pixelScaleX;
@@ -176,8 +176,8 @@ void OnResize(void)
         pixelScale = pixelScaleY;
     }
 
-    offsetX = (1.0f - SCREEN_WIDTH * pixelScale * 1.0f / width) / 2.0f;
-    offsetY = (1.0f - SCREEN_HEIGHT * pixelScale * 1.0f / height) / 2.0f;
+    offsetX = (1.0f - SCREEN_WIDTH * pixelScale * 1.0f / windowWidth) / 2.0f;
+    offsetY = (1.0f - SCREEN_HEIGHT * pixelScale * 1.0f / windowHeight) / 2.0f;
 }
 
 void UpdateBufferData(void)
@@ -195,7 +195,7 @@ void UpdateBufferData(void)
 void RedrawScreen(void)
 {
     UpdateBufferData();
-    glViewport(0, 0, width, height);
+    glViewport(0, 0, windowWidth, windowHeight);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 

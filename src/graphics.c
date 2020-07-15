@@ -37,7 +37,7 @@ void InitializeScreen(void)
     }
 
     ClearScreen(0);
-    ResetArea();
+    ResetAreaStack();
 }
 
 void ClearScreen(int color)
@@ -64,7 +64,7 @@ void ResetColors(void)
     }
 }
 
-void DrawingArea(int x, int y, int w, int h)
+void SetArea(int x, int y, int w, int h)
 {
     area.x += x;
     area.y += y;
@@ -74,10 +74,15 @@ void DrawingArea(int x, int y, int w, int h)
 
 void ResetArea(void)
 {
-    int areaStackSize = 0;
     area.x = area.y = 0;
     area.width = SCREEN_WIDTH;
     area.height = SCREEN_HEIGHT;
+}
+
+void ResetAreaStack(void)
+{
+    areaStackSize = 0;
+    ResetArea();
 }
 
 void PushArea(void)
@@ -90,8 +95,13 @@ void PopArea(void)
     if (areaStackSize > 0) {
         area = areaStack[--areaStackSize];
     } else {
-        ResetArea();
+        ResetAreaStack();
     }
+}
+
+Rect GetArea(void)
+{
+    return area;
 }
 
 int GetAreaWidth(void)
@@ -164,12 +174,12 @@ void StrokeRect(int x, int y, int w, int h, int color)
 {
     for (int i = x; i < x + w; ++i) {
         DrawPixel(i, y, color);
-        DrawPixel(i, y + h, color);
+        DrawPixel(i, y + h - 1, color);
     }
 
     for (int i = y; i < y + h; ++i) {
         DrawPixel(x, i, color);
-        DrawPixel(x + w, i, color);
+        DrawPixel(x + w - 1, i, color);
     }
 }
 

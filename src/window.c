@@ -5,14 +5,16 @@ SDL_GLContext glContext = NULL;
 static int shouldQuit = 0;
 static float lastTime = 0.0f;
 static float curDelta = 1.0f / 60.0f;
-int width, height, pixelScale;
+int windowWidth, windowHeight, pixelScale;
 float offsetX, offsetY;
+SDL_Cursor *cachedCursors[SDL_NUM_SYSTEM_CURSORS];
 
 void Initialize(const char *name)
 {
     InitializeWindow(name);
     InitializeScreen();
     InitializeOpenGL();
+    InitializeCursors();
 }
 
 void Finalize(void)
@@ -55,8 +57,8 @@ void HandleEvents(void)
             break;
 
         case SDL_MOUSEMOTION: {
-            float x = (e.motion.x * 1.0f / width - offsetX) / (1.0f - 2.0f * offsetX);
-            float y = (e.motion.y * 1.0f / height - offsetY) / (1.0f - 2.0f * offsetY);
+            float x = (e.motion.x * 1.0f / windowWidth - offsetX) / (1.0f - 2.0f * offsetX);
+            float y = (e.motion.y * 1.0f / windowHeight - offsetY) / (1.0f - 2.0f * offsetY);
             if (x >= 0 && x < 1 && y >= 0 && y < 1) {
                 mousePosition.x = (int)(x * SCREEN_WIDTH);
                 mousePosition.y = (int)(y * SCREEN_HEIGHT);
@@ -112,4 +114,16 @@ int ShouldQuit(void)
 void Quit(void)
 {
     shouldQuit = 1;
+}
+
+void InitializeCursors(void)
+{
+    for (int i = 0; i < SDL_NUM_SYSTEM_CURSORS; ++i) {
+        cachedCursors[i] = SDL_CreateSystemCursor(i);
+    }
+}
+
+void SetCursorShape(CursorShape cursor)
+{
+    SDL_SetCursor(cachedCursors[cursor]);
 }
