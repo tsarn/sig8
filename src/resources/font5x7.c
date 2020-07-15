@@ -205,4 +205,4 @@ static const FontDefinition fontDefinition5x7 = {
         .fontData = fontData5x7
 };
 
-Font font5x7 = &fontDefinition5x7;
+const Font font5x7 = &fontDefinition5x7;

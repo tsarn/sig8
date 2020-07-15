@@ -34,8 +34,8 @@ typedef struct {
     int x, y;
 } MousePosition;
 
-extern Font font5x7;
-extern Font font3x5;
+extern const Font font5x7;
+extern const Font font3x5;
 
 // System functions
 void Initialize(void);

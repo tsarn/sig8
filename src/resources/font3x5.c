@@ -205,4 +205,4 @@ const FontDefinition fontDefinition3x5 = {
         .fontData = fontData3x5
 };
 
-Font font3x5 = &fontDefinition3x5;
+const Font font3x5 = &fontDefinition3x5;
