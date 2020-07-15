@@ -4,20 +4,15 @@ int main(int argc, char **argv)
 {
     Initialize();
 
-    int bg = BLACK;
+    int bg = DARK_BLUE;
     int fg = WHITE;
 
     while (!ShouldQuit()) {
         MousePosition pos = GetMousePosition();
 
-        if (MouseJustPressed(MOUSE_LEFT)) {
-            fg = rand() % 16;
-            bg = rand() % 16;
-        }
-
         ClearScreen(bg);
         DrawString(0, 0, fg, Format("Mouse: (%d, %d)", pos.x, pos.y));
-        DrawSprite(5, 20, icon);
+        DrawSprite(5, 0, icon);
     }
 
     Finalize();

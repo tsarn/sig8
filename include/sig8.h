@@ -74,6 +74,8 @@ bool MouseJustReleased(MouseButton button);
 
 // Drawing functions
 void ClearScreen(int color);
+void RemapColor(int oldColor, int newColor);
+void ResetColors(void);
 void DrawPixel(int x, int y, int color);
 void SetFont(Font font);
 void DrawCharacter(int x, int y, int color, char ch);
