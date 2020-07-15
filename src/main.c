@@ -4,8 +4,8 @@ int main(int argc, char **argv)
 {
     Initialize();
 
-    int bg = DARK_BLUE;
-    int fg = PEACH;
+    int bg = BLACK;
+    int fg = WHITE;
 
     while (!ShouldQuit()) {
         MousePosition pos = GetMousePosition();
@@ -17,6 +17,7 @@ int main(int argc, char **argv)
 
         ClearScreen(bg);
         DrawString(0, 0, fg, Format("Mouse: (%d, %d)", pos.x, pos.y));
+        DrawSprite(5, 20, icon);
     }
 
     Finalize();

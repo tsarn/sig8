@@ -8,11 +8,17 @@
 extern "C" {
 #endif
 
+#define TRANSPARENT 0xFF
+
 typedef enum {
     MOUSE_LEFT = 1,
     MOUSE_MIDDLE = 2,
     MOUSE_RIGHT = 3,
 } MouseButton;
+
+typedef struct {
+    int x, y;
+} MousePosition;
 
 typedef struct {
     uint8_t r, g, b, a;
@@ -30,12 +36,18 @@ typedef struct {
 
 typedef const FontDefinition *Font;
 
-typedef struct {
-    int x, y;
-} MousePosition;
-
 extern const Font font5x7;
 extern const Font font3x5;
+
+typedef struct {
+    int width;
+    int height;
+    const uint8_t *spriteData;
+} SpriteDefinition;
+
+typedef const SpriteDefinition *Sprite;
+
+extern const Sprite icon;
 
 // System functions
 void Initialize(void);
@@ -66,6 +78,8 @@ void DrawPixel(int x, int y, int color);
 void SetFont(Font font);
 void DrawCharacter(int x, int y, int color, char ch);
 void DrawString(int x, int y, int color, const char *string);
+void DrawSprite(int x, int y, Sprite sprite);
+void DrawSubSprite(int x, int y, Sprite sprite, int sx, int sy, int w, int h);
 
 #ifdef  __cplusplus
 };
