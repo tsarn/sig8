@@ -2,7 +2,9 @@
 
 int paletteMap[N_COLORS];
 static Font currentFont;
-int areaX, areaY, areaWidth, areaHeight;
+Rect area;
+Rect areaStack[MAX_LAYOUT_NESTING];
+int areaStackSize;
 
 // PICO-8 color scheme, licensed under CC0
 
@@ -35,6 +37,7 @@ void InitializeScreen(void)
     }
 
     ClearScreen(0);
+    ResetArea();
 }
 
 void ClearScreen(int color)
@@ -63,27 +66,42 @@ void ResetColors(void)
 
 void DrawingArea(int x, int y, int w, int h)
 {
-    areaX += x;
-    areaY += y;
-    areaWidth = w;
-    areaHeight = h;
+    area.x += x;
+    area.y += y;
+    area.width = w;
+    area.height = h;
 }
 
 void ResetArea(void)
 {
-    areaX = areaY = 0;
-    areaWidth = SCREEN_WIDTH;
-    areaHeight = SCREEN_HEIGHT;
+    int areaStackSize = 0;
+    area.x = area.y = 0;
+    area.width = SCREEN_WIDTH;
+    area.height = SCREEN_HEIGHT;
+}
+
+void PushArea(void)
+{
+    areaStack[areaStackSize++] = area;
+}
+
+void PopArea(void)
+{
+    if (areaStackSize > 0) {
+        area = areaStack[--areaStackSize];
+    } else {
+        ResetArea();
+    }
 }
 
 int GetAreaWidth(void)
 {
-    return areaWidth;
+    return area.width;
 }
 
 int GetAreaHeight(void)
 {
-    return areaHeight;
+    return area.height;
 }
 
 void DrawPixel(int x, int y, int color) {
@@ -91,12 +109,12 @@ void DrawPixel(int x, int y, int color) {
         return;
     }
 
-    x += areaX;
-    y += areaY;
+    x += area.x;
+    y += area.y;
     color = paletteMap[color];
 
-    if (color != TRANSPARENT && x >= areaX && y >= areaY &&
-        x < areaX + areaWidth && y < areaY + areaHeight) {
+    if (color != TRANSPARENT && x >= area.x && y >= area.y &&
+        x < area.x + area.width && y < area.y + area.height) {
         screenBuffer[x + SCREEN_WIDTH * y] = colorMap[color];
     }
 }
