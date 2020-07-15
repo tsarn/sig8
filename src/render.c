@@ -47,14 +47,14 @@ void ReportSDLError(void)
     exit(EXIT_FAILURE);
 }
 
-void InitializeWindow(void)
+void InitializeWindow(const char *name)
 {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         ReportSDLError();
     }
 
     window = SDL_CreateWindow(
-            WINDOW_TITLE,
+            name,
             SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
             DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT,
             SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);

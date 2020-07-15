@@ -3,22 +3,33 @@
 int paletteMap[N_COLORS];
 static Font currentFont;
 
-int GetScreenWidth(void)
-{
-    return SCREEN_WIDTH;
-}
+// PICO-8 color scheme, licensed under CC0
 
-int GetScreenHeight(void)
-{
-    return SCREEN_HEIGHT;
-}
+const char *colorNames[N_COLORS] = {
+        "#000000",
+        "#1D2B53",
+        "#7E2553",
+        "#008751",
+        "#AB5236",
+        "#5F574F",
+        "#C2C3C7",
+        "#FFF1E8",
+        "#FF004D",
+        "#FFA300",
+        "#FFEC27",
+        "#00E436",
+        "#29ADFF",
+        "#83769C",
+        "#FF77A8",
+        "#FFCCAA"
+};
 
 void InitializeScreen(void)
 {
     currentFont = font5x7;
 
     for (int i = 0; i < N_COLORS; ++i) {
-        colorMap[i] = ColorFromHex(ColorNames[i]);
+        colorMap[i] = ColorFromHex(colorNames[i]);
         paletteMap[i] = i;
     }
 

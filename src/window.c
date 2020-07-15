@@ -8,9 +8,9 @@ static float curDelta = 1.0f / 60.0f;
 int width, height, pixelScale;
 float offsetX, offsetY;
 
-void Initialize(void)
+void Initialize(const char *name)
 {
-    InitializeWindow();
+    InitializeWindow(name);
     InitializeScreen();
     InitializeOpenGL();
 }
