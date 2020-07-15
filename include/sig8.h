@@ -13,7 +13,7 @@ extern "C" {
 #define DEFAULT_PIXEL_SIZE 4
 #define DEFAULT_SCREEN_WIDTH (SCREEN_WIDTH * DEFAULT_PIXEL_SIZE)
 #define DEFAULT_SCREEN_HEIGHT (SCREEN_HEIGHT * DEFAULT_PIXEL_SIZE)
-
+#define MAX_LAYOUT_NESTING 64
 #define N_COLORS 16
 
 #define BLACK 0
@@ -96,8 +96,6 @@ bool MouseJustReleased(MouseButton button);
 void ClearScreen(int color);
 void RemapColor(int oldColor, int newColor);
 void ResetColors(void);
-void DrawingArea(int x, int y, int w, int h);
-void ResetArea(void);
 int GetAreaWidth(void);
 int GetAreaHeight(void);
 void DrawPixel(int x, int y, int color);
@@ -108,6 +106,16 @@ void DrawSprite(int x, int y, Sprite sprite);
 void DrawSubSprite(int x, int y, Sprite sprite, int sx, int sy, int w, int h);
 void StrokeRect(int x, int y, int w, int h, int color);
 void FillRect(int x, int y, int w, int h, int color);
+
+// Layout functions
+void ResetLayout(void);
+void BeginMargin(int top, int right, int bottom, int left);
+void BeginVBox(int separation);
+void BeginHBox(int separation);
+void BeginItem(int size);
+void ColorLayout(int color);
+void EndLayout(void);
+int EqualSize(int amount);
 
 #ifdef  __cplusplus
 };

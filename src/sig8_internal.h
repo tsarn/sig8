@@ -20,6 +20,11 @@ typedef struct {
     float r, g, b, a;
 } FloatColor;
 
+typedef struct {
+    int x, y;
+    int width, height;
+} Rect;
+
 void InitializeWindow(const char *name);
 void InitializeOpenGL(void);
 void InitializeScreen(void);
@@ -33,6 +38,11 @@ FloatColor ColorToFloatColor(Color color);
 
 int ConvertKeyCode(int keyCode);
 void FlushInputs(void);
+
+void DrawingArea(int x, int y, int w, int h);
+void ResetArea(void);
+void PushArea(void);
+void PopArea(void);
 
 extern int width, height, pixelScale;
 extern float offsetX, offsetY;
