@@ -11,6 +11,7 @@
 #include "glad.h"
 
 #define KEYBOARD_STATE_SIZE 512
+#define MOUSE_STATE_SIZE 16
 #define KEY_PRESSED 0x01
 #define KEY_JUST_PRESSED 0x02
 #define KEY_JUST_RELEASED 0x04
@@ -34,6 +35,9 @@ FloatColor ColorToFloatColor(Color color);
 int ConvertKeyCode(int keyCode);
 void FlushInputs(void);
 
+extern int width, height, pixelScale;
+extern float offsetX, offsetY;
+
 extern SDL_Window *window;
 extern SDL_GLContext glContext;
 extern Color screenBuffer[SCREEN_WIDTH * SCREEN_HEIGHT];
@@ -42,3 +46,6 @@ extern char *scratchMemory;
 extern size_t scratchMemorySize;
 extern size_t scratchMemoryCapacity;
 extern uint8_t keyboardState[KEYBOARD_STATE_SIZE];
+extern uint8_t mouseState[MOUSE_STATE_SIZE];
+extern MousePosition mousePosition;
+extern bool isMouseInsideWindow;
