@@ -60,8 +60,8 @@ typedef struct {
 
 typedef const FontDefinition *Font;
 
-extern const Font font5x7;
-extern const Font font3x5;
+extern const Font FONT_5X7;
+extern const Font FONT_3X5;
 
 typedef struct {
     int width;

@@ -26,7 +26,7 @@ const char *colorNames[N_COLORS] = {
 
 void InitializeScreen(void)
 {
-    currentFont = font5x7;
+    currentFont = FONT_5X7;
 
     for (int i = 0; i < N_COLORS; ++i) {
         colorMap[i] = ColorFromHex(colorNames[i]);
