@@ -16,7 +16,6 @@ const char *colorNames[N_COLORS] = {
         "#AB5236",
         "#5F574F",
         "#C2C3C7",
-        "#FFF1E8",
         "#FF004D",
         "#FFA300",
         "#FFEC27",
@@ -24,7 +23,8 @@ const char *colorNames[N_COLORS] = {
         "#29ADFF",
         "#83769C",
         "#FF77A8",
-        "#FFCCAA"
+        "#FFCCAA",
+        "#FFF1E8",
 };
 
 void InitializeScreen(void)
@@ -179,5 +179,19 @@ void FillRect(int x, int y, int w, int h, int color)
         for (int i = x; i < x + w; ++i) {
             DrawPixel(i, j, color);
         }
+    }
+}
+
+void DrawHLine(int x, int y, int w, int color)
+{
+    for (int i = 0; i < w; ++i) {
+        DrawPixel(x + i, y, color);
+    }
+}
+
+void DrawVLine(int x, int y, int h, int color)
+{
+    for (int i = 0; i < h; ++i) {
+        DrawPixel(x, y + i, color);
     }
 }

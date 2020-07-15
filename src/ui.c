@@ -67,14 +67,14 @@ void BeginItem(int size)
     };
 
     if (layout.type == LAYOUT_VBOX) {
-        if (size == 0) {
+        if (size == -1) {
             size = GetAreaHeight() - layout.offset;
         }
         DrawingArea(0, layout.offset, GetAreaWidth(), size);
     }
 
     if (layout.type == LAYOUT_HBOX) {
-        if (size == 0) {
+        if (size == -1) {
             size = GetAreaWidth() - layout.offset;
         }
         DrawingArea(layout.offset, 0, size, GetAreaHeight());
@@ -103,4 +103,18 @@ int EqualSize(int amount)
     }
 
     return (size - layout.separation * (amount - 1)) / amount;
+}
+
+bool Clickable(MouseButton button)
+{
+    if (!MouseJustPressed(button)) {
+        return false;
+    }
+
+    return (
+        mousePosition.x >= area.x &&
+        mousePosition.y >= area.y &&
+        mousePosition.x < area.x + area.width &&
+        mousePosition.y < area.y + area.height
+    );
 }
