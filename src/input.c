@@ -29,19 +29,26 @@ bool TestKeyState(const char *key, int state)
 {
     int mod = 0;
 
-    if (strncmp("Ctrl+", key, 5) == 0) {
-        mod |= KEY_CTRL;
-        key += 5;
-    }
+    while (1) {
+        if (strncmp("Ctrl+", key, 5) == 0) {
+            mod |= KEY_CTRL;
+            key += 5;
+            continue;
+        }
 
-    if (strncmp("Alt+", key, 4) == 0) {
-        mod |= KEY_ALT;
-        key += 4;
-    }
+        if (strncmp("Alt+", key, 4) == 0) {
+            mod |= KEY_ALT;
+            key += 4;
+            continue;
+        }
 
-    if (strncmp("Shift+", key, 6) == 0) {
-        mod |= KEY_SHIFT;
-        key += 6;
+        if (strncmp("Shift+", key, 6) == 0) {
+            mod |= KEY_SHIFT;
+            key += 6;
+            continue;
+        }
+        
+        break;
     }
 
     int code = ConvertKeyCode(SDL_GetKeyFromName(key));
