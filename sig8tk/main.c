@@ -1,8 +1,8 @@
-#include "sig8_internal.h"
+#include "sig8.h"
 
 int main(int argc, char **argv)
 {
-    Initialize();
+    Initialize("sig8tk");
 
     int bg = DARK_BLUE;
     int fg = WHITE;

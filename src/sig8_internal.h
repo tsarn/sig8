@@ -1,7 +1,6 @@
 #pragma once
 
 #include "sig8.h"
-#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,7 +20,7 @@ typedef struct {
     float r, g, b, a;
 } FloatColor;
 
-void InitializeWindow(void);
+void InitializeWindow(const char *name);
 void InitializeOpenGL(void);
 void InitializeScreen(void);
 
@@ -50,3 +49,4 @@ extern uint8_t keyboardState[KEYBOARD_STATE_SIZE];
 extern uint8_t mouseState[MOUSE_STATE_SIZE];
 extern MousePosition mousePosition;
 extern bool isMouseInsideWindow;
+extern const char *colorNames[N_COLORS];

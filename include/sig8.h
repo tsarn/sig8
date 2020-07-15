@@ -8,6 +8,30 @@
 extern "C" {
 #endif
 
+#define SCREEN_WIDTH 160
+#define SCREEN_HEIGHT (SCREEN_WIDTH / 4 * 3)
+#define DEFAULT_PIXEL_SIZE 4
+#define DEFAULT_SCREEN_WIDTH (SCREEN_WIDTH * DEFAULT_PIXEL_SIZE)
+#define DEFAULT_SCREEN_HEIGHT (SCREEN_HEIGHT * DEFAULT_PIXEL_SIZE)
+
+#define N_COLORS 16
+
+#define BLACK 0
+#define DARK_BLUE 1
+#define DARK_PURPLE 2
+#define DARK_GREEN 3
+#define BROWN 4
+#define DARK_GRAY 5
+#define LIGHT_GRAY 6
+#define WHITE 7
+#define RED 8
+#define ORANGE 9
+#define YELLOW 10
+#define GREEN 11
+#define BLUE 12
+#define INDIGO 13
+#define PINK 14
+#define PEACH 15
 #define TRANSPARENT 0xFF
 
 typedef enum {
@@ -48,15 +72,13 @@ typedef struct {
 typedef const SpriteDefinition *Sprite;
 
 // System functions
-void Initialize(void);
+void Initialize(const char *name);
 void Finalize(void);
 int ShouldQuit(void);
 void Quit(void);
 
 // Utility functions
 Color ColorFromHex(const char *hex);
-int GetScreenWidth(void);
-int GetScreenHeight(void);
 void* TempAlloc(size_t n);
 char *Format(const char *fmt, ...);
 float GetDelta(void);
