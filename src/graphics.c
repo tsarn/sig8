@@ -1,5 +1,6 @@
 #include "sig8_internal.h"
 
+int paletteMap[N_COLORS];
 static Font currentFont;
 
 int GetScreenWidth(void)
@@ -18,6 +19,7 @@ void InitializeScreen(void)
 
     for (int i = 0; i < N_COLORS; ++i) {
         colorMap[i] = ColorFromHex(ColorNames[i]);
+        paletteMap[i] = i;
     }
 
     ClearScreen(0);
@@ -35,8 +37,24 @@ void SetFont(Font font)
     currentFont = font;
 }
 
+void RemapColor(int oldColor, int newColor)
+{
+    paletteMap[oldColor] = newColor;
+}
+
+void ResetColors(void)
+{
+    for (int i = 0; i < N_COLORS; ++i) {
+        paletteMap[i] = i;
+    }
+}
+
 void DrawPixel(int x, int y, int color) {
-    if (x >= 0 && y >= 0 && x < SCREEN_WIDTH && y < SCREEN_HEIGHT && color != TRANSPARENT) {
+    if (color == TRANSPARENT) {
+        return;
+    }
+    color = paletteMap[color];
+    if (color != TRANSPARENT && x >= 0 && y >= 0 && x < SCREEN_WIDTH && y < SCREEN_HEIGHT) {
         screenBuffer[x + SCREEN_WIDTH * y] = colorMap[color];
     }
 }
