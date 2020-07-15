@@ -2,6 +2,7 @@
 
 int paletteMap[N_COLORS];
 static Font currentFont;
+int areaX, areaY, areaWidth, areaHeight;
 
 // PICO-8 color scheme, licensed under CC0
 
@@ -60,12 +61,42 @@ void ResetColors(void)
     }
 }
 
+void DrawingArea(int x, int y, int w, int h)
+{
+    areaX += x;
+    areaY += y;
+    areaWidth = w;
+    areaHeight = h;
+}
+
+void ResetArea(void)
+{
+    areaX = areaY = 0;
+    areaWidth = SCREEN_WIDTH;
+    areaHeight = SCREEN_HEIGHT;
+}
+
+int GetAreaWidth(void)
+{
+    return areaWidth;
+}
+
+int GetAreaHeight(void)
+{
+    return areaHeight;
+}
+
 void DrawPixel(int x, int y, int color) {
     if (color == TRANSPARENT) {
         return;
     }
+
+    x += areaX;
+    y += areaY;
     color = paletteMap[color];
-    if (color != TRANSPARENT && x >= 0 && y >= 0 && x < SCREEN_WIDTH && y < SCREEN_HEIGHT) {
+
+    if (color != TRANSPARENT && x >= areaX && y >= areaY &&
+        x < areaX + areaWidth && y < areaY + areaHeight) {
         screenBuffer[x + SCREEN_WIDTH * y] = colorMap[color];
     }
 }

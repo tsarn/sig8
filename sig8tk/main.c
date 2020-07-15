@@ -8,7 +8,10 @@ int main(int argc, char **argv)
 
     while (!ShouldQuit()) {
         ClearScreen(BACKGROUND_COLOR);
-        FillRect(0, 0, SCREEN_WIDTH, 7, TOOLBAR_COLOR);
+        ResetArea();
+
+        DrawingArea(5, 5, SCREEN_WIDTH - 10, SCREEN_HEIGHT - 10);
+        FillRect(0, 0, GetAreaWidth(), 7, TOOLBAR_COLOR);
     }
 
     Finalize();
