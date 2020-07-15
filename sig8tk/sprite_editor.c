@@ -184,6 +184,10 @@ void DrawSpriteEditor(void)
         fclose(f);
     }
 
+    if (KeyJustPressed("Escape")) {
+        Quit();
+    }
+
     ClearScreen(BACKGROUND_COLOR);
     BeginUI();
 

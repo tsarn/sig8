@@ -17,7 +17,7 @@ int ConvertKeyCode(int keyCode)
 void FlushInputs(void)
 {
     for (int i = 0; i < KEYBOARD_STATE_SIZE; ++i) {
-        keyboardState[i] &= KEY_PRESSED;
+        keyboardState[i] &= KEY_PRESSED | KEY_MODS;
     }
 
     for (int i = 0; i < MOUSE_STATE_SIZE; ++i) {
@@ -27,7 +27,26 @@ void FlushInputs(void)
 
 bool TestKeyState(const char *key, int state)
 {
-    return (bool)(keyboardState[SDL_GetKeyFromName(key)] & state);
+    int mod = 0;
+
+    if (strncmp("Ctrl+", key, 5) == 0) {
+        mod |= KEY_CTRL;
+        key += 5;
+    }
+
+    if (strncmp("Alt+", key, 4) == 0) {
+        mod |= KEY_ALT;
+        key += 4;
+    }
+
+    if (strncmp("Shift+", key, 6) == 0) {
+        mod |= KEY_SHIFT;
+        key += 6;
+    }
+
+    int code = ConvertKeyCode(SDL_GetKeyFromName(key));
+    return (bool)(keyboardState[code] & state) &&
+            (bool)((keyboardState[code] & KEY_MODS) == mod);
 }
 
 bool KeyPressed(const char *key)

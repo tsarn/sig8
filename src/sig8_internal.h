@@ -15,6 +15,10 @@
 #define KEY_JUST_PRESSED 0x02
 #define KEY_JUST_RELEASED 0x04
 #define KEY_IS_REPEAT 0x08
+#define KEY_CTRL 0x10
+#define KEY_ALT 0x20
+#define KEY_SHIFT 0x40
+#define KEY_MODS (KEY_CTRL | KEY_ALT | KEY_SHIFT)
 
 typedef struct {
     float r, g, b, a;

@@ -77,6 +77,20 @@ void HandleEvents(void)
             mouseState[e.button.button] = KEY_JUST_RELEASED;
             break;
         }
+
+        if (e.type == SDL_KEYDOWN || e.type == SDL_KEYUP) {
+            if (e.key.keysym.mod & KMOD_CTRL) {
+                keyboardState[ConvertKeyCode(e.key.keysym.sym)] |= KEY_CTRL;
+            }
+
+            if (e.key.keysym.mod & KMOD_ALT) {
+                keyboardState[ConvertKeyCode(e.key.keysym.sym)] |= KEY_ALT;
+            }
+
+            if (e.key.keysym.mod & KMOD_SHIFT) {
+                keyboardState[ConvertKeyCode(e.key.keysym.sym)] |= KEY_SHIFT;
+            }
+        }
     }
 }
 
