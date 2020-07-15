@@ -36,7 +36,9 @@ void SetFont(Font font)
 }
 
 void DrawPixel(int x, int y, int color) {
-    screenBuffer[x + SCREEN_WIDTH * y] = colorMap[color];
+    if (x >= 0 && y >= 0 && x < SCREEN_WIDTH && y < SCREEN_HEIGHT && color != TRANSPARENT) {
+        screenBuffer[x + SCREEN_WIDTH * y] = colorMap[color];
+    }
 }
 
 void DrawCharacter(int x, int y, int color, char ch)
@@ -63,5 +65,19 @@ void DrawString(int x, int y, int color, const char *string)
         DrawCharacter(x, y, color, *c);
 
         x += currentFont->horizontalStep + currentFont->width;
+    }
+}
+
+void DrawSprite(int x, int y, Sprite sprite)
+{
+    DrawSubSprite(x, y, sprite, 0, 0, sprite->width, sprite->height);
+}
+
+void DrawSubSprite(int x, int y, Sprite sprite, int sx, int sy, int w, int h)
+{
+    for (int j = 0; j < h; ++j) {
+        for (int i = 0; i < w; ++i) {
+            DrawPixel(x + i, y + j, sprite->spriteData[(sy + j) * w + sx + i]);
+        }
     }
 }
