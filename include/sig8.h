@@ -47,8 +47,6 @@ typedef struct {
 
 typedef const SpriteDefinition *Sprite;
 
-extern const Sprite icon;
-
 // System functions
 void Initialize(void);
 void Finalize(void);
