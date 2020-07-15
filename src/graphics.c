@@ -79,7 +79,7 @@ void DrawCharacter(int x, int y, int color, char ch)
 
     uch -= currentFont->firstCharCode;
     for (int i = 0; i < currentFont->width; ++i) {
-        uint8_t line = currentFont->fontData[uch * currentFont->width + i];
+        uint8_t line = currentFont->data[uch * currentFont->width + i];
         for (int j = 0; j < currentFont->height; ++j) {
             if ((line >> j) & 1) {
                 DrawPixel(x + i, y + j, color);
@@ -106,7 +106,29 @@ void DrawSubSprite(int x, int y, Sprite sprite, int sx, int sy, int w, int h)
 {
     for (int j = 0; j < h; ++j) {
         for (int i = 0; i < w; ++i) {
-            DrawPixel(x + i, y + j, sprite->spriteData[(sy + j) * w + sx + i]);
+            DrawPixel(x + i, y + j, sprite->data[(sy + j) * w + sx + i]);
+        }
+    }
+}
+
+void StrokeRect(int x, int y, int w, int h, int color)
+{
+    for (int i = x; i < x + w; ++i) {
+        DrawPixel(i, y, color);
+        DrawPixel(i, y + h, color);
+    }
+
+    for (int i = y; i < y + h; ++i) {
+        DrawPixel(x, i, color);
+        DrawPixel(x + w, i, color);
+    }
+}
+
+void FillRect(int x, int y, int w, int h, int color)
+{
+    for (int j = y; j < y + h; ++j) {
+        for (int i = x; i < x + w; ++i) {
+            DrawPixel(i, j, color);
         }
     }
 }

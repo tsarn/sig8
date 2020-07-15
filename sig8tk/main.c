@@ -1,17 +1,14 @@
-#include "sig8.h"
+#include "sig8tk.h"
 
 int main(int argc, char **argv)
 {
     Initialize("sig8tk");
 
-    int bg = DARK_BLUE;
-    int fg = WHITE;
+    SetFont(FONT_3X5);
 
     while (!ShouldQuit()) {
-        MousePosition pos = GetMousePosition();
-
-        ClearScreen(bg);
-        DrawString(0, 0, fg, Format("Mouse: (%d, %d)", pos.x, pos.y));
+        ClearScreen(BACKGROUND_COLOR);
+        FillRect(0, 0, SCREEN_WIDTH, 7, TOOLBAR_COLOR);
     }
 
     Finalize();

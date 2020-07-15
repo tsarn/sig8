@@ -202,7 +202,7 @@ const FontDefinition fontDefinition3x5 = {
         .height = 5,
         .horizontalStep = 1,
         .verticalStep = 1,
-        .fontData = fontData3x5
+        .data = fontData3x5
 };
 
 const Font FONT_3X5 = &fontDefinition3x5;
