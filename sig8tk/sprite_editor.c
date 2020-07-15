@@ -174,7 +174,7 @@ void DrawSpriteEditor(void)
     if (KeyJustPressed("3")) brush = 3;
     if (KeyJustPressed("4")) brush = 4;
 
-    if (KeyJustPressed("S")) {
+    if (KeyJustPressed("Ctrl+S")) {
         FILE *f = fopen("sig8tk_resources.h", "w");
         Resource res;
         strcpy(res.name, "TEST");
