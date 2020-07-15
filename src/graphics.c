@@ -1,6 +1,6 @@
 #include "sig8_internal.h"
 
-static const Font *currentFont;
+static Font currentFont;
 
 int GetScreenWidth(void)
 {
@@ -14,7 +14,7 @@ int GetScreenHeight(void)
 
 void InitializeScreen(void)
 {
-    currentFont = &fontMono5x7;
+    currentFont = font5x7;
 
     for (int i = 0; i < N_COLORS; ++i) {
         colorMap[i] = ColorFromHex(ColorNames[i]);
@@ -30,7 +30,7 @@ void ClearScreen(int color)
     }
 }
 
-void SetFont(const Font *font)
+void SetFont(Font font)
 {
     currentFont = font;
 }

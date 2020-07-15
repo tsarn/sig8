@@ -26,14 +26,16 @@ typedef struct {
     uint8_t horizontalStep;
     uint8_t verticalStep;
     const uint8_t *fontData;
-} Font;
+} FontDefinition;
+
+typedef const FontDefinition *Font;
 
 typedef struct {
     int x, y;
 } MousePosition;
 
-extern const Font fontMono5x7;
-extern const Font fontMono3x5;
+extern Font font5x7;
+extern Font font3x5;
 
 // System functions
 void Initialize(void);
@@ -61,7 +63,7 @@ bool MouseJustReleased(MouseButton button);
 // Drawing functions
 void ClearScreen(int color);
 void DrawPixel(int x, int y, int color);
-void SetFont(const Font* font);
+void SetFont(Font font);
 void DrawCharacter(int x, int y, int color, char ch);
 void DrawString(int x, int y, int color, const char *string);
 
