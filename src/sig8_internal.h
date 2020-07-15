@@ -20,14 +20,10 @@ typedef struct {
     float r, g, b, a;
 } FloatColor;
 
-typedef struct {
-    int x, y;
-    int width, height;
-} Rect;
-
 void InitializeWindow(const char *name);
 void InitializeOpenGL(void);
 void InitializeScreen(void);
+void InitializeCursors(void);
 
 void HandleEvents(void);
 void RedrawScreen(void);
@@ -39,12 +35,7 @@ FloatColor ColorToFloatColor(Color color);
 int ConvertKeyCode(int keyCode);
 void FlushInputs(void);
 
-void DrawingArea(int x, int y, int w, int h);
-void ResetArea(void);
-void PushArea(void);
-void PopArea(void);
-
-extern int width, height, pixelScale;
+extern int windowWidth, windowHeight, pixelScale;
 extern float offsetX, offsetY;
 
 extern SDL_Window *window;
@@ -63,3 +54,4 @@ extern const char *colorNames[N_COLORS];
 extern Rect area;
 extern Rect areaStack[MAX_LAYOUT_NESTING];
 extern int areaStackSize;
+extern SDL_Cursor *cachedCursors[SDL_NUM_SYSTEM_CURSORS];

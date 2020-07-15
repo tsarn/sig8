@@ -41,12 +41,5 @@ typedef struct {
 
 // Sprite editor
 
-typedef struct {
-    ResourceSprite sprite;
-    int fg, bg;
-} SpriteEditor;
-
-extern SpriteEditor spriteEditor;
-
 void DrawSpriteEditor(void);
 void InitSpriteEditor(void);
