@@ -195,7 +195,7 @@ static const uint8_t fontData3x5[] = {
         0x4, 0xa, 0x4,
 };
 
-const FontDefinition fontDefinition3x5 = {
+static const FontDefinition fontDefinition3x5 = {
         .firstCharCode = 32,
         .lastCharCode = 127,
         .width = 3,

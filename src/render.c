@@ -57,7 +57,7 @@ void InitializeWindow(const char *name)
             name,
             SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
             DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT,
-            SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
+            SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 
     if (!window) {
         ReportSDLError();
