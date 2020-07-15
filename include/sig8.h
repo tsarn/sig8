@@ -55,7 +55,7 @@ typedef struct {
     uint8_t height;
     uint8_t horizontalStep;
     uint8_t verticalStep;
-    const uint8_t *fontData;
+    const uint8_t *data;
 } FontDefinition;
 
 typedef const FontDefinition *Font;
@@ -66,7 +66,7 @@ extern const Font FONT_3X5;
 typedef struct {
     int width;
     int height;
-    const uint8_t *spriteData;
+    const uint8_t *data;
 } SpriteDefinition;
 
 typedef const SpriteDefinition *Sprite;
@@ -102,6 +102,8 @@ void DrawCharacter(int x, int y, int color, char ch);
 void DrawString(int x, int y, int color, const char *string);
 void DrawSprite(int x, int y, Sprite sprite);
 void DrawSubSprite(int x, int y, Sprite sprite, int sx, int sy, int w, int h);
+void StrokeRect(int x, int y, int w, int h, int color);
+void FillRect(int x, int y, int w, int h, int color);
 
 #ifdef  __cplusplus
 };

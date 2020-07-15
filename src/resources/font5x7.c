@@ -202,7 +202,7 @@ static const FontDefinition fontDefinition5x7 = {
         .height = 7,
         .horizontalStep = 1,
         .verticalStep = 1,
-        .fontData = fontData5x7
+        .data = fontData5x7
 };
 
 const Font FONT_5X7 = &fontDefinition5x7;
