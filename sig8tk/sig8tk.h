@@ -8,6 +8,10 @@
 #include <assert.h>
 #include <time.h>
 
+#define MAX_LINE_LENGTH 4096
+#define MAX_RESOURCE_NAME 32
+#define MAX_SPRITE_DIMENSION 32
+
 // Color scheme
 
 #define BACKGROUND_COLOR DARK_BLUE
@@ -17,11 +21,12 @@
 // Resources
 
 typedef enum {
-    RESOURCE_SPRITE = 1,
-    RESOURCE_TILEMAP,
-    RESOURCE_SFX,
-    RESOURCE_MUSIC,
-    RESOURCE_FONT,
+    RESOURCE_NONE = 0,
+    RESOURCE_SPRITE,
+//    RESOURCE_TILEMAP,
+//    RESOURCE_SFX,
+//    RESOURCE_MUSIC,
+//    RESOURCE_FONT,
 } ResourceType;
 
 typedef struct {
@@ -33,11 +38,15 @@ typedef struct {
 
 typedef struct {
     ResourceType type;
-    const char *name;
+    char name[MAX_RESOURCE_NAME];
     union {
         ResourceSprite sprite;
     };
 } Resource;
+
+
+void WriteResource(const Resource *resource, FILE *file);
+Resource *ReadResources(FILE *file);
 
 // Sprite editor
 

@@ -1,6 +1,5 @@
 #include "sig8tk.h"
 
-
 static ResourceSprite sprite;
 static int fg, bg;
 static int zoom;
@@ -22,8 +21,12 @@ void InitSpriteEditor(void)
 {
     bg = BLACK;
     fg = WHITE;
-    sprite = NewSprite(8, 8);
-    zoom = 8;
+    //sprite = NewSprite(8, 8);
+    FILE *f = fopen("sig8tk_resources.h", "r");
+    Resource *resources = ReadResources(f);
+    sprite = resources->sprite;
+    fclose(f);
+    zoom = 6;
     brush = 1;
 }
 
@@ -170,6 +173,16 @@ void DrawSpriteEditor(void)
     if (KeyJustPressed("2")) brush = 2;
     if (KeyJustPressed("3")) brush = 3;
     if (KeyJustPressed("4")) brush = 4;
+
+    if (KeyJustPressed("S")) {
+        FILE *f = fopen("sig8tk_resources.h", "w");
+        Resource res;
+        strcpy(res.name, "TEST");
+        res.type = RESOURCE_SPRITE;
+        res.sprite = sprite;
+        WriteResource(&res, f);
+        fclose(f);
+    }
 
     ClearScreen(BACKGROUND_COLOR);
     BeginUI();
