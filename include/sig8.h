@@ -23,15 +23,15 @@ extern "C" {
 #define BROWN 4
 #define DARK_GRAY 5
 #define LIGHT_GRAY 6
-#define WHITE 7
-#define RED 8
-#define ORANGE 9
-#define YELLOW 10
-#define GREEN 11
-#define BLUE 12
-#define INDIGO 13
-#define PINK 14
-#define PEACH 15
+#define RED 7
+#define ORANGE 8
+#define YELLOW 9
+#define GREEN 10
+#define BLUE 11
+#define INDIGO 12
+#define PINK 13
+#define PEACH 14
+#define WHITE 15
 #define TRANSPARENT 0xFF
 
 typedef enum {
@@ -106,8 +106,10 @@ void DrawSprite(int x, int y, Sprite sprite);
 void DrawSubSprite(int x, int y, Sprite sprite, int sx, int sy, int w, int h);
 void StrokeRect(int x, int y, int w, int h, int color);
 void FillRect(int x, int y, int w, int h, int color);
+void DrawHLine(int x, int y, int w, int color);
+void DrawVLine(int x, int y, int h, int color);
 
-// Layout functions
+// UI functions
 void ResetLayout(void);
 void BeginMargin(int top, int right, int bottom, int left);
 void BeginVBox(int separation);
@@ -116,6 +118,7 @@ void BeginItem(int size);
 void ColorLayout(int color);
 void EndLayout(void);
 int EqualSize(int amount);
+bool Clickable(MouseButton button);
 
 #ifdef  __cplusplus
 };

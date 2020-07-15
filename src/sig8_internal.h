@@ -60,3 +60,6 @@ extern uint8_t mouseState[MOUSE_STATE_SIZE];
 extern MousePosition mousePosition;
 extern bool isMouseInsideWindow;
 extern const char *colorNames[N_COLORS];
+extern Rect area;
+extern Rect areaStack[MAX_LAYOUT_NESTING];
+extern int areaStackSize;

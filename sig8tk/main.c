@@ -6,9 +6,10 @@ int main(int argc, char **argv)
 
     SetFont(FONT_3X5);
 
+    InitSpriteEditor();
+
     while (!ShouldQuit()) {
-        ClearScreen(DARK_BLUE);
-        ResetLayout();
+        DrawSpriteEditor();
     }
 
     Finalize();
