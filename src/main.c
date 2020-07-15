@@ -12,7 +12,6 @@ int main(int argc, char **argv)
 
         ClearScreen(bg);
         DrawString(0, 0, fg, Format("Mouse: (%d, %d)", pos.x, pos.y));
-        DrawSprite(5, 0, icon);
     }
 
     Finalize();
