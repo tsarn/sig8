@@ -8,6 +8,12 @@
 extern "C" {
 #endif
 
+typedef enum {
+    MOUSE_LEFT = 1,
+    MOUSE_MIDDLE = 2,
+    MOUSE_RIGHT = 3,
+} MouseButton;
+
 typedef struct {
     uint8_t r, g, b, a;
 } Color;
@@ -21,6 +27,10 @@ typedef struct {
     uint8_t verticalStep;
     const uint8_t *fontData;
 } Font;
+
+typedef struct {
+    int x, y;
+} MousePosition;
 
 extern const Font fontMono5x7;
 extern const Font fontMono3x5;
@@ -43,6 +53,10 @@ float GetDelta(void);
 bool KeyPressed(const char *key);
 bool KeyJustPressed(const char *key);
 bool KeyJustReleased(const char *key);
+MousePosition GetMousePosition(void);
+bool MousePressed(MouseButton button);
+bool MouseJustPressed(MouseButton button);
+bool MouseJustReleased(MouseButton button);
 
 // Drawing functions
 void ClearScreen(int color);

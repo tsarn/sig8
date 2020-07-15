@@ -5,6 +5,8 @@ SDL_GLContext glContext = NULL;
 static int shouldQuit = 0;
 static float lastTime = 0.0f;
 static float curDelta = 1.0f / 60.0f;
+int width, height, pixelScale;
+float offsetX, offsetY;
 
 void Initialize(void)
 {
@@ -50,6 +52,27 @@ void HandleEvents(void)
 
         case SDL_KEYUP:
             keyboardState[ConvertKeyCode(e.key.keysym.sym)] = KEY_JUST_RELEASED;
+            break;
+
+        case SDL_MOUSEMOTION: {
+            float x = (e.motion.x * 1.0f / width - offsetX) / (1.0f - 2.0f * offsetX);
+            float y = (e.motion.y * 1.0f / height - offsetY) / (1.0f - 2.0f * offsetY);
+            if (x >= 0 && x < 1 && y >= 0 && y < 1) {
+                mousePosition.x = (int)(x * SCREEN_WIDTH);
+                mousePosition.y = (int)(y * SCREEN_HEIGHT);
+                isMouseInsideWindow = true;
+            } else {
+                isMouseInsideWindow = false;
+            }
+            break;
+        }
+
+        case SDL_MOUSEBUTTONDOWN:
+            mouseState[e.button.button] = KEY_PRESSED | KEY_JUST_PRESSED;
+            break;
+
+        case SDL_MOUSEBUTTONUP:
+            mouseState[e.button.button] = KEY_JUST_RELEASED;
             break;
         }
     }

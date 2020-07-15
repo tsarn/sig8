@@ -7,16 +7,16 @@ int main(int argc, char **argv)
     int bg = DARK_BLUE;
     int fg = PEACH;
 
-    SetFont(&fontMono3x5);
-
     while (!ShouldQuit()) {
-        if (KeyJustPressed("Space")) {
-            bg = rand() % 16;
+        MousePosition pos = GetMousePosition();
+
+        if (MouseJustPressed(MOUSE_LEFT)) {
             fg = rand() % 16;
+            bg = rand() % 16;
         }
 
         ClearScreen(bg);
-        DrawString(50, 5, fg, "**** SIG-8 ****");
+        DrawString(0, 0, fg, Format("Mouse: (%d, %d)", pos.x, pos.y));
     }
 
     Finalize();

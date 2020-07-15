@@ -23,8 +23,6 @@ const char *fragmentShaderSource =
 
 Color screenBuffer[SCREEN_WIDTH * SCREEN_HEIGHT];
 Color colorMap[N_COLORS];
-static int width, height, pixelScale;
-static float offsetX, offsetY;
 
 static unsigned int screenVBO;
 static unsigned int screenVAO;
