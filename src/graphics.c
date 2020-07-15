@@ -25,10 +25,8 @@ void InitializeScreen(void)
 
 void ClearScreen(int color)
 {
-    for (int i = 0; i < SCREEN_WIDTH; ++i) {
-        for (int j = 0; j < SCREEN_HEIGHT; ++j) {
-            DrawPixel(i, j, color);
-        }
+    for (int i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT; ++i) {
+        screenBuffer[i] = colorMap[color];
     }
 }
 
