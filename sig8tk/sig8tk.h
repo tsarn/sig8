@@ -12,6 +12,11 @@
 #define MAX_RESOURCE_NAME 32
 #define MAX_SPRITE_DIMENSION 32
 
+// Layout settings
+
+#define TOOLBAR_HEIGHT 7
+#define SIDEBAR_WIDTH 43
+
 // Color scheme
 
 #define BACKGROUND_COLOR DARK_BLUE
@@ -45,10 +50,20 @@ typedef struct {
 } Resource;
 
 
-void WriteResource(const Resource *resource, FILE *file);
-Resource *ReadResources(FILE *file);
+void WriteResources(FILE *file);
+void ReadResources(FILE *file);
+void FreeResources(void);
+void EditResource(Resource *resource);
+
+extern Resource *resources;
+extern Resource *editedResource;
+
+// Resource selector
+
+void InitResourceSelector(const char *path);
+void DrawResourceSelector(void);
 
 // Sprite editor
 
-void DrawSpriteEditor(void);
 void InitSpriteEditor(void);
+void DrawSpriteEditor(void);

@@ -1,11 +1,11 @@
 #include "sig8tk.h"
 
-static ResourceSprite sprite;
+static ResourceSprite *sprite;
 static int fg, bg;
 static int zoom;
 static int brush;
 
-ResourceSprite NewSprite(int w, int h)
+static ResourceSprite NewSprite(int w, int h)
 {
     uint8_t *data = malloc(w * h);
     memset(data, 0, w * h);
@@ -17,36 +17,32 @@ ResourceSprite NewSprite(int w, int h)
     };
 }
 
-void InitSpriteEditor(void)
+void InitSpriteEditor()
 {
     bg = BLACK;
     fg = WHITE;
-    //sprite = NewSprite(8, 8);
-    FILE *f = fopen("sig8tk_resources.h", "r");
-    Resource *resources = ReadResources(f);
-    sprite = resources->sprite;
-    fclose(f);
+    sprite = &editedResource->sprite;
     zoom = 6;
     brush = 1;
 }
 
-int GetPixel(int x, int y)
+static int GetPixel(int x, int y)
 {
-    if (x < 0 || y < 0 || x >= sprite.width || y >= sprite.height) {
+    if (x < 0 || y < 0 || x >= sprite->width || y >= sprite->height) {
         return TRANSPARENT;
     }
-    return sprite.data[y * sprite.width + x];
+    return sprite->data[y * sprite->width + x];
 }
 
-void SetPixel(int x, int y, int color)
+static void SetPixel(int x, int y, int color)
 {
-    if (x < 0 || y < 0 || x >= sprite.width || y >= sprite.height) {
+    if (x < 0 || y < 0 || x >= sprite->width || y >= sprite->height) {
         return;
     }
-    sprite.data[y * sprite.width + x] = color;
+    sprite->data[y * sprite->width + x] = color;
 }
 
-void DrawColorPicker(void)
+static void DrawColorPicker(void)
 {
     BeginItem(37);
     BeginMargin(3, 5, 0, 5);
@@ -105,21 +101,21 @@ void DrawColorPicker(void)
     EndLayout();
 }
 
-void DrawEditedSprite()
+static void DrawEditedSprite()
 {
-    BeginCenter(zoom * sprite.width + 2,
-            zoom * sprite.height + 2);
+    BeginCenter(zoom * sprite->width + 2,
+            zoom * sprite->height + 2);
 
     ColorLayout(WHITE);
     BeginMargin(1, 1, 1, 1);
 
     BeginVBox(0);
 
-    for (int j = 0; j < sprite.height; ++j) {
+    for (int j = 0; j < sprite->height; ++j) {
         BeginItem(zoom);
         BeginHBox(0);
 
-        for (int i = 0; i < sprite.width; ++i) {
+        for (int i = 0; i < sprite->width; ++i) {
             BeginItem(zoom);
             ColorLayout(GetPixel(i, j));
 
@@ -174,33 +170,20 @@ void DrawSpriteEditor(void)
     if (KeyJustPressed("3")) brush = 3;
     if (KeyJustPressed("4")) brush = 4;
 
-    if (KeyJustPressed("Ctrl+S")) {
-        FILE *f = fopen("sig8tk_resources.h", "w");
-        Resource res;
-        strcpy(res.name, "TEST");
-        res.type = RESOURCE_SPRITE;
-        res.sprite = sprite;
-        WriteResource(&res, f);
-        fclose(f);
-    }
-
-    if (KeyJustPressed("Escape")) {
-        Quit();
-    }
-
     ClearScreen(BACKGROUND_COLOR);
     BeginUI();
 
     BeginVBox(0); // MainVBox
 
-    BeginItem(7); // Toolbar
+    BeginItem(TOOLBAR_HEIGHT); // Toolbar
     ColorLayout(TOOLBAR_COLOR);
+    DrawString(1, 1, ICON_COLOR, editedResource->name);
     EndLayout(); // Toolbar
 
     BeginItem(-1);
     BeginHBox(0);
 
-    BeginItem(43);
+    BeginItem(SIDEBAR_WIDTH);
     ColorLayout(DARK_GRAY);
     BeginVBox(5);
     DrawColorPicker();

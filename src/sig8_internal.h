@@ -41,7 +41,7 @@ void FlushInputs(void);
 
 extern int windowWidth, windowHeight, pixelScale;
 extern float offsetX, offsetY;
-
+extern Font currentFont;
 extern SDL_Window *window;
 extern SDL_GLContext glContext;
 extern Color screenBuffer[SCREEN_WIDTH * SCREEN_HEIGHT];

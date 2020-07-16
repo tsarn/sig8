@@ -55,6 +55,18 @@ typedef struct {
 } Rect;
 
 typedef enum {
+    HALIGN_LEFT = 0,
+    HALIGN_CENTER,
+    HALIGN_RIGHT
+} HAlign;
+
+typedef enum {
+    VALIGN_TOP = 0,
+    VALIGN_MIDDLE,
+    VALIGN_BOTTOM
+} VAlign;
+
+typedef enum {
     CURSOR_ARROW,     /**< Arrow */
     CURSOR_IBEAM,     /**< I-beam */
     CURSOR_WAIT,      /**< Wait */
@@ -110,6 +122,7 @@ bool IsLightColor(int color);
 bool KeyPressed(const char *key);
 bool KeyJustPressed(const char *key);
 bool KeyJustReleased(const char *key);
+char GetJustPressedKey(void);
 MousePosition GetMousePosition(void);
 bool MousePressed(MouseButton button);
 bool MouseJustPressed(MouseButton button);
@@ -150,6 +163,7 @@ void ColorLayout(int color);
 void EndLayout(void);
 int EqualSize(int amount);
 bool Button(MouseButton button);
+void Text(const char *text, int color, HAlign hAlign, VAlign vAlign);
 
 #ifdef  __cplusplus
 };
