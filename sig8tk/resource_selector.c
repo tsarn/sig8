@@ -39,6 +39,8 @@ static void DrawSidebar(void)
         ColorLayout(RED);
         DrawString(1, 1, WHITE, "DELETE");
         if (Button(MOUSE_LEFT)) {
+            RemoveResource(selectedResource);
+            selectedResource = NULL;
         }
         EndLayout();
 
@@ -62,7 +64,8 @@ static void DrawResourceList(void)
 
     BeginVBox(1);
 
-    for (Resource *res = resources; res->type != RESOURCE_NONE; ++res) {
+    for (int i = 0; i < resourceCount; ++i) {
+        Resource *res = &resources[i];
         BeginItem(7);
         ColorLayout(res == selectedResource ? DARK_GREEN : DARK_PURPLE);
         BeginMargin(1, 1, 1, 1);
@@ -120,6 +123,12 @@ void DrawResourceSelector(void)
         }
     }
 
+    if (inputting && KeyJustPressed("Return")) {
+        CreateResource(input, RESOURCE_SPRITE);
+        inputting = false;
+        selectedResource = NULL;
+    }
+
     if (inputting) {
         char key = GetJustPressedKey();
         int len = strlen(input);
@@ -135,6 +144,7 @@ void DrawResourceSelector(void)
         if ((key >= 'A' && key <= 'Z') || (key >= '0' && key <= '9') || key == '_') {
             if (len + 1 < MAX_RESOURCE_NAME) {
                 input[len++] = key;
+                input[len] = 0;
             }
         }
 

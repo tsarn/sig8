@@ -54,8 +54,11 @@ void WriteResources(FILE *file);
 void ReadResources(FILE *file);
 void FreeResources(void);
 void EditResource(Resource *resource);
+void RemoveResource(Resource *resource);
+void CreateResource(const char *name, ResourceType type);
 
 extern Resource *resources;
+extern int resourceCount;
 extern Resource *editedResource;
 
 // Resource selector
@@ -67,3 +70,4 @@ void DrawResourceSelector(void);
 
 void InitSpriteEditor(void);
 void DrawSpriteEditor(void);
+void InitSprite(ResourceSprite *sprite, int w, int h);
