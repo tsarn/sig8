@@ -145,3 +145,55 @@ bool Button(MouseButton button)
 
     return isInside && MouseJustPressed(button);
 }
+
+void Text(const char *text, int color, HAlign hAlign, VAlign vAlign)
+{
+    int lines = 0;
+    for (const char *s = text; s; s = strchr(s + 1, '\n')) {
+        ++lines;
+    }
+
+    int vSize = lines * currentFont->height + (lines - 1) * currentFont->verticalStep;
+    char *t = Format("%s", text);
+    char *line = strtok(t, "\n");
+    int y = 0;
+
+    switch (vAlign) {
+    case VALIGN_TOP:
+        y = 0;
+        break;
+
+    case VALIGN_MIDDLE:
+        y = (area.height - vSize) / 2;
+        break;
+
+    case VALIGN_BOTTOM:
+        y = area.height - vSize;
+        break;
+    }
+
+    while (line) {
+        int len = strlen(line);
+        int hSize = len * currentFont->width + (len - 1) * currentFont->horizontalStep;
+        int x = 0;
+
+        switch (hAlign) {
+        case HALIGN_LEFT:
+            x = 0;
+            break;
+
+        case HALIGN_CENTER:
+            x = (area.width - hSize) / 2;
+            break;
+
+        case HALIGN_RIGHT:
+            x = area.width - hSize;
+            break;
+        }
+
+        DrawString(x, y, color, line);
+
+        line = strtok(NULL, "\n");
+        y += currentFont->height + currentFont->verticalStep;
+    }
+}

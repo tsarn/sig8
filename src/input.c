@@ -47,7 +47,7 @@ bool TestKeyState(const char *key, int state)
             key += 6;
             continue;
         }
-        
+
         break;
     }
 
@@ -69,6 +69,20 @@ bool KeyJustPressed(const char *key)
 bool KeyJustReleased(const char *key)
 {
     return TestKeyState(key, KEY_JUST_RELEASED);
+}
+
+char GetJustPressedKey(void)
+{
+    for (int i = 1; i < 128; ++i) {
+        if (keyboardState[i] & (KEY_CTRL | KEY_ALT)) {
+            continue;
+        }
+
+        if (keyboardState[i] & KEY_JUST_PRESSED) {
+            return (char)toupper(i);
+        }
+    }
+    return 0;
 }
 
 MousePosition GetMousePosition(void)

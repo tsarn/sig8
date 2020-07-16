@@ -1,7 +1,7 @@
 #include "sig8_internal.h"
 
 int paletteMap[N_COLORS];
-static Font currentFont;
+Font currentFont;
 Rect area;
 Rect areaStack[MAX_LAYOUT_NESTING];
 int areaStackSize;
