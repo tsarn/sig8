@@ -5,11 +5,11 @@ static int fg, bg;
 static int zoom;
 static int brush;
 
-static ResourceSprite NewSprite(int w, int h)
+void InitSprite(ResourceSprite *sprite, int w, int h)
 {
     uint8_t *data = malloc(w * h);
     memset(data, 0, w * h);
-    return (ResourceSprite){
+    *sprite = (ResourceSprite){
         .width = w,
         .height = h,
         .frames = 1,
