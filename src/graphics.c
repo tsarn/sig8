@@ -3,8 +3,7 @@
 int paletteMap[N_COLORS];
 Font currentFont;
 
-// PICO-8 color scheme, licensed under CC0
-
+// PICO-8 color palette, licensed under CC0
 const char *colorNames[N_COLORS] = {
         "#000000",
         "#1D2B53",
@@ -99,20 +98,6 @@ void DrawString(int x, int y, int color, const char *string)
     }
 }
 
-void DrawSprite(int x, int y, Sprite sprite)
-{
-    DrawSubSprite(x, y, sprite, 0, 0, sprite->width, sprite->height);
-}
-
-void DrawSubSprite(int x, int y, Sprite sprite, int sx, int sy, int w, int h)
-{
-    for (int j = 0; j < h; ++j) {
-        for (int i = 0; i < w; ++i) {
-            DrawPixel(x + i, y + j, sprite->data[(sy + j) * w + sx + i]);
-        }
-    }
-}
-
 void StrokeRect(int x, int y, int w, int h, int color)
 {
     for (int i = x; i < x + w; ++i) {
@@ -135,16 +120,48 @@ void FillRect(int x, int y, int w, int h, int color)
     }
 }
 
-void DrawHLine(int x, int y, int w, int color)
+static void DrawLineImpl(int x0, int y0, int x1, int y1, bool swap, int color)
 {
-    for (int i = 0; i < w; ++i) {
-        DrawPixel(x + i, y, color);
+    int dx = x1 - x0;
+    int dy = y1 - y0;
+
+    int delta = 1;
+    if (dy < 0) {
+        delta = -1;
+        dy = -dy;
+    }
+
+    int err = 2 * dy - dx;
+    int y = y0;
+
+    for (int x = x0; x <= x1; ++x) {
+        if (swap) {
+            DrawPixel(x, y, color);
+        } else {
+            DrawPixel(y, x, color);
+        }
+
+        if (err > 0) {
+            y += delta;
+            err -= 2 * dx;
+        }
+        err += 2 * dy;
     }
 }
 
-void DrawVLine(int x, int y, int h, int color)
+void DrawLine(int x0, int y0, int x1, int y1, int color)
 {
-    for (int i = 0; i < h; ++i) {
-        DrawPixel(x, y + i, color);
+    if (abs(y1 - y0) < abs(x1 - x0)) {
+        if (x0 > x1) {
+            DrawLineImpl(x1, y1, x0, y0, false, color);
+        } else {
+            DrawLineImpl(x0, y0, x1, y1, false, color);
+        }
+    } else {
+        if (y0 > y1) {
+            DrawLineImpl(y1, x1, y0, x0, true, color);
+        } else {
+            DrawLineImpl(y0, x0, y1, x1, true, color);
+        }
     }
 }
