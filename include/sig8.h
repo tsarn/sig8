@@ -35,9 +35,9 @@ extern "C" {
 #define SPRITE_HFLIP 0x10
 #define SPRITE_VFLIP 0x20
 #define SPRITE_ROTATE_CW 0x40
-#define SPRITE_ROTATE_CCW 0x80
 #define SPRITE_ROTATE_180 (SPRITE_HFLIP | SPRITE_VFLIP)
-#define SPRITE_ENABLE_MASK 0x100
+#define SPRITE_ROTATE_CCW (ROTATE_CW | ROTATE_180)
+#define SPRITE_ENABLE_MASK 0x80
 #define SPRITE_MASK_COLOR(color) (SPRITE_ENABLE_MASK | (color))
 
 #define TILEMAP_WIDTH 256
@@ -114,6 +114,7 @@ extern const Font FONT_5X7;
 extern const Font FONT_3X5;
 
 typedef const uint8_t *SpriteSheet;
+typedef uint8_t *TileMap;
 
 /*
  * System functions
@@ -164,6 +165,7 @@ void FillRect(int x, int y, int w, int h, int color);
 void DrawLine(int x0, int y0, int x1, int y1, int color);
 
 void UseSpriteSheet(SpriteSheet spriteSheet);
+void FreeSpriteSheet(SpriteSheet spriteSheet);
 void DrawSprite(int x, int y, int sprite, int flags);
 void DrawSubSprite(int x, int y, int sprite, int flags, int sx, int sy, int w, int h);
 SpriteSheet SpriteSheetFromImage(const char *filename);

@@ -173,6 +173,11 @@ void UseSpriteSheet(SpriteSheet spriteSheet)
     currentSpriteSheet = spriteSheet;
 }
 
+void FreeSpriteSheet(SpriteSheet spriteSheet)
+{
+    free((uint8_t *)spriteSheet);
+}
+
 void DrawSprite(int x, int y, int sprite, int flags)
 {
     DrawSubSprite(x, y, sprite, flags, 0, 0, SPRITE_WIDTH, SPRITE_HEIGHT);
@@ -184,43 +189,31 @@ void DrawSubSprite(int x, int y, int sprite, int flags, int sx, int sy, int w, i
 
     for (int i = 0; i < w; ++i) {
         for (int j = 0; j < h; ++j) {
-            int tx = i;
-            int ty = j;
-            int zx = w;
-            int zy = h;
+            // coordinates inside of sprite
+            int tx = i + sx;
+            int ty = j + sy;
+
+            // coordinates on screen relative to (x, y)
             int px = i;
             int py = j;
 
             if (flags & SPRITE_HFLIP) {
-                tx = w - 1 - i;
+                px = w - 1 - i;
             }
 
             if (flags & SPRITE_VFLIP) {
-                ty = h - 1 - j;
+                py = h - 1 - i;
             }
 
             if (flags & SPRITE_ROTATE_CW) {
-                int z = zx;
-                zx = zy;
-                zy = z;
-
-                int t = tx;
-                tx = ty;
-                ty = zy - 1 - t;
+                int t = px;
+                px = py;
+                py = w - 1 - t;
             }
 
-            if (flags & SPRITE_ROTATE_CCW) {
-                int z = zx;
-                zx = zy;
-                zy = z;
-
-                int t = ty;
-                ty = tx;
-                tx = zx - 1 - t;
+            if (tx < 0 || ty < 0 || tx >= SPRITE_WIDTH || ty >= SPRITE_HEIGHT) {
+                continue;
             }
-
-            tx += sx;
-            ty += sy;
 
             int color = data[tx + ty * SPRITE_WIDTH];
 
