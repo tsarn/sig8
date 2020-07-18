@@ -43,24 +43,23 @@ extern "C" {
 #define TILEMAP_WIDTH 256
 #define TILEMAP_HEIGHT 256
 
-// PICO-8 color palette, licensed under CC-0
 // Colors themselves are defined in graphics.c
 #define N_COLORS 16
 #define BLACK 0
-#define DARK_BLUE 1
-#define DARK_PURPLE 2
-#define DARK_GREEN 3
-#define BROWN 4
-#define DARK_GRAY 5
-#define LIGHT_GRAY 6
-#define RED 7
-#define ORANGE 8
-#define YELLOW 9
-#define GREEN 10
-#define BLUE 11
-#define INDIGO 12
-#define PINK 13
-#define PEACH 14
+#define RED 1
+#define ORANGE 2
+#define YELLOW 3
+#define GREEN 4
+#define BLUE 5
+#define PINK 6
+#define PEACH 7
+#define PURPLE 8
+#define DARK_RED 9
+#define BROWN 10
+#define DARK_GREEN 11
+#define DARK_BLUE 12
+#define INDIGO 13
+#define GRAY 14
 #define WHITE 15
 #define TRANSPARENT (-1)
 
