@@ -8,8 +8,9 @@
 extern "C" {
 #endif
 
-#define SCREEN_WIDTH 160
-#define SCREEN_HEIGHT (SCREEN_WIDTH / 4 * 3)
+#define SCREEN_WIDTH 176
+#define SCREEN_HEIGHT 128
+
 #define DEFAULT_PIXEL_SIZE 4
 #define DEFAULT_SCREEN_WIDTH (SCREEN_WIDTH * DEFAULT_PIXEL_SIZE)
 #define DEFAULT_SCREEN_HEIGHT (SCREEN_HEIGHT * DEFAULT_PIXEL_SIZE)
@@ -53,18 +54,6 @@ typedef struct {
     int x, y;
     int width, height;
 } Rect;
-
-typedef enum {
-    HALIGN_LEFT = 0,
-    HALIGN_CENTER,
-    HALIGN_RIGHT
-} HAlign;
-
-typedef enum {
-    VALIGN_TOP = 0,
-    VALIGN_MIDDLE,
-    VALIGN_BOTTOM
-} VAlign;
 
 typedef enum {
     CURSOR_ARROW,     /**< Arrow */
@@ -142,28 +131,6 @@ void StrokeRect(int x, int y, int w, int h, int color);
 void FillRect(int x, int y, int w, int h, int color);
 void DrawHLine(int x, int y, int w, int color);
 void DrawVLine(int x, int y, int h, int color);
-
-void SetArea(int x, int y, int w, int h);
-Rect GetArea(void);
-void ResetArea(void);
-void ResetAreaStack(void);
-void PushArea(void);
-void PopArea(void);
-int GetAreaWidth(void);
-int GetAreaHeight(void);
-
-// UI functions
-void BeginUI(void);
-void BeginMargin(int top, int right, int bottom, int left);
-void BeginCenter(int width, int height);
-void BeginVBox(int separation);
-void BeginHBox(int separation);
-void BeginItem(int size);
-void ColorLayout(int color);
-void EndLayout(void);
-int EqualSize(int amount);
-bool Button(MouseButton button);
-void Text(const char *text, int color, HAlign hAlign, VAlign vAlign);
 
 #ifdef  __cplusplus
 };
