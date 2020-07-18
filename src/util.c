@@ -83,6 +83,5 @@ char *Format(const char *fmt, ...)
 
 bool IsLightColor(int color)
 {
-    return !(color == BLACK || color == DARK_BLUE || color == BROWN ||
-             color == DARK_PURPLE || color == DARK_GREEN || color == DARK_GRAY);
+    return color < 8 || color == WHITE;
 }

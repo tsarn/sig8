@@ -5,24 +5,23 @@ int paletteMap[N_COLORS];
 Font currentFont;
 SpriteSheet currentSpriteSheet;
 
-// PICO-8 color palette, licensed under CC0
 const char *colorNames[N_COLORS] = {
         "#000000",
-        "#1D2B53",
-        "#7E2553",
-        "#008751",
-        "#AB5236",
-        "#5F574F",
-        "#C2C3C7",
-        "#FF004D",
-        "#FFA300",
-        "#FFEC27",
-        "#00E436",
-        "#29ADFF",
-        "#83769C",
-        "#FF77A8",
-        "#FFCCAA",
-        "#FFF1E8",
+        "#eb2167",
+        "#eb7a23",
+        "#ebe723",
+        "#26eb50",
+        "#28bdeb",
+        "#f57aab",
+        "#f2c78f",
+        "#722ca3",
+        "#961743",
+        "#734521",
+        "#208061",
+        "#194b63",
+        "#465663",
+        "#999999",
+        "#f2f7f7",
 };
 
 void InitializeScreen(void)
