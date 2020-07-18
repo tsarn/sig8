@@ -9,7 +9,7 @@ add_library(sig8 STATIC
         resources/font5x7.c
         resources/font3x5.c
         window.c
-        input.c)
+        input.c ../examples/lines/main.c)
 
 set_target_properties(sig8 PROPERTIES VERSION ${PROJECT_VERSION})
 target_compile_features(sig8 PUBLIC c_std_11)

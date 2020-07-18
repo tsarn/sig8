@@ -2,7 +2,7 @@
 
 uint8_t keyboardState[KEYBOARD_STATE_SIZE];
 uint8_t mouseState[MOUSE_STATE_SIZE];
-MousePosition mousePosition;
+Position mousePosition;
 bool isMouseInsideWindow = false;
 
 int ConvertKeyCode(int keyCode)
@@ -85,7 +85,7 @@ char GetJustPressedKey(void)
     return 0;
 }
 
-MousePosition GetMousePosition(void)
+Position GetMousePosition(void)
 {
     return mousePosition;
 }

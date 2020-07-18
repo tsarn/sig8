@@ -52,7 +52,7 @@ extern size_t scratchMemorySize;
 extern size_t scratchMemoryCapacity;
 extern uint8_t keyboardState[KEYBOARD_STATE_SIZE];
 extern uint8_t mouseState[MOUSE_STATE_SIZE];
-extern MousePosition mousePosition;
+extern Position mousePosition;
 extern bool isMouseInsideWindow;
 extern const char *colorNames[N_COLORS];
 extern SDL_Cursor *cachedCursors[SDL_NUM_SYSTEM_CURSORS];
