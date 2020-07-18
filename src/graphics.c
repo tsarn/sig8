@@ -2,6 +2,7 @@
 
 int paletteMap[N_COLORS];
 Font currentFont;
+SpriteSheet currentSpriteSheet;
 
 // PICO-8 color palette, licensed under CC0
 const char *colorNames[N_COLORS] = {
@@ -162,6 +163,71 @@ void DrawLine(int x0, int y0, int x1, int y1, int color)
             DrawLineImpl(y1, x1, y0, x0, true, color);
         } else {
             DrawLineImpl(y0, x0, y1, x1, true, color);
+        }
+    }
+}
+
+void UseSpriteSheet(SpriteSheet spriteSheet)
+{
+    currentSpriteSheet = spriteSheet;
+}
+
+void DrawSprite(int x, int y, int sprite, int flags)
+{
+    DrawSubSprite(x, y, sprite, flags, 0, 0, SPRITE_WIDTH, SPRITE_HEIGHT);
+}
+
+void DrawSubSprite(int x, int y, int sprite, int flags, int sx, int sy, int w, int h)
+{
+    const uint8_t *data = currentSpriteSheet->data + sprite * SPRITE_WIDTH * SPRITE_HEIGHT;
+
+    for (int i = 0; i < w; ++i) {
+        for (int j = 0; j < h; ++j) {
+            int tx = i;
+            int ty = j;
+            int zx = w;
+            int zy = h;
+
+            if (flags & SPRITE_HFLIP) {
+                tx = w - 1 - i;
+            }
+
+            if (flags & SPRITE_VFLIP) {
+                ty = h - 1 - j;
+            }
+
+            if (flags & SPRITE_ROTATE_CW) {
+                int z = zx;
+                zx = zy;
+                zy = z;
+
+                int t = tx;
+                tx = ty;
+                ty = zy - 1 - t;
+            }
+
+            if (flags & SPRITE_ROTATE_CCW) {
+                int z = zx;
+                zx = zy;
+                zy = z;
+
+                int t = ty;
+                ty = tx;
+                tx = zx - 1 - t;
+            }
+
+            int color = data[tx + ty * SPRITE_WIDTH];
+
+            if (flags & SPRITE_ENABLE_MASK) {
+                if (color == (flags & 0x0f)) {
+                    continue;
+                }
+            }
+
+            tx += sx;
+            ty += sy;
+
+            DrawPixel(tx, ty, color);
         }
     }
 }

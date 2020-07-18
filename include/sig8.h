@@ -20,6 +20,29 @@ extern "C" {
 #define SPRITE_WIDTH 8
 #define SPRITE_HEIGHT 8
 
+/*
+ * Sprite flags
+ *
+ * When drawing a sprite it is possible to specify
+ * the following flags. Most of them are self-explanatory.
+ * Flips are done before the rotations.
+ *
+ * A color specified in the lower four bits
+ * can be replaced with transparency like so:
+ * SPRITE_MASK_COLOR(<color goes here>)
+ */
+
+#define SPRITE_HFLIP 0x10
+#define SPRITE_VFLIP 0x20
+#define SPRITE_ROTATE_CW 0x40
+#define SPRITE_ROTATE_CCW 0x80
+#define SPRITE_ROTATE_180 (SPRITE_HFLIP | SPRITE_VFLIP)
+#define SPRITE_ENABLE_MASK 0x100
+#define SPRITE_MASK_COLOR(color) (SPRITE_ENABLE_MASK | (color))
+
+#define TILEMAP_WIDTH 256
+#define TILEMAP_HEIGHT 256
+
 // PICO-8 color palette, licensed under CC-0
 // Colors themselves are defined in graphics.c
 #define N_COLORS 16
@@ -143,6 +166,10 @@ void DrawString(int x, int y, int color, const char *string);
 void StrokeRect(int x, int y, int w, int h, int color);
 void FillRect(int x, int y, int w, int h, int color);
 void DrawLine(int x0, int y0, int x1, int y1, int color);
+
+void UseSpriteSheet(SpriteSheet spriteSheet);
+void DrawSprite(int x, int y, int sprite, int flags);
+void DrawSubSprite(int x, int y, int sprite, int flags, int sx, int sy, int w, int h);
 
 #ifdef  __cplusplus
 };

@@ -41,18 +41,22 @@ void FlushInputs(void);
 
 extern int windowWidth, windowHeight, pixelScale;
 extern float offsetX, offsetY;
-extern Font currentFont;
 extern SDL_Window *window;
 extern SDL_GLContext glContext;
+extern SDL_Cursor *cachedCursors[SDL_NUM_SYSTEM_CURSORS];
+
 extern Color screenBuffer[SCREEN_WIDTH * SCREEN_HEIGHT];
 extern Color colorMap[N_COLORS];
 extern int paletteMap[N_COLORS];
+extern const char *colorNames[N_COLORS];
+extern Font currentFont;
+extern SpriteSheet currentSpriteSheet;
+
 extern char *scratchMemory;
 extern size_t scratchMemorySize;
 extern size_t scratchMemoryCapacity;
+
 extern uint8_t keyboardState[KEYBOARD_STATE_SIZE];
 extern uint8_t mouseState[MOUSE_STATE_SIZE];
 extern Position mousePosition;
 extern bool isMouseInsideWindow;
-extern const char *colorNames[N_COLORS];
-extern SDL_Cursor *cachedCursors[SDL_NUM_SYSTEM_CURSORS];
