@@ -7,4 +7,4 @@ find_package(SDL2 REQUIRED)
 find_package(OpenGL REQUIRED)
 
 add_subdirectory(src)
-add_subdirectory(sig8tk)
+#add_subdirectory(sig8tk)
