@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sig8.h"
+#include "sig8tk_resources.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,7 +10,7 @@
 #include <time.h>
 
 #define MAX_LINE_LENGTH 4096
-#define MAX_RESOURCE_NAME 32
+#define MAX_RESOURCE_NAME 16
 #define MAX_SPRITE_DIMENSION 32
 
 // Layout settings
@@ -22,6 +23,7 @@
 #define BACKGROUND_COLOR DARK_BLUE
 #define TOOLBAR_COLOR LIGHT_GRAY
 #define ICON_COLOR INDIGO
+#define SIDEBAR_COLOR DARK_GRAY
 
 // Resources
 
@@ -60,6 +62,12 @@ void CreateResource(const char *name, ResourceType type);
 extern Resource *resources;
 extern int resourceCount;
 extern Resource *editedResource;
+extern const char *statusString;
+
+// Generic
+
+void DrawToolbar(void);
+void DrawStatusString(void);
 
 // Resource selector
 

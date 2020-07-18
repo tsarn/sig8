@@ -44,7 +44,7 @@ static void SetPixel(int x, int y, int color)
 
 static void DrawColorPicker(void)
 {
-    BeginItem(37);
+    BeginItem(21);
     BeginMargin(3, 5, 0, 5);
     ColorLayout(WHITE);
     DrawHLine(0, GetAreaHeight() - 1, GetAreaWidth(), BLACK);
@@ -54,14 +54,14 @@ static void DrawColorPicker(void)
     BeginItem(0);
     EndLayout();
 
-    for (int j = 0; j < 4; ++j) {
+    for (int j = 0; j < 2; ++j) {
         BeginItem(7);
         BeginHBox(1);
         BeginItem(0);
         EndLayout();
 
-        for (int i = 0; i < 4; ++i) {
-            int color = i + j * 4;
+        for (int i = 0; i < 8; ++i) {
+            int color = i + j * 8;
             BeginItem(7);
             ColorLayout(color);
 
@@ -103,11 +103,13 @@ static void DrawColorPicker(void)
 
 static void DrawEditedSprite()
 {
+    BeginItem(zoom * sprite->height + 3);
     BeginCenter(zoom * sprite->width + 2,
-            zoom * sprite->height + 2);
+            zoom * sprite->height + 3);
 
     ColorLayout(WHITE);
-    BeginMargin(1, 1, 1, 1);
+    DrawHLine(0, GetAreaHeight() - 1, GetAreaWidth(), BLACK);
+    BeginMargin(1, 1, 2, 1);
 
     BeginVBox(0);
 
@@ -139,6 +141,8 @@ static void DrawEditedSprite()
         cx = (cx + zoom / 2) / zoom;
         cy = (cy + zoom / 2) / zoom;
 
+        statusString = Format("[%d,%d] %s", cx, cy, statusString);
+
         StrokeRect(cx * zoom - 1, cy * zoom - 1, t + 2, t + 2, WHITE);
         StrokeRect(cx * zoom, cy * zoom, t, t, BLACK);
 
@@ -161,10 +165,13 @@ static void DrawEditedSprite()
 
     EndLayout();
     EndLayout();
+    EndLayout();
 }
 
 void DrawSpriteEditor(void)
 {
+    statusString = Format("%dx%d", sprite->width, sprite->height);
+
     if (KeyJustPressed("1")) brush = 1;
     if (KeyJustPressed("2")) brush = 2;
     if (KeyJustPressed("3")) brush = 3;
@@ -174,29 +181,27 @@ void DrawSpriteEditor(void)
     BeginUI();
 
     BeginVBox(0); // MainVBox
-
-    BeginItem(TOOLBAR_HEIGHT); // Toolbar
-    ColorLayout(TOOLBAR_COLOR);
-    DrawString(1, 1, ICON_COLOR, editedResource->name);
-    EndLayout(); // Toolbar
+    DrawToolbar();
 
     BeginItem(-1);
     BeginHBox(0);
 
-    BeginItem(SIDEBAR_WIDTH);
-    ColorLayout(DARK_GRAY);
+    BeginItem(75);
+    ColorLayout(SIDEBAR_COLOR);
     BeginVBox(5);
     DrawColorPicker();
+    DrawEditedSprite();
     EndLayout();
     EndLayout();
 
     BeginItem(-1);
     ColorLayout(BACKGROUND_COLOR);
-    DrawEditedSprite();
     EndLayout();
 
     EndLayout();
     EndLayout();
 
     EndLayout(); // MainVBox
+
+    DrawStatusString();
 }

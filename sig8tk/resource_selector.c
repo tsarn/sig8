@@ -88,16 +88,13 @@ void DrawResourceSelector(void)
     BeginUI();
 
     BeginVBox(0); // MainVBox
-
-    BeginItem(TOOLBAR_HEIGHT); // Toolbar
-    ColorLayout(TOOLBAR_COLOR);
-    EndLayout(); // Toolbar
+    DrawToolbar();
 
     BeginItem(-1);
     BeginHBox(0);
 
     BeginItem(SIDEBAR_WIDTH);
-    ColorLayout(DARK_GRAY);
+    ColorLayout(SIDEBAR_COLOR);
     BeginMargin(2, 2, 2, 2);
     BeginVBox(5);
     DrawSidebar();
