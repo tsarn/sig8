@@ -113,11 +113,7 @@ typedef const FontDefinition *Font;
 extern const Font FONT_5X7;
 extern const Font FONT_3X5;
 
-typedef struct {
-    const uint8_t *data;
-} SpriteSheetDefinition;
-
-typedef const SpriteSheetDefinition *SpriteSheet;
+typedef const uint8_t *SpriteSheet;
 
 /*
  * System functions
@@ -170,6 +166,7 @@ void DrawLine(int x0, int y0, int x1, int y1, int color);
 void UseSpriteSheet(SpriteSheet spriteSheet);
 void DrawSprite(int x, int y, int sprite, int flags);
 void DrawSubSprite(int x, int y, int sprite, int flags, int sx, int sy, int w, int h);
+SpriteSheet SpriteSheetFromImage(const char *filename);
 
 #ifdef  __cplusplus
 };

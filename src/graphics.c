@@ -1,4 +1,5 @@
 #include "sig8_internal.h"
+#include "stb_image.h"
 
 int paletteMap[N_COLORS];
 Font currentFont;
@@ -179,7 +180,7 @@ void DrawSprite(int x, int y, int sprite, int flags)
 
 void DrawSubSprite(int x, int y, int sprite, int flags, int sx, int sy, int w, int h)
 {
-    const uint8_t *data = currentSpriteSheet->data + sprite * SPRITE_WIDTH * SPRITE_HEIGHT;
+    const uint8_t *data = currentSpriteSheet + sprite * SPRITE_WIDTH * SPRITE_HEIGHT;
 
     for (int i = 0; i < w; ++i) {
         for (int j = 0; j < h; ++j) {
@@ -187,6 +188,8 @@ void DrawSubSprite(int x, int y, int sprite, int flags, int sx, int sy, int w, i
             int ty = j;
             int zx = w;
             int zy = h;
+            int px = i;
+            int py = j;
 
             if (flags & SPRITE_HFLIP) {
                 tx = w - 1 - i;
@@ -216,6 +219,9 @@ void DrawSubSprite(int x, int y, int sprite, int flags, int sx, int sy, int w, i
                 tx = zx - 1 - t;
             }
 
+            tx += sx;
+            ty += sy;
+
             int color = data[tx + ty * SPRITE_WIDTH];
 
             if (flags & SPRITE_ENABLE_MASK) {
@@ -224,10 +230,63 @@ void DrawSubSprite(int x, int y, int sprite, int flags, int sx, int sy, int w, i
                 }
             }
 
-            tx += sx;
-            ty += sy;
-
-            DrawPixel(tx, ty, color);
+            DrawPixel(px + x, py + y, color);
         }
     }
+}
+
+SpriteSheet SpriteSheetFromImage(const char *filename)
+{
+    int width, height, channels;
+    uint8_t *data = stbi_load(filename, &width, &height, &channels, 3);
+    if (!data) {
+        return NULL;
+    }
+
+    uint8_t *result = calloc(SPRITE_SHEET_SIZE, SPRITE_WIDTH * SPRITE_HEIGHT);
+    if (!result) {
+        stbi_image_free(data);
+        return NULL;
+    }
+
+    int sizeX = width / SPRITE_WIDTH;
+    int sizeY = height / SPRITE_HEIGHT;
+    int offset = 0;
+
+    for (int i = 0; i < sizeY; ++i) {
+        for (int j = 0; j < sizeX; ++j) {
+            int imageX = j * SPRITE_WIDTH;
+            int imageY = i * SPRITE_HEIGHT;
+
+            for (int y = 0; y < SPRITE_HEIGHT; ++y) {
+                for (int x = 0; x < SPRITE_WIDTH; ++x) {
+                    uint8_t *pixel = &data[3 * (imageX + x + (imageY + y) * width)];
+
+                    int r = pixel[0];
+                    int g = pixel[1];
+                    int b = pixel[2];
+
+                    int bestColor = 0;
+                    int err = INT32_MAX;
+                    for (int color = 0; color < N_COLORS; ++color) {
+                        int dr = colorMap[color].r - r;
+                        int dg = colorMap[color].g - g;
+                        int db = colorMap[color].b - b;
+                        int curErr = dr * dr + dg * dg + db * db;
+                        if (curErr < err) {
+                            bestColor = color;
+                            err = curErr;
+                        }
+                    }
+
+                    result[offset + x + y * SPRITE_WIDTH] = bestColor;
+                }
+            }
+
+            offset += SPRITE_WIDTH * SPRITE_HEIGHT;
+        }
+    }
+
+    stbi_image_free(data);
+    return result;
 }
