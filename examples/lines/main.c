@@ -26,7 +26,7 @@ int main()
             DrawLine(0, 127, 128 - x, 128 - x, WHITE);
         }
 
-        StrokeRect(0, 0, 128, 128, WHITE);
+        StrokeRect(0, 0, 129, 128, WHITE);
     }
 
     Finalize();
