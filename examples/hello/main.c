@@ -1,3 +1,7 @@
+/*
+ * Inspired by PICO-8's demo at https://www.lexaloffle.com/pico-8.php?page=faq
+ */
+
 #include "sig8.h"
 #include <math.h>
 
@@ -11,7 +15,7 @@ int main()
 
     int t = 0;
 
-    while (!ShouldQuit()) {
+    while (Tick()) {
         ClearScreen(BLACK);
 
         for (int i = 0; i < 12; ++i) {

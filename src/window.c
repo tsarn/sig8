@@ -111,7 +111,7 @@ float GetDelta(void)
     return curDelta;
 }
 
-int ShouldQuit(void)
+int Tick(void)
 {
     RedrawScreen();
 
@@ -122,7 +122,7 @@ int ShouldQuit(void)
     FlushInputs();
     HandleEvents();
 
-    return shouldQuit;
+    return !shouldQuit;
 }
 
 void Quit(void)
