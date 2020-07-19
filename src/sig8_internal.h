@@ -20,6 +20,14 @@
 #define KEY_SHIFT 0x40
 #define KEY_MODS (KEY_CTRL | KEY_ALT | KEY_SHIFT)
 
+#define FRAME_RATE 60
+#define SAMPLE_RATE 44100
+#define SAMPLE_SIZE 1024
+#define BACKLOG_SIZE 64
+#define PRELOAD_SOUNDS 32
+
+#define SAMPLES_PER_FRAME (SAMPLE_RATE / SAMPLE_SIZE)
+
 typedef struct {
     float r, g, b, a;
 } FloatColor;
@@ -28,6 +36,7 @@ void InitializeWindow(const char *name);
 void InitializeOpenGL(void);
 void InitializeScreen(void);
 void InitializeCursors(void);
+void InitializeAudio(void);
 
 void HandleEvents(void);
 void RedrawScreen(void);
@@ -39,8 +48,13 @@ FloatColor ColorToFloatColor(Color color);
 int ConvertKeyCode(int keyCode);
 void FlushInputs(void);
 
+void AudioFrameCallback(void);
+float GetNoteFrequency(Note note);
+void FinalizeAudio(void);
+
 extern int windowWidth, windowHeight, pixelScale;
 extern float offsetX, offsetY;
+extern bool shouldQuit;
 extern SDL_Window *window;
 extern SDL_GLContext glContext;
 extern SDL_Cursor *cachedCursors[SDL_NUM_SYSTEM_CURSORS];

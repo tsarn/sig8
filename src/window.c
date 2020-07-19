@@ -2,7 +2,7 @@
 
 SDL_Window *window = NULL;
 SDL_GLContext glContext = NULL;
-static int shouldQuit = 0;
+bool shouldQuit = false;
 static float lastTime = 0.0f;
 static float curDelta = 1.0f / 60.0f;
 int windowWidth, windowHeight, pixelScale;
@@ -15,10 +15,12 @@ void Initialize(const char *name)
     InitializeScreen();
     InitializeOpenGL();
     InitializeCursors();
+    InitializeAudio();
 }
 
 void Finalize(void)
 {
+    FinalizeAudio();
     if (glContext) {
         SDL_GL_DeleteContext(glContext);
     }
@@ -36,7 +38,7 @@ void HandleEvents(void)
     while (SDL_PollEvent(&e) != 0) {
         switch (e.type) {
         case SDL_QUIT:
-            shouldQuit = 1;
+            shouldQuit = true;
             break;
 
         case SDL_WINDOWEVENT:
@@ -111,7 +113,7 @@ float GetDelta(void)
     return curDelta;
 }
 
-int Tick(void)
+bool Tick(void)
 {
     RedrawScreen();
 
@@ -121,13 +123,14 @@ int Tick(void)
     ResetScratchMemory();
     FlushInputs();
     HandleEvents();
+    AudioFrameCallback();
 
     return !shouldQuit;
 }
 
 void Quit(void)
 {
-    shouldQuit = 1;
+    shouldQuit = true;
 }
 
 void InitializeCursors(void)
