@@ -1,3 +1,7 @@
+/*
+ * Inspired by TIC-80's line demo at https://github.com/nesbox/TIC-80/wiki/line
+ */
+
 #include "sig8.h"
 #include <math.h>
 
@@ -7,7 +11,7 @@ int main()
 
     float t = 0.0f;
 
-    while (!ShouldQuit()) {
+    while (Tick()) {
         ClearScreen(BLACK);
 
         t += GetDelta();

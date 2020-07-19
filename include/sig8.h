@@ -124,7 +124,7 @@ typedef uint8_t *TileMap;
 
 void Initialize(const char *name);
 void Finalize(void);
-int ShouldQuit(void);
+int Tick(void);
 void Quit(void);
 void SetCursorShape(CursorShape cursor);
 
