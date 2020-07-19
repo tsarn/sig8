@@ -1,6 +1,6 @@
 #include "sig8_internal.h"
 
-static const uint8_t fontData3x5[] = {
+static const uint8_t data[] = {
 // char code 32
         0x0, 0x0, 0x0,
 // char code 33
@@ -195,14 +195,16 @@ static const uint8_t fontData3x5[] = {
         0x4, 0xa, 0x4,
 };
 
-static const FontDefinition fontDefinition3x5 = {
+static const FontDefinition def = {
         .firstCharCode = 32,
         .lastCharCode = 127,
         .width = 3,
         .height = 5,
         .horizontalStep = 1,
         .verticalStep = 1,
-        .data = fontData3x5
+        .lineHeight = 0,
+        .isMono = true,
+        .data = data
 };
 
-const Font FONT_3X5 = &fontDefinition3x5;
+const Font FONT_3X5 = &def;

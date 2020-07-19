@@ -104,6 +104,8 @@ typedef struct {
     int height;
     int horizontalStep;
     int verticalStep;
+    int lineHeight;
+    bool isMono;
     const uint8_t *data;
 } FontDefinition;
 
@@ -111,6 +113,7 @@ typedef const FontDefinition *Font;
 
 extern const Font FONT_5X7;
 extern const Font FONT_3X5;
+extern const Font FONT_ASEPRITE;
 
 typedef const uint8_t *SpriteSheet;
 typedef uint8_t *TileMap;
@@ -157,8 +160,8 @@ void RemapColor(int oldColor, int newColor);
 void ResetColors(void);
 void DrawPixel(int x, int y, int color);
 void SetFont(Font font);
-void DrawCharacter(int x, int y, int color, char ch);
 void DrawString(int x, int y, int color, const char *string);
+int MeasureString(const char *string);
 void StrokeRect(int x, int y, int w, int h, int color);
 void FillRect(int x, int y, int w, int h, int color);
 void DrawLine(int x0, int y0, int x1, int y1, int color);

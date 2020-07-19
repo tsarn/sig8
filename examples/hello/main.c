@@ -1,6 +1,8 @@
 #include "sig8.h"
 #include <math.h>
 
+const char *message = "Have fun with SIG-8!";
+
 int main()
 {
     Initialize("sig8 example: hello");
@@ -8,8 +10,6 @@ int main()
     UseSpriteSheet(SpriteSheetFromImage("spritesheet.png"));
 
     int t = 0;
-
-    SetFont(FONT_5X7);
 
     while (!ShouldQuit()) {
         ClearScreen(BLACK);
@@ -23,7 +23,7 @@ int main()
             }
         }
 
-        DrawString(28, 75, PEACH, "Have fun with SIG-8!");
+        DrawString((SCREEN_WIDTH - MeasureString(message)) / 2, 80, PEACH, message);
         DrawSprite(84, 90, 0, 0);
 
         ++t;

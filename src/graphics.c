@@ -26,7 +26,7 @@ const char *colorNames[N_COLORS] = {
 
 void InitializeScreen(void)
 {
-    currentFont = FONT_5X7;
+    currentFont = FONT_ASEPRITE;
 
     for (int i = 0; i < N_COLORS; ++i) {
         colorMap[i] = ColorFromHex(colorNames[i]);
@@ -72,31 +72,63 @@ void DrawPixel(int x, int y, int color) {
     }
 }
 
-void DrawCharacter(int x, int y, int color, char ch)
+static int DrawCharacter(int x, int y, int color, char ch)
 {
+    y -= currentFont->height - currentFont->lineHeight;
     uint8_t uch = (uint8_t)ch;
     if (uch < currentFont->firstCharCode || uch > currentFont->lastCharCode) {
-        return;
+        return 0;
     }
 
     uch -= currentFont->firstCharCode;
-    for (int i = 0; i < currentFont->width; ++i) {
-        uint8_t line = currentFont->data[uch * currentFont->width + i];
-        for (int j = 0; j < currentFont->height; ++j) {
-            if ((line >> j) & 1) {
-                DrawPixel(x + i, y + j, color);
+
+    if (currentFont->isMono) {
+        if (color != TRANSPARENT) {
+            for (int i = 0; i < currentFont->width; ++i) {
+                uint8_t line = currentFont->data[uch * currentFont->width + i];
+                for (int j = 0; j < currentFont->height; ++j) {
+                    if ((line >> j) & 1) {
+                        DrawPixel(x + i, y + j, color);
+                    }
+                }
             }
         }
+        return currentFont->width;
+    } else {
+        const uint8_t *data = &currentFont->data[(currentFont->width + 2) * uch];
+        int width = data[0];
+        int height = data[1];
+
+        if (color != TRANSPARENT) {
+            for (int i = 0; i < width; ++i) {
+                uint8_t line = data[2 + i];
+                for (int j = 0; j < height; ++j) {
+                    if ((line >> j) & 1) {
+                        DrawPixel(x + i, y + j, color);
+                    }
+                }
+            }
+        }
+
+        return width;
     }
 }
 
 void DrawString(int x, int y, int color, const char *string)
 {
     for (const char *c = string; *c; ++c) {
-        DrawCharacter(x, y, color, *c);
-
-        x += currentFont->horizontalStep + currentFont->width;
+        x += currentFont->horizontalStep + DrawCharacter(x, y, color, *c);
     }
+}
+
+int MeasureString(const char *string) {
+    int res = 0;
+
+    for (const char *c = string; *c; ++c) {
+        res += currentFont->horizontalStep + DrawCharacter(0, 0, TRANSPARENT, *c);
+    }
+
+    return res;
 }
 
 void StrokeRect(int x, int y, int w, int h, int color)
