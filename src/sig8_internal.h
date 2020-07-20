@@ -7,7 +7,7 @@
 #include <assert.h>
 #include <time.h>
 #include <SDL2/SDL.h>
-#include "glad.h"
+#include <GLES3/gl3.h>
 
 #define KEYBOARD_STATE_SIZE 512
 #define MOUSE_STATE_SIZE 16

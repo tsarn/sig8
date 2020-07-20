@@ -1,20 +1,20 @@
 #include "sig8_internal.h"
 
 const char *vertexShaderSource =
-    "#version 330 core\n"
+    "#version 300 es\n"
     "layout (location = 0) in vec2 pos;\n"
-    "out vec2 uv;\n"
+    "out mediump vec2 uv;\n"
     "uniform vec2 off;\n"
     "void main()\n"
     "{\n"
     "  uv = vec2(pos.x, 1.0 - pos.y);\n"
-    "  gl_Position = vec4(2.0 * (pos * (1 - 2.0 * off) + off - vec2(0.5)), 0.0, 1.0);\n"
+    "  gl_Position = vec4(2.0 * (pos * (1.0 - 2.0 * off) + off - vec2(0.5)), 0.0, 1.0);\n"
     "}";
 
 const char *fragmentShaderSource =
-    "#version 330 core\n"
-    "out vec4 fragColor;\n"
-    "in vec2 uv;\n"
+    "#version 300 es\n"
+    "out mediump vec4 fragColor;\n"
+    "in mediump vec2 uv;\n"
     "uniform sampler2D tex;\n"
     "void main()\n"
     "{\n"
@@ -64,21 +64,21 @@ void InitializeWindow(const char *name)
     }
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
 
     glContext = SDL_GL_CreateContext(window);
 
     if (!glContext) {
         ReportSDLError();
     }
-
-    if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)) {
+/*
+    if (!gladLoadGLES2Loader((GLADloadproc)SDL_GL_GetProcAddress)) {
         fprintf(stderr, "gladLoadGLLoader failed");
         Finalize();
         exit(EXIT_FAILURE);
     }
-
+*/
 }
 
 void InitializeOpenGL(void)
@@ -187,7 +187,7 @@ void UpdateBufferData(void)
 
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, screenPBO);
     glBufferData(GL_PIXEL_UNPACK_BUFFER, sizeof screenBuffer, NULL, GL_DYNAMIC_DRAW);
-    uint8_t *ptr = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+    uint8_t *ptr = glMapBufferRange(GL_PIXEL_UNPACK_BUFFER, 0, sizeof screenBuffer, GL_MAP_WRITE_BIT);
     memcpy(ptr, screenBuffer, sizeof screenBuffer);
     glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
 }
