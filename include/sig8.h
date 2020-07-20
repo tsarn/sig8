@@ -145,6 +145,8 @@ typedef struct {
     float volume;
 } Sound;
 
+extern const Sound SILENCE;
+
 /*
  * System functions
  */
