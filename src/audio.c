@@ -6,9 +6,9 @@ static int sampleOffset;
 static int frameCount;
 static float masterVolume = 1.0f;
 
-static AudioFrame soundQueue[BACKLOG_SIZE];
-static int soundQueueBack; // we push here
-static int soundQueueFront; // we pop from here
+static AudioFrame soundQueueStorage[2][PRELOAD_SOUNDS];
+static AudioFrame *soundQueue;
+static int soundQueueSize; // we pop from here
 static mtx_t soundQueueMutex;
 
 static Instrument instruments[SOUND_CHANNELS];
@@ -23,33 +23,19 @@ void FinalizeAudio(void)
 {
 }
 
-// Note: this function doesn't lock the mutex!
-static int SoundQueueSize(void)
-{
-    return (soundQueueBack - soundQueueFront + BACKLOG_SIZE) % BACKLOG_SIZE;
-}
-
 static AudioFrame SoundQueuePop(void)
 {
     mtx_lock(&soundQueueMutex);
-    if (shouldQuit || soundQueueBack == soundQueueFront) {
+    if (shouldQuit || soundQueueSize == 0) {
         mtx_unlock(&soundQueueMutex);
         return SILENCE;
     }
 
-    AudioFrame res = soundQueue[soundQueueFront];
-    soundQueueFront = (soundQueueFront + 1) % BACKLOG_SIZE;
+    AudioFrame res = soundQueue[--soundQueueSize];
 
     mtx_unlock(&soundQueueMutex);
 
     return res;
-}
-
-// Note: this function doesn't lock the mutex!
-static void SoundQueuePush(AudioFrame frame)
-{
-    soundQueue[soundQueueBack] = frame;
-    soundQueueBack = (soundQueueBack + 1) % BACKLOG_SIZE;
 }
 
 static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
@@ -111,6 +97,7 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
             totalValue += value;
         }
 
+
         if (totalValue > 1.0f) {
             totalValue = 1.0f;
         }
@@ -138,32 +125,31 @@ static void PopulateQueue(void)
         frame.instruments[ch] = instruments[ch];
     }
 
-    while (SoundQueueSize() < PRELOAD_SOUNDS) {
-        SoundQueuePush(frame);
+    AudioFrame *queue = soundQueueStorage[soundQueue == soundQueueStorage[0]];
+
+    for (int idx = 0; idx < PRELOAD_SOUNDS; ++idx) {
+        queue[PRELOAD_SOUNDS - 1 - idx] = frame;
         for (int ch = 0; ch < SOUND_CHANNELS; ++ch) {
             ++frame.duration[ch];
         }
     }
+
+    // Publish the queue
+    mtx_lock(&soundQueueMutex);
+    soundQueue = queue;
+    soundQueueSize = PRELOAD_SOUNDS;
+    mtx_unlock(&soundQueueMutex);
 }
 
 void AudioFrameCallback(void)
 {
-    mtx_lock(&soundQueueMutex);
     PopulateQueue();
-    mtx_unlock(&soundQueueMutex);
     ++frameCount;
-}
-
-static void ResetQueue(void)
-{
-    mtx_lock(&soundQueueMutex);
-    soundQueueFront = soundQueueBack = 0;
-    PopulateQueue();
-    mtx_unlock(&soundQueueMutex);
 }
 
 void InitializeAudio(void)
 {
+    soundQueue = soundQueueStorage[0];
     for (int i = 0; i < SOUND_CHANNELS; ++i) {
         SILENCE.notes[i] = STOP_NOTE;
     }
@@ -196,12 +182,12 @@ float GetNoteFrequency(Note note)
 void SetInstrument(int channel, Instrument instrument)
 {
     instruments[channel] = instrument;
-    ResetQueue();
+    PopulateQueue();
 }
 
 void PlayNote(int channel, Note note)
 {
     playingNotesSince[channel] = frameCount;
     playingNotes[channel] = note;
-    ResetQueue();
+    PopulateQueue();
 }

@@ -23,10 +23,9 @@
 #define FRAME_RATE 60
 #define SAMPLE_RATE 44100
 #define SAMPLE_SIZE 1024
-#define BACKLOG_SIZE 64
-#define PRELOAD_SOUNDS 32
+#define PRELOAD_SOUNDS 4
 
-#define SAMPLES_PER_FRAME (SAMPLE_RATE / SAMPLE_SIZE)
+#define SAMPLES_PER_FRAME (SAMPLE_RATE / FRAME_RATE)
 
 typedef struct {
     float r, g, b, a;

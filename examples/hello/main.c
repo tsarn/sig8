@@ -4,7 +4,6 @@
 
 #include "sig8.h"
 #include <math.h>
-#include <stdlib.h>
 
 const char *message = "Have fun with SIG-8!";
 
@@ -32,10 +31,6 @@ int main()
                 RemapColor(WHITE, j == 7 ? WHITE : j);
                 DrawSprite(36 + i * 8, y, 10 + i,SPRITE_MASK_COLOR(BLACK));
             }
-        }
-
-        if (KeyJustPressed("Space")) {
-            PlayNote(0, rand() % 20 + 40);
         }
 
         DrawString((SCREEN_WIDTH - MeasureString(message)) / 2, 80, PEACH, message);
