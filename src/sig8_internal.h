@@ -49,7 +49,6 @@ void FlushInputs(void);
 
 void AudioFrameCallback(void);
 float GetNoteFrequency(Note note);
-void FinalizeAudio(void);
 
 extern int windowWidth, windowHeight, pixelScale;
 extern float offsetX, offsetY;

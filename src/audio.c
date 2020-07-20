@@ -20,10 +20,6 @@ static AudioFrame SILENCE = {
     .volume = 0.0f
 };
 
-void FinalizeAudio(void)
-{
-}
-
 static int GetEnvelopeValue(const Envelope *envelope, int time, bool active)
 {
     if (!active) {

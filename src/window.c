@@ -20,7 +20,6 @@ void Initialize(const char *name)
 
 void Finalize(void)
 {
-    FinalizeAudio();
     if (glContext) {
         SDL_GL_DeleteContext(glContext);
     }
