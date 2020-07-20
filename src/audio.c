@@ -215,8 +215,8 @@ static void PopulateQueue(void)
 
 void AudioFrameCallback(void)
 {
-    PopulateQueue();
     ++frameCount;
+    PopulateQueue();
 }
 
 void InitializeAudio(void)
@@ -283,12 +283,10 @@ void PlayNote(int channel, Note note)
     playingSince[channel] = frameCount;
     isPlaying[channel] = true;
     notes[channel] = note;
-    PopulateQueue();
 }
 
 void StopNote(int channel)
 {
     isPlaying[channel] = false;
     playingSince[channel] = frameCount;
-    PopulateQueue();
 }

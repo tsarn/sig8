@@ -16,9 +16,14 @@ int main()
     Instrument testInstrument = NewInstrument();
     testInstrument.wave = TRIANGLE_WAVE;
 
+    testInstrument.envelopes[ENVELOPE_VOLUME].loopBegin = 31;
+    testInstrument.envelopes[ENVELOPE_VOLUME].loopEnd = 32;
+
     for (int i = 0; i < 32; ++i) {
-        testInstrument.envelopes[ENVELOPE_ARPEGGIO].value[i] = i / 8;
+        testInstrument.envelopes[ENVELOPE_PITCH].value[i] = i;
+        testInstrument.envelopes[ENVELOPE_VOLUME].value[i] = 255;
     }
+    testInstrument.envelopes[ENVELOPE_VOLUME].value[31] = 0;
 
     SetInstrument(0, testInstrument);
 
