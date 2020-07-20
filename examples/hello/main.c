@@ -20,7 +20,7 @@ int main()
     testInstrument.envelopes[ENVELOPE_VOLUME].loopEnd = 32;
 
     for (int i = 0; i < 32; ++i) {
-        testInstrument.envelopes[ENVELOPE_PITCH].value[i] = i;
+        testInstrument.envelopes[ENVELOPE_PITCH].value[i] = 4 * i;
         testInstrument.envelopes[ENVELOPE_VOLUME].value[i] = 255;
     }
     testInstrument.envelopes[ENVELOPE_VOLUME].value[31] = 0;
