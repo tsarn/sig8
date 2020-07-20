@@ -3,8 +3,6 @@ add_library(sig8 STATIC
         util.c
         render.c
         sig8_internal.h
-        glad.h
-        glad.c
         graphics.c
         resources/font5x7.c
         resources/font3x5.c
