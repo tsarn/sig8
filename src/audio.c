@@ -10,6 +10,12 @@ static int soundQueueFront; // we pop from here
 static mtx_t soundQueueMutex;
 static cnd_t soundQueueCond; // condition variable when sound queue is not empty2
 
+const Sound SILENCE = {
+    .volume = 0.0f,
+    .wave = SQUARE_WAVE,
+    .note = A4
+};
+
 void FinalizeAudio(void)
 {
     cnd_signal(&soundQueueCond);
@@ -26,15 +32,13 @@ static int SoundQueueSize(void)
 static Sound SoundQueuePop(void)
 {
     if (shouldQuit) {
-        return (Sound){ .volume = 0.0f };
+        return SILENCE;
     }
 
     mtx_lock(&soundQueueMutex);
-    while (soundQueueBack == soundQueueFront) {
-        cnd_wait(&soundQueueCond, &soundQueueMutex);
-        if (shouldQuit) {
-            return (Sound){ .volume = 0.0f };
-        }
+    if (soundQueueBack == soundQueueFront) {
+        mtx_unlock(&soundQueueMutex);
+        return SILENCE;
     }
 
     Sound res = soundQueue[soundQueueFront];
@@ -104,13 +108,13 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
 
 void AudioFrameCallback(void)
 {
-    /*while (SoundQueueSize() < PRELOAD_SOUNDS) {
+    while (SoundQueueSize() < PRELOAD_SOUNDS) {
         SoundQueuePush((Sound) {
                 .volume = 0.5f,
-                .wave = SAWTOOTH_WAVE,
-                .note = A4
+                .wave = SINE_WAVE,
+                .note = KeyPressed("Space") ? A5 : A4
         });
-    }*/
+    }
 }
 
 void InitializeAudio(void)
