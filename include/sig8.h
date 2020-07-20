@@ -146,19 +146,19 @@ typedef enum {
 
 typedef enum {
     // Volume (0..255), any wave
-    ENVELOP_VOLUME,
+    ENVELOPE_VOLUME,
 
     // Duty cycle, square wave
     // 0 is 12.5%, 1 is 25%, 2 is 50%, 3 is 75%
-    ENVELOP_DUTY_CYCLE,
+    ENVELOPE_DUTY_CYCLE,
 
     // Pitch, any wave except noise
     // Adds pitch, 1/16th of a semi tone per unit
-    ENVELOP_PITCH,
+    ENVELOPE_PITCH,
 
     // Arpeggio, any wave except noise
     // Shifts note in increments of semi tones
-    ENVELOP_ARPEGGIO,
+    ENVELOPE_ARPEGGIO,
 
     NUMBER_OF_ENVELOPES
 

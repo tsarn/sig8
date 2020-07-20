@@ -2,7 +2,6 @@
 #include <threads.h>
 
 static SDL_AudioDeviceID audioDevice;
-static int sampleOffset;
 static int frameCount;
 static float masterVolume = 1.0f;
 
@@ -60,31 +59,60 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
     static float freq[SOUND_CHANNELS];
     static int volumeEnvelope[SOUND_CHANNELS];
     static int pitchEnvelope[SOUND_CHANNELS];
+    static int arpeggioEnvelope[SOUND_CHANNELS];
+    static int sampleCount = 0;
+    static int sampleOffset[SOUND_CHANNELS];
+    static float phaseShift[SOUND_CHANNELS];
 
     for (int i = 0; i < len; ++i) {
-        if (sampleOffset % SAMPLES_PER_FRAME == 0) {
+        if (sampleCount == SAMPLES_PER_FRAME) {
+            sampleCount = 0;
             sound = SoundQueuePop();
             for (int ch = 0; ch < SOUND_CHANNELS; ++ch) {
                 if (sound.notes[ch] == STOP_NOTE) {
                     continue;
                 }
 
+                float t1 = 0.0f, t2 = 0.0f;
+
+                if (sound.duration[ch] == 0 && sound.isPlaying[ch]) {
+                    sampleOffset[ch] = 0;
+                    phaseShift[ch] = 0;
+                } else {
+                    t1 = freq[ch];
+                    t1 *= powf(2.0f, (float)pitchEnvelope[ch] / 12.0f / 16.0f);
+                    t1 *= (float)(sampleOffset[ch]);
+                    t1 /= SAMPLE_RATE;
+                    t1 += phaseShift[ch];
+                    t1 = fmodf(t1, 1.0f);
+                }
+
                 freq[ch] = GetNoteFrequency(sound.notes[ch]);
 
                 volumeEnvelope[ch] = GetEnvelopeValue(
-                        &sound.instruments[ch].envelopes[ENVELOP_VOLUME],
+                        &sound.instruments[ch].envelopes[ENVELOPE_VOLUME],
                         sound.duration[ch],
                         sound.isPlaying[ch]
                 );
 
                 pitchEnvelope[ch] = GetEnvelopeValue(
-                        &sound.instruments[ch].envelopes[ENVELOP_PITCH],
+                        &sound.instruments[ch].envelopes[ENVELOPE_PITCH],
                         sound.duration[ch],
                         sound.isPlaying[ch]
                 );
 
-                pitchEnvelope[ch] += 16 * GetEnvelopeValue(
-                        &sound.instruments[ch].envelopes[ENVELOP_ARPEGGIO],
+                if (!(sound.duration[ch] == 0 && sound.isPlaying[ch])) {
+                    t2 = freq[ch];
+                    t2 *= powf(2.0f, (float)pitchEnvelope[ch] / 12.0f / 16.0f);
+                    t2 *= (float)(sampleOffset[ch]);
+                    t2 /= SAMPLE_RATE;
+                    t2 += phaseShift[ch];
+                    t2 = fmodf(t2, 1.0f);
+                    phaseShift[ch] += t1 - t2;
+                }
+
+                arpeggioEnvelope[ch] = GetEnvelopeValue(
+                        &sound.instruments[ch].envelopes[ENVELOPE_ARPEGGIO],
                         sound.duration[ch],
                         sound.isPlaying[ch]
                 );
@@ -98,9 +126,11 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
                 continue;
             }
 
-            float t = freq[ch] * (float)sampleOffset ;
-            t *= powf(2.0f, (float)pitchEnvelope[ch] / 12.0f / 16.0f);
-            t /= SAMPLE_RATE;
+            float t = freq[ch] * sampleOffset[ch] * 1.0f / SAMPLE_RATE;
+            float pitch = (float)pitchEnvelope[ch];
+            pitch += 16 * arpeggioEnvelope[ch];
+            t *= powf(2.0f, pitch / 12.0f / 16.0f);
+            t += phaseShift[ch];
             t = fmodf(t, 1.0f);
 
             float value = 0.0f;
@@ -134,6 +164,8 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
 
             value *= (float)volumeEnvelope[ch] / 255.0f;
             totalValue += value;
+
+            ++sampleOffset[ch];
         }
 
 
@@ -146,12 +178,8 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
         }
 
         *stream++ = totalValue * sound.volume;
-        ++sampleOffset;
+        ++sampleCount;
     }
-
-    // Keep it from getting too big
-    // An audio click once per six hours is tolerable
-    sampleOffset %= (1 << 30);
 }
 
 static void PopulateQueue(void)
@@ -159,6 +187,10 @@ static void PopulateQueue(void)
     AudioFrame frame;
     frame.volume = masterVolume;
     for (int ch = 0; ch < SOUND_CHANNELS; ++ch) {
+        if (!isPlaying[ch] && frameCount - playingSince[ch] >= ENVELOPE_LENGTH) {
+            notes[ch] = STOP_NOTE;
+        }
+
         frame.duration[ch] = frameCount - playingSince[ch];
         frame.notes[ch] = notes[ch];
         frame.isPlaying[ch] = isPlaying[ch];
@@ -226,9 +258,10 @@ Instrument NewInstrument(void)
 
     res.volume = 1.0f;
     res.wave = SQUARE_WAVE;
+    res.envelopes[ENVELOPE_VOLUME].loopEnd = 1;
     for (int i = 0; i < ENVELOPE_LENGTH; ++i) {
-        res.envelopes[ENVELOP_VOLUME].value[i] = 255;
-        res.envelopes[ENVELOP_DUTY_CYCLE].value[i] = 2;
+        res.envelopes[ENVELOPE_VOLUME].value[i] = (i == 0) ? 255 : 0;
+        res.envelopes[ENVELOPE_DUTY_CYCLE].value[i] = 2;
     }
 
     return res;
