@@ -48,9 +48,8 @@ void HandleEvents(void)
             break;
 
         case SDL_KEYDOWN:
-            keyboardState[ConvertKeyCode(e.key.keysym.sym)] = KEY_PRESSED | KEY_JUST_PRESSED;
-            if (e.key.repeat) {
-                keyboardState[ConvertKeyCode(e.key.keysym.sym)] |= KEY_IS_REPEAT;
+            if (!e.key.repeat) {
+                keyboardState[ConvertKeyCode(e.key.keysym.sym)] = KEY_PRESSED | KEY_JUST_PRESSED;
             }
             break;
 

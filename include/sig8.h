@@ -44,7 +44,7 @@ extern "C" {
 #define TILEMAP_HEIGHT 256
 
 #define SOUND_CHANNELS 8
-#define MAX_ENVELOPE_LENGTH 16
+#define ENVELOPE_LENGTH 32
 
 // Colors themselves are defined in graphics.c
 #define N_COLORS 16
@@ -145,7 +145,7 @@ typedef enum {
 } Wave;
 
 typedef enum {
-    // Volume (0..63), any wave
+    // Volume (0..255), any wave
     ENVELOP_VOLUME,
 
     // Duty cycle, square wave
@@ -153,18 +153,21 @@ typedef enum {
     ENVELOP_DUTY_CYCLE,
 
     // Pitch, any wave except noise
-    // Adds pitch, 1/16th of a half tone per unit
+    // Adds pitch, 1/16th of a semi tone per unit
     ENVELOP_PITCH,
+
+    // Arpeggio, any wave except noise
+    // Shifts note in increments of semi tones
+    ENVELOP_ARPEGGIO,
 
     NUMBER_OF_ENVELOPES
 
 } EnvelopeType;
 
 typedef struct {
-    int length;
     int loopBegin;
     int loopEnd;
-    int value[MAX_ENVELOPE_LENGTH];
+    int value[ENVELOPE_LENGTH];
 } Envelope;
 
 typedef struct {
@@ -177,6 +180,7 @@ typedef struct {
     Note notes[SOUND_CHANNELS];
     Instrument instruments[SOUND_CHANNELS];
     int duration[SOUND_CHANNELS]; // ticks since the note started playing
+    bool isPlaying[SOUND_CHANNELS]; // is note playing, used for decay in envelopes
     float volume;
 } AudioFrame;
 
@@ -238,8 +242,10 @@ SpriteSheet SpriteSheetFromImage(const char *filename);
  * Audio functions
  */
 
+Instrument NewInstrument(void);
 void SetInstrument(int channel, Instrument instrument);
 void PlayNote(int channel, Note note);
+void StopNote(int channel);
 
 #ifdef  __cplusplus
 };

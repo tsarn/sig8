@@ -12,8 +12,9 @@ static int soundQueueSize; // we pop from here
 static mtx_t soundQueueMutex;
 
 static Instrument instruments[SOUND_CHANNELS];
-static Note playingNotes[SOUND_CHANNELS];
-static int playingNotesSince[SOUND_CHANNELS];
+static Note notes[SOUND_CHANNELS];
+static bool isPlaying[SOUND_CHANNELS];
+static int playingSince[SOUND_CHANNELS];
 
 static AudioFrame SILENCE = {
     .volume = 0.0f
@@ -21,6 +22,23 @@ static AudioFrame SILENCE = {
 
 void FinalizeAudio(void)
 {
+}
+
+static int GetEnvelopeValue(const Envelope *envelope, int time, bool active)
+{
+    if (!active) {
+        time += envelope->loopEnd;
+    } else if (time >= envelope->loopBegin && envelope->loopEnd > 0) {
+        time -= envelope->loopBegin;
+        time %= (envelope->loopEnd - envelope->loopBegin);
+        time += envelope->loopBegin;
+    }
+
+    if (time >= ENVELOPE_LENGTH) {
+        return 0;
+    }
+
+    return envelope->value[time];
 }
 
 static AudioFrame SoundQueuePop(void)
@@ -44,6 +62,8 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
     int len = byteLen / sizeof(float);
     static AudioFrame sound;
     static float freq[SOUND_CHANNELS];
+    static int volumeEnvelope[SOUND_CHANNELS];
+    static int pitchEnvelope[SOUND_CHANNELS];
 
     for (int i = 0; i < len; ++i) {
         if (sampleOffset % SAMPLES_PER_FRAME == 0) {
@@ -52,7 +72,26 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
                 if (sound.notes[ch] == STOP_NOTE) {
                     continue;
                 }
+
                 freq[ch] = GetNoteFrequency(sound.notes[ch]);
+
+                volumeEnvelope[ch] = GetEnvelopeValue(
+                        &sound.instruments[ch].envelopes[ENVELOP_VOLUME],
+                        sound.duration[ch],
+                        sound.isPlaying[ch]
+                );
+
+                pitchEnvelope[ch] = GetEnvelopeValue(
+                        &sound.instruments[ch].envelopes[ENVELOP_PITCH],
+                        sound.duration[ch],
+                        sound.isPlaying[ch]
+                );
+
+                pitchEnvelope[ch] += 16 * GetEnvelopeValue(
+                        &sound.instruments[ch].envelopes[ENVELOP_ARPEGGIO],
+                        sound.duration[ch],
+                        sound.isPlaying[ch]
+                );
             }
         }
 
@@ -63,7 +102,9 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
                 continue;
             }
 
-            float t = freq[ch] * sampleOffset / SAMPLE_RATE;
+            float t = freq[ch] * (float)sampleOffset ;
+            t *= powf(2.0f, (float)pitchEnvelope[ch] / 12.0f / 16.0f);
+            t /= SAMPLE_RATE;
             t = fmodf(t, 1.0f);
 
             float value = 0.0f;
@@ -94,6 +135,8 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
             }
 
             value *= sound.instruments[ch].volume;
+
+            value *= (float)volumeEnvelope[ch] / 255.0f;
             totalValue += value;
         }
 
@@ -120,8 +163,9 @@ static void PopulateQueue(void)
     AudioFrame frame;
     frame.volume = masterVolume;
     for (int ch = 0; ch < SOUND_CHANNELS; ++ch) {
-        frame.duration[ch] = frameCount - playingNotesSince[ch];
-        frame.notes[ch] = playingNotes[ch];
+        frame.duration[ch] = frameCount - playingSince[ch];
+        frame.notes[ch] = notes[ch];
+        frame.isPlaying[ch] = isPlaying[ch];
         frame.instruments[ch] = instruments[ch];
     }
 
@@ -179,6 +223,21 @@ float GetNoteFrequency(Note note)
     return 440.0f * powf(2.0f, ((int)note - 49) / 12.0f);
 }
 
+Instrument NewInstrument(void)
+{
+    Instrument res;
+    memset(&res, 0, sizeof res);
+
+    res.volume = 1.0f;
+    res.wave = SQUARE_WAVE;
+    for (int i = 0; i < ENVELOPE_LENGTH; ++i) {
+        res.envelopes[ENVELOP_VOLUME].value[i] = 255;
+        res.envelopes[ENVELOP_DUTY_CYCLE].value[i] = 2;
+    }
+
+    return res;
+}
+
 void SetInstrument(int channel, Instrument instrument)
 {
     instruments[channel] = instrument;
@@ -187,7 +246,20 @@ void SetInstrument(int channel, Instrument instrument)
 
 void PlayNote(int channel, Note note)
 {
-    playingNotesSince[channel] = frameCount;
-    playingNotes[channel] = note;
+    if (note == STOP_NOTE) {
+        StopNote(channel);
+        return;
+    }
+
+    playingSince[channel] = frameCount;
+    isPlaying[channel] = true;
+    notes[channel] = note;
+    PopulateQueue();
+}
+
+void StopNote(int channel)
+{
+    isPlaying[channel] = false;
+    playingSince[channel] = frameCount;
     PopulateQueue();
 }
