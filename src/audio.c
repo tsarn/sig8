@@ -126,10 +126,12 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
                 continue;
             }
 
-            float t = freq[ch] * sampleOffset[ch] * 1.0f / SAMPLE_RATE;
             float pitch = (float)pitchEnvelope[ch];
             pitch += 16 * arpeggioEnvelope[ch];
-            t *= powf(2.0f, pitch / 12.0f / 16.0f);
+
+            float fr = freq[ch] * powf(2.0f, pitch / 12.0f / 16.0f);
+
+            float t = fr * sampleOffset[ch] * 1.0f / SAMPLE_RATE;
             t += phaseShift[ch];
             t = fmodf(t, 1.0f);
 
