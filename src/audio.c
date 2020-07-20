@@ -3,45 +3,41 @@
 
 static SDL_AudioDeviceID audioDevice;
 static int sampleOffset;
+static int frameCount;
+static float masterVolume = 1.0f;
 
-static Sound soundQueue[BACKLOG_SIZE];
+static AudioFrame soundQueue[BACKLOG_SIZE];
 static int soundQueueBack; // we push here
 static int soundQueueFront; // we pop from here
 static mtx_t soundQueueMutex;
-static cnd_t soundQueueCond; // condition variable when sound queue is not empty2
 
-const Sound SILENCE = {
-    .volume = 0.0f,
-    .wave = SQUARE_WAVE,
-    .note = A4
+static Instrument instruments[SOUND_CHANNELS];
+static Note playingNotes[SOUND_CHANNELS];
+static int playingNotesSince[SOUND_CHANNELS];
+
+static AudioFrame SILENCE = {
+    .volume = 0.0f
 };
 
 void FinalizeAudio(void)
 {
-    cnd_signal(&soundQueueCond);
 }
 
+// Note: this function doesn't lock the mutex!
 static int SoundQueueSize(void)
 {
-    mtx_lock(&soundQueueMutex);
-    int res = (soundQueueBack - soundQueueFront + BACKLOG_SIZE) % BACKLOG_SIZE;
-    mtx_unlock(&soundQueueMutex);
-    return res;
+    return (soundQueueBack - soundQueueFront + BACKLOG_SIZE) % BACKLOG_SIZE;
 }
 
-static Sound SoundQueuePop(void)
+static AudioFrame SoundQueuePop(void)
 {
-    if (shouldQuit) {
-        return SILENCE;
-    }
-
     mtx_lock(&soundQueueMutex);
-    if (soundQueueBack == soundQueueFront) {
+    if (shouldQuit || soundQueueBack == soundQueueFront) {
         mtx_unlock(&soundQueueMutex);
         return SILENCE;
     }
 
-    Sound res = soundQueue[soundQueueFront];
+    AudioFrame res = soundQueue[soundQueueFront];
     soundQueueFront = (soundQueueFront + 1) % BACKLOG_SIZE;
 
     mtx_unlock(&soundQueueMutex);
@@ -49,55 +45,81 @@ static Sound SoundQueuePop(void)
     return res;
 }
 
-static void SoundQueuePush(Sound sound)
+// Note: this function doesn't lock the mutex!
+static void SoundQueuePush(AudioFrame frame)
 {
-    mtx_lock(&soundQueueMutex);
-    soundQueue[soundQueueBack] = sound;
+    soundQueue[soundQueueBack] = frame;
     soundQueueBack = (soundQueueBack + 1) % BACKLOG_SIZE;
-    mtx_unlock(&soundQueueMutex);
-    cnd_signal(&soundQueueCond);
 }
 
 static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
 {
     float *stream = (float*)byteStream;
     int len = byteLen / sizeof(float);
-    static Sound sound;
-    static float freq;
+    static AudioFrame sound;
+    static float freq[SOUND_CHANNELS];
 
     for (int i = 0; i < len; ++i) {
         if (sampleOffset % SAMPLES_PER_FRAME == 0) {
             sound = SoundQueuePop();
-            freq = GetNoteFrequency(sound.note);
+            for (int ch = 0; ch < SOUND_CHANNELS; ++ch) {
+                if (sound.notes[ch] == STOP_NOTE) {
+                    continue;
+                }
+                freq[ch] = GetNoteFrequency(sound.notes[ch]);
+            }
         }
 
-        float t = sampleOffset * freq / SAMPLE_RATE;
-        t = fmodf(t, 1.0f);
+        float totalValue = 0.0f;
 
-        float value = 0.0f;
+        for (int ch = 0; ch < SOUND_CHANNELS; ++ch) {
+            if (sound.notes[ch] == STOP_NOTE) {
+                continue;
+            }
 
-        switch (sound.wave) {
-        case NOISE:
-            value = 1.0f * rand() / RAND_MAX;
-            break;
+            float t = freq[ch] * sampleOffset / SAMPLE_RATE;
+            t = fmodf(t, 1.0f);
 
-        case SQUARE_WAVE:
-            value = (t > 0.5f) ? 1 : -1;
-            break;
+            float value = 0.0f;
 
-        case SAWTOOTH_WAVE:
-            value = 2 * t - 1;
-            break;
+            switch (sound.instruments[ch].wave) {
+            case NOISE:
+                value = 1.0f * rand() / RAND_MAX;
+                break;
 
-        case SINE_WAVE:
-            value = sinf(t * 2 * M_PI);
-            break;
+            case SQUARE_WAVE:
+                value = (t > 0.5f) ? 1 : -1;
+                break;
 
-        default:
-            break;
+            case SAWTOOTH_WAVE:
+                value = 2 * t - 1;
+                break;
+
+            case TRIANGLE_WAVE:
+                value = (t < 0.5f) ? (4 * t - 1) : (3 - 4 * t);
+                break;
+
+            case SINE_WAVE:
+                value = sinf(t * 2 * M_PI);
+                break;
+
+            default:
+                break;
+            }
+
+            value *= sound.instruments[ch].volume;
+            totalValue += value;
         }
 
-        *stream++ = value * sound.volume;
+        if (totalValue > 1.0f) {
+            totalValue = 1.0f;
+        }
+
+        if (totalValue < -1.0f) {
+            totalValue = -1.0f;
+        }
+
+        *stream++ = totalValue * sound.volume;
         ++sampleOffset;
     }
 
@@ -106,22 +128,47 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
     sampleOffset %= (1 << 30);
 }
 
+static void PopulateQueue(void)
+{
+    AudioFrame frame;
+    frame.volume = masterVolume;
+    for (int ch = 0; ch < SOUND_CHANNELS; ++ch) {
+        frame.duration[ch] = frameCount - playingNotesSince[ch];
+        frame.notes[ch] = playingNotes[ch];
+        frame.instruments[ch] = instruments[ch];
+    }
+
+    while (SoundQueueSize() < PRELOAD_SOUNDS) {
+        SoundQueuePush(frame);
+        for (int ch = 0; ch < SOUND_CHANNELS; ++ch) {
+            ++frame.duration[ch];
+        }
+    }
+}
+
 void AudioFrameCallback(void)
 {
-    while (SoundQueueSize() < PRELOAD_SOUNDS) {
-        SoundQueuePush((Sound) {
-                .volume = 0.5f,
-                .wave = SINE_WAVE,
-                .note = KeyPressed("Space") ? A5 : A4
-        });
-    }
+    mtx_lock(&soundQueueMutex);
+    PopulateQueue();
+    mtx_unlock(&soundQueueMutex);
+    ++frameCount;
+}
+
+static void ResetQueue(void)
+{
+    mtx_lock(&soundQueueMutex);
+    soundQueueFront = soundQueueBack = 0;
+    PopulateQueue();
+    mtx_unlock(&soundQueueMutex);
 }
 
 void InitializeAudio(void)
 {
-    AudioFrameCallback();
+    for (int i = 0; i < SOUND_CHANNELS; ++i) {
+        SILENCE.notes[i] = STOP_NOTE;
+    }
+
     mtx_init(&soundQueueMutex, mtx_plain);
-    cnd_init(&soundQueueCond);
     SDL_AudioSpec want, have;
     SDL_zero(want);
 
@@ -144,4 +191,17 @@ void InitializeAudio(void)
 float GetNoteFrequency(Note note)
 {
     return 440.0f * powf(2.0f, ((int)note - 49) / 12.0f);
+}
+
+void SetInstrument(int channel, Instrument instrument)
+{
+    instruments[channel] = instrument;
+    ResetQueue();
+}
+
+void PlayNote(int channel, Note note)
+{
+    playingNotesSince[channel] = frameCount;
+    playingNotes[channel] = note;
+    ResetQueue();
 }
