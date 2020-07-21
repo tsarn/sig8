@@ -72,13 +72,6 @@ void InitializeWindow(const char *name)
     if (!glContext) {
         ReportSDLError();
     }
-/*
-    if (!gladLoadGLES2Loader((GLADloadproc)SDL_GL_GetProcAddress)) {
-        fprintf(stderr, "gladLoadGLLoader failed");
-        Finalize();
-        exit(EXIT_FAILURE);
-    }
-*/
 }
 
 void InitializeOpenGL(void)
