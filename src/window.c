@@ -122,6 +122,7 @@ bool Tick(void)
     FlushInputs();
     HandleEvents();
     AudioFrameCallback();
+    MusicFrameCallback();
 
     return !shouldQuit;
 }

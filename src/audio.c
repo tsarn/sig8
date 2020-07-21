@@ -9,6 +9,7 @@ typedef struct {
     Instrument instrument;
     Note note;
     int playingSince;
+    float volume;
     bool isPlaying;
 } ChannelState;
 
@@ -187,6 +188,7 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
             }
 
             value *= ch.instrument.volume;
+            value *= ch.volume;
 
             value *= (float)curEnvelope[channel][ENVELOPE_VOLUME] / ENVELOPE_VOLUME_MAX;
             totalValue += value;
@@ -247,6 +249,7 @@ void InitializeAudio(void)
     soundQueue = soundQueueStorage[0];
     for (int i = 0; i < SOUND_CHANNELS; ++i) {
         SILENCE.channels[i].note = STOP_NOTE;
+        channels[i].volume = 1.0f;
     }
 
     mtx_init(&soundQueueMutex, mtx_plain);
@@ -295,6 +298,16 @@ void SetInstrument(int channel, Instrument instrument)
 {
     channels[channel].instrument = instrument;
     PopulateQueue();
+}
+
+void SetMasterVolume(float volume)
+{
+    masterVolume = volume;
+}
+
+void SetChannelVolume(int channel, float volume)
+{
+    channels[channel].volume = volume;
 }
 
 void PlayNote(int channel, Note note)

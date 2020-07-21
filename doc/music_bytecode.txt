@@ -1,0 +1,19 @@
+INSTRUCTIONS
+
+nop(0x00): do nothing
+
+wait(0x01 T): wait T frames. If T == 0x00, then it's equivalent to nop
+
+ivol(0x02 I V): set instrument I's volume to V/15.0f
+
+env(0x03 I E loopBegin loopEnd values[]): set instrument's envelope
+
+wave(0x04 I W): set instrument's wave
+
+inst(0x05 C I): set channel's instrument
+
+play(0x06 C N): play a note (note 0 is stop)
+
+loop(0x07): loop here
+
+halt(0x08): if loop is not enabled, stop, otherwise loop
