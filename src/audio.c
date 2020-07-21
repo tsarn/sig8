@@ -7,13 +7,23 @@ static float masterVolume = 1.0f;
 
 static AudioFrame soundQueueStorage[2][PRELOAD_SOUNDS];
 static AudioFrame *soundQueue;
-static int soundQueueSize; // we pop from here
+static int soundQueueSize;
 static mtx_t soundQueueMutex;
 
 static Instrument instruments[SOUND_CHANNELS];
 static Note notes[SOUND_CHANNELS];
 static bool isPlaying[SOUND_CHANNELS];
 static int playingSince[SOUND_CHANNELS];
+
+// Audio thread variables, do not touch from main!
+static AudioFrame sound;
+static float channelFreq[SOUND_CHANNELS];
+static int volumeEnvelope[SOUND_CHANNELS];
+static int pitchEnvelope[SOUND_CHANNELS];
+static int arpeggioEnvelope[SOUND_CHANNELS];
+static int sampleCount = 0;
+static int sampleOffset[SOUND_CHANNELS];
+static float phaseShift[SOUND_CHANNELS];
 
 static AudioFrame SILENCE = {
     .volume = 0.0f
@@ -51,18 +61,24 @@ static AudioFrame SoundQueuePop(void)
     return res;
 }
 
+static float getArgument(int channel)
+{
+    float pitch = (float)pitchEnvelope[channel];
+    pitch += 16 * arpeggioEnvelope[channel];
+
+    float fr = channelFreq[channel] * powf(2.0f, pitch / 12.0f / 16.0f);
+
+    float t = fr * sampleOffset[channel] * 1.0f / SAMPLE_RATE;
+    t += phaseShift[channel];
+    t = fmodf(t, 1.0f);
+
+    return t;
+}
+
 static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
 {
     float *stream = (float*)byteStream;
     int len = byteLen / sizeof(float);
-    static AudioFrame sound;
-    static float freq[SOUND_CHANNELS];
-    static int volumeEnvelope[SOUND_CHANNELS];
-    static int pitchEnvelope[SOUND_CHANNELS];
-    static int arpeggioEnvelope[SOUND_CHANNELS];
-    static int sampleCount = 0;
-    static int sampleOffset[SOUND_CHANNELS];
-    static float phaseShift[SOUND_CHANNELS];
 
     for (int i = 0; i < len; ++i) {
         if (sampleCount == SAMPLES_PER_FRAME) {
@@ -73,21 +89,18 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
                     continue;
                 }
 
+
+                bool newNote = sound.duration[ch] == 0 && sound.isPlaying[ch];
                 float t1 = 0.0f, t2 = 0.0f;
 
-                if (sound.duration[ch] == 0 && sound.isPlaying[ch]) {
+                if (newNote) {
                     sampleOffset[ch] = 0;
                     phaseShift[ch] = 0;
                 } else {
-                    t1 = freq[ch];
-                    t1 *= powf(2.0f, (float)pitchEnvelope[ch] / 12.0f / 16.0f);
-                    t1 *= (float)(sampleOffset[ch]);
-                    t1 /= SAMPLE_RATE;
-                    t1 += phaseShift[ch];
-                    t1 = fmodf(t1, 1.0f);
+                    t1 = getArgument(ch);
                 }
 
-                freq[ch] = GetNoteFrequency(sound.notes[ch]);
+                channelFreq[ch] = GetNoteFrequency(sound.notes[ch]);
 
                 volumeEnvelope[ch] = GetEnvelopeValue(
                         &sound.instruments[ch].envelopes[ENVELOPE_VOLUME],
@@ -101,21 +114,16 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
                         sound.isPlaying[ch]
                 );
 
-                if (!(sound.duration[ch] == 0 && sound.isPlaying[ch])) {
-                    t2 = freq[ch];
-                    t2 *= powf(2.0f, (float)pitchEnvelope[ch] / 12.0f / 16.0f);
-                    t2 *= (float)(sampleOffset[ch]);
-                    t2 /= SAMPLE_RATE;
-                    t2 += phaseShift[ch];
-                    t2 = fmodf(t2, 1.0f);
-                    phaseShift[ch] += t1 - t2;
-                }
-
                 arpeggioEnvelope[ch] = GetEnvelopeValue(
                         &sound.instruments[ch].envelopes[ENVELOPE_ARPEGGIO],
                         sound.duration[ch],
                         sound.isPlaying[ch]
                 );
+
+                if (!newNote) {
+                    t2 = getArgument(ch);
+                    phaseShift[ch] += t1 - t2;
+                }
             }
         }
 
@@ -126,15 +134,7 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
                 continue;
             }
 
-            float pitch = (float)pitchEnvelope[ch];
-            pitch += 16 * arpeggioEnvelope[ch];
-
-            float fr = freq[ch] * powf(2.0f, pitch / 12.0f / 16.0f);
-
-            float t = fr * sampleOffset[ch] * 1.0f / SAMPLE_RATE;
-            t += phaseShift[ch];
-            t = fmodf(t, 1.0f);
-
+            float t = getArgument(ch);
             float value = 0.0f;
 
             switch (sound.instruments[ch].wave) {
