@@ -176,14 +176,6 @@ typedef struct {
     float volume;
 } Instrument;
 
-typedef struct {
-    Note notes[SOUND_CHANNELS];
-    Instrument instruments[SOUND_CHANNELS];
-    int duration[SOUND_CHANNELS]; // ticks since the note started playing
-    bool isPlaying[SOUND_CHANNELS]; // is note playing, used for decay in envelopes
-    float volume;
-} AudioFrame;
-
 /*
  * System functions
  */
