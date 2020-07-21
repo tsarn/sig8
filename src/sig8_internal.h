@@ -48,6 +48,7 @@ int ConvertKeyCode(int keyCode);
 void FlushInputs(void);
 
 void AudioFrameCallback(void);
+void MusicFrameCallback(void);
 float GetNoteFrequency(Note note);
 
 extern int windowWidth, windowHeight, pixelScale;

@@ -119,9 +119,8 @@ extern const Font FONT_3X5;
 extern const Font FONT_ASEPRITE;
 
 typedef const uint8_t *SpriteSheet;
+typedef const uint8_t *Music;
 typedef uint8_t *TileMap;
-
-/* Music */
 
 typedef enum {
     STOP_NOTE = 0,
@@ -241,6 +240,10 @@ Instrument NewInstrument(void);
 void SetInstrument(int channel, Instrument instrument);
 void PlayNote(int channel, Note note);
 void StopNote(int channel);
+void SetMasterVolume(float volume);
+void SetChannelVolume(int channel, float volume);
+void PlayMusic(Music music);
+void StopMusic(void);
 
 #ifdef  __cplusplus
 };

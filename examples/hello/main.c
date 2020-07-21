@@ -13,20 +13,6 @@ int main()
 
     UseSpriteSheet(SpriteSheetFromImage("spritesheet.png"));
 
-    Instrument testInstrument = NewInstrument();
-    testInstrument.wave = SQUARE_WAVE;
-
-    testInstrument.envelopes[ENVELOPE_VOLUME].loopBegin = 31;
-    testInstrument.envelopes[ENVELOPE_VOLUME].loopEnd = 32;
-
-    for (int i = 0; i < 32; ++i) {
-        testInstrument.envelopes[ENVELOPE_PITCH].value[i] = i;
-        testInstrument.envelopes[ENVELOPE_VOLUME].value[i] = 255;
-    }
-    testInstrument.envelopes[ENVELOPE_VOLUME].value[31] = 0;
-
-    SetInstrument(0, testInstrument);
-
     int t = 0;
 
     while (Tick()) {
@@ -39,14 +25,6 @@ int main()
                 RemapColor(WHITE, j == 7 ? WHITE : j);
                 DrawSprite(36 + i * 8, y, 10 + i,SPRITE_MASK_COLOR(BLACK));
             }
-        }
-
-        if (KeyJustPressed("Space")) {
-            PlayNote(0, A4);
-        }
-
-        if (KeyJustReleased("Space")) {
-            StopNote(0);
         }
 
         DrawString((SCREEN_WIDTH - MeasureString(message)) / 2, 80, PEACH, message);
