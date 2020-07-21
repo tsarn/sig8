@@ -26,7 +26,7 @@ PRIVATE
 )
 
 target_link_libraries(sig8
-PUBLIC
+PRIVATE
     SDL2
     OpenGL::GL
     ${CMAKE_DL_LIBS}
