@@ -144,12 +144,15 @@ typedef enum {
     NOISE
 } Wave;
 
+#define ENVELOPE_VOLUME_MAX 15
+#define ENVELOPE_DUTY_CYCLE_MAX 15
+
 typedef enum {
-    // Volume (0..255), any wave
+    // Volume (0..15), any wave
     ENVELOPE_VOLUME,
 
-    // Duty cycle, square wave
-    // 0 is 12.5%, 1 is 25%, 2 is 50%, 3 is 75%
+    // Duty cycle (0..15), square wave
+    // 0 is 1/32 duty cycle, 15 is 1/2 duty cycle
     ENVELOPE_DUTY_CYCLE,
 
     // Pitch, any wave except noise

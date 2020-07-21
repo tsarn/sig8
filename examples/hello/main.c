@@ -14,7 +14,7 @@ int main()
     UseSpriteSheet(SpriteSheetFromImage("spritesheet.png"));
 
     Instrument testInstrument = NewInstrument();
-    testInstrument.wave = TRIANGLE_WAVE;
+    testInstrument.wave = SQUARE_WAVE;
 
     testInstrument.envelopes[ENVELOPE_VOLUME].loopBegin = 31;
     testInstrument.envelopes[ENVELOPE_VOLUME].loopEnd = 32;

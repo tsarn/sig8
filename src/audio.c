@@ -50,9 +50,7 @@ static int samplesSinceStart[SOUND_CHANNELS];
 static float phaseShift[SOUND_CHANNELS];
 
 // Current values of envelopes
-static int volumeEnvelope[SOUND_CHANNELS];
-static int pitchEnvelope[SOUND_CHANNELS];
-static int arpeggioEnvelope[SOUND_CHANNELS];
+static int curEnvelope[SOUND_CHANNELS][NUMBER_OF_ENVELOPES];
 
 static AudioFrame SILENCE = {
     .volume = 0.0f
@@ -94,8 +92,8 @@ static AudioFrame SoundQueuePop(void)
 // to the wave generation function.
 static float GetArgument(int channel)
 {
-    float pitch = (float)pitchEnvelope[channel];
-    pitch += 16 * arpeggioEnvelope[channel];
+    float pitch = (float)curEnvelope[channel][ENVELOPE_PITCH];
+    pitch += 16 * curEnvelope[channel][ENVELOPE_ARPEGGIO];
 
     float fr = baseFrequency[channel] * powf(2.0f, pitch / 12.0f / 16.0f);
 
@@ -134,20 +132,12 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
 
                 baseFrequency[channel] = GetNoteFrequency(ch.note);
 
-                volumeEnvelope[channel] = GetEnvelopeValue(
-                        &ch.instrument.envelopes[ENVELOPE_VOLUME],
-                        duration, ch.isPlaying
-                );
-
-                pitchEnvelope[channel] = GetEnvelopeValue(
-                        &ch.instrument.envelopes[ENVELOPE_PITCH],
-                        duration, ch.isPlaying
-                );
-
-                arpeggioEnvelope[channel] = GetEnvelopeValue(
-                        &ch.instrument.envelopes[ENVELOPE_ARPEGGIO],
-                        duration, ch.isPlaying
-                );
+                for (int envelope = 0; envelope < NUMBER_OF_ENVELOPES; ++envelope) {
+                    curEnvelope[channel][envelope] = GetEnvelopeValue(
+                            &ch.instrument.envelopes[envelope],
+                            duration, ch.isPlaying
+                    );
+                }
 
                 if (!newNote) {
                     t2 = GetArgument(channel);
@@ -173,8 +163,11 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
                 value = 1.0f * rand() / RAND_MAX;
                 break;
 
-            case SQUARE_WAVE:
-                value = (t > 0.5f) ? 1 : -1;
+            case SQUARE_WAVE: {
+                int e = curEnvelope[channel][ENVELOPE_DUTY_CYCLE];
+                float duty = .5f * (e + 1) / (ENVELOPE_DUTY_CYCLE_MAX + 1);
+                value = (t < duty) ? 1 : -1;
+            }
                 break;
 
             case SAWTOOTH_WAVE:
@@ -195,7 +188,7 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
 
             value *= ch.instrument.volume;
 
-            value *= (float)volumeEnvelope[channel] / 255.0f;
+            value *= (float)curEnvelope[channel][ENVELOPE_VOLUME] / ENVELOPE_VOLUME_MAX;
             totalValue += value;
 
             ++samplesSinceStart[channel];
@@ -289,9 +282,10 @@ Instrument NewInstrument(void)
     res.volume = 1.0f;
     res.wave = SQUARE_WAVE;
     res.envelopes[ENVELOPE_VOLUME].loopEnd = 1;
+    res.envelopes[ENVELOPE_DUTY_CYCLE].loopEnd = 1;
     for (int i = 0; i < ENVELOPE_LENGTH; ++i) {
-        res.envelopes[ENVELOPE_VOLUME].value[i] = (i == 0) ? 255 : 0;
-        res.envelopes[ENVELOPE_DUTY_CYCLE].value[i] = 2;
+        res.envelopes[ENVELOPE_VOLUME].value[i] = (i == 0) ? ENVELOPE_VOLUME_MAX : 0;
+        res.envelopes[ENVELOPE_DUTY_CYCLE].value[i] = ENVELOPE_DUTY_CYCLE_MAX;
     }
 
     return res;
