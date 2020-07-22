@@ -1,11 +1,14 @@
 #include "sig8_internal.h"
 #include "stb_image.h"
 
-int paletteMap[N_COLORS];
-Font currentFont;
-SpriteSheet currentSpriteSheet;
+static int paletteMap[N_COLORS];
+static Font currentFont;
+static SpriteSheet currentSpriteSheet;
 
-const char *colorNames[N_COLORS] = {
+static Color *screenBuffer;
+static Color colorMap[N_COLORS];
+
+static const char *colorNames[N_COLORS] = {
         "#000000",
         "#eb2167",
         "#eb7a23",
@@ -24,8 +27,9 @@ const char *colorNames[N_COLORS] = {
         "#f2f7f7",
 };
 
-void InitializeScreen(void)
+void sig8_InitScreen(Color *screen)
 {
+    screenBuffer = screen;
     currentFont = FONT_ASEPRITE;
 
     for (int i = 0; i < N_COLORS; ++i) {

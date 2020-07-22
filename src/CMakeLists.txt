@@ -1,7 +1,6 @@
 add_library(sig8 STATIC
         ../include/sig8.h
         util.c
-        render.c
         sig8_internal.h
         graphics.c
         resources/font5x7.c
@@ -10,7 +9,7 @@ add_library(sig8 STATIC
         input.c
         stb_image.c
         stb_image.h
-        resources/font_aseprite.c audio.c music.c ../sig8tk/main.c)
+        resources/font_aseprite.c audio.c music.c ../sig8tk/main.c alloc.c events.c)
 
 set_target_properties(sig8 PROPERTIES VERSION ${PROJECT_VERSION})
 target_compile_features(sig8 PUBLIC c_std_11)

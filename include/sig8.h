@@ -181,6 +181,7 @@ void Initialize(const char *name);
 void Finalize(void);
 bool Tick(void);
 void Quit(void);
+bool ShouldQuit(void);
 void SetCursorShape(CursorShape cursor);
 
 /*

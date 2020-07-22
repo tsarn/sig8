@@ -24,7 +24,7 @@ static int8_t GetByte(void)
     return (int8_t)playing[offset++];
 }
 
-void MusicFrameCallback(void)
+static void MusicFrameCallback(void)
 {
     if (!playing) {
         return;
@@ -78,4 +78,9 @@ void MusicFrameCallback(void)
             StopMusic();
         }
     }
+}
+
+void sig8_InitMusic(void)
+{
+    sig8_RegisterFrameCallback(MusicFrameCallback);
 }

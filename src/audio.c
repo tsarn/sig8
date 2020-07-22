@@ -74,10 +74,15 @@ static int GetEnvelopeValue(const Envelope *envelope, int time, bool active)
     return envelope->value[time];
 }
 
+static float GetNoteFrequency(Note note)
+{
+    return 440.0f * powf(2.0f, ((int)note - 49) / 12.0f);
+}
+
 static AudioFrame SoundQueuePop(void)
 {
     mtx_lock(&soundQueueMutex);
-    if (shouldQuit || soundQueueSize == 0) {
+    if (ShouldQuit() || soundQueueSize == 0) {
         mtx_unlock(&soundQueueMutex);
         return SILENCE;
     }
@@ -238,14 +243,15 @@ static void PopulateQueue(void)
     mtx_unlock(&soundQueueMutex);
 }
 
-void AudioFrameCallback(void)
+static void AudioFrameCallback(void)
 {
     ++curFrame;
     PopulateQueue();
 }
 
-void InitializeAudio(void)
+void sig8_InitAudio(void)
 {
+    sig8_RegisterFrameCallback(AudioFrameCallback);
     soundQueue = soundQueueStorage[0];
     for (int i = 0; i < SOUND_CHANNELS; ++i) {
         SILENCE.channels[i].note = STOP_NOTE;
@@ -270,11 +276,6 @@ void InitializeAudio(void)
     }
 
     SDL_PauseAudioDevice(audioDevice, 0);
-}
-
-float GetNoteFrequency(Note note)
-{
-    return 440.0f * powf(2.0f, ((int)note - 49) / 12.0f);
 }
 
 Instrument NewInstrument(void)
