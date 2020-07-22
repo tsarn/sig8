@@ -8,13 +8,14 @@
 extern "C" {
 #endif
 
-#define SCREEN_WIDTH 192
-#define SCREEN_HEIGHT 144
+// For most intents and purposes these are constants
+#define SCREEN_WIDTH GetScreenWidth()
+#define SCREEN_HEIGHT GetScreenHeight()
 
 // Size of game window at startup
 #define DEFAULT_PIXEL_SIZE 4
-#define DEFAULT_SCREEN_WIDTH (SCREEN_WIDTH * DEFAULT_PIXEL_SIZE)
-#define DEFAULT_SCREEN_HEIGHT (SCREEN_HEIGHT * DEFAULT_PIXEL_SIZE)
+#define DEFAULT_WINDOW_WIDTH (SCREEN_WIDTH * DEFAULT_PIXEL_SIZE)
+#define DEFAULT_WINDOW_HEIGHT (SCREEN_HEIGHT * DEFAULT_PIXEL_SIZE)
 
 #define SPRITE_SHEET_SIZE 256
 #define SPRITE_WIDTH 8
@@ -107,6 +108,12 @@ typedef struct {
     const uint8_t *data;
 } FontDefinition;
 
+typedef struct {
+    const char *windowName;
+    int width;
+    int height;
+} Configuration;
+
 typedef const FontDefinition *Font;
 
 extern const Font FONT_5X7;
@@ -177,12 +184,15 @@ typedef struct {
  * System functions
  */
 
-void Initialize(const char *name);
+void Initialize(const char *windowName);
+void InitializeEx(Configuration configuration);
 void Finalize(void);
 bool Tick(void);
 void Quit(void);
 bool ShouldQuit(void);
 void SetCursorShape(CursorShape cursor);
+int GetScreenWidth(void);
+int GetScreenHeight(void);
 
 /*
  * Utility functions

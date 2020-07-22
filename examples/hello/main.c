@@ -23,12 +23,12 @@ int main()
                 int t1 = t + i * 4 - j * 4;
                 int y = 45 - j + cosf(t1 / 10.0f) * 10.0f;
                 RemapColor(WHITE, j == 7 ? WHITE : j);
-                DrawSprite(36 + i * 8, y, 10 + i,SPRITE_MASK_COLOR(BLACK));
+                DrawSprite(13 + i * 8, y, 10 + i,SPRITE_MASK_COLOR(BLACK));
             }
         }
 
-        DrawString((SCREEN_WIDTH - MeasureString(message)) / 2, 80, PEACH, message);
-        DrawSprite(84, 90, 0, 0);
+        DrawString(23, 80, PEACH, message);
+        DrawSprite(60, 90, 0, 0);
 
         ++t;
     }

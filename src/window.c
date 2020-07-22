@@ -40,11 +40,17 @@ static unsigned int screenTexture;
 static unsigned int shader;
 static int offLoc;
 
+// window size in physical pixels
 static int windowWidth, windowHeight;
+
+// screen size in virtual pixels (e.g. 128x128)
+static int screenWidth, screenHeight;
+
 static float offsetX, offsetY;
 static int pixelScale;
 
-static Color screenBuffer[SCREEN_WIDTH * SCREEN_HEIGHT];
+static Color *screenBuffer;
+static int screenBufferSize;
 
 static SDL_Window *window = NULL;
 static SDL_GLContext glContext = NULL;
@@ -53,7 +59,7 @@ static bool initialized = false;
 
 static SDL_Cursor *cachedCursors[SDL_NUM_SYSTEM_CURSORS];
 
-void Initialize(const char *name)
+void InitializeEx(Configuration configuration)
 {
     if (initialized) {
         fprintf(stderr, "Repeat initialization is not supported.\n");
@@ -62,8 +68,13 @@ void Initialize(const char *name)
         exit(EXIT_FAILURE);
     }
 
+    screenWidth = configuration.width;
+    screenHeight = configuration.height;
+    screenBufferSize = screenWidth * screenHeight * sizeof(Color);
+    screenBuffer = malloc(screenBufferSize);
+
     sig8_InitAlloc();
-    sig8_InitWindow(name);
+    sig8_InitWindow(configuration.windowName);
     sig8_InitScreen(screenBuffer);
     sig8_InitGLES();
     sig8_InitAudio();
@@ -72,8 +83,22 @@ void Initialize(const char *name)
     initialized = true;
 }
 
+void Initialize(const char *windowName)
+{
+    InitializeEx((Configuration){
+        .windowName = windowName,
+        .width = 128,
+        .height = 128
+    });
+}
+
 void Finalize(void)
 {
+    if (screenBuffer) {
+        free(screenBuffer);
+        screenBuffer = NULL;
+    }
+    
     if (glContext) {
         SDL_GL_DeleteContext(glContext);
     }
@@ -83,6 +108,16 @@ void Finalize(void)
     }
 
     SDL_Quit();
+}
+
+int GetScreenWidth(void)
+{
+    return screenWidth;
+}
+
+int GetScreenHeight(void)
+{
+    return screenHeight;
 }
 
 static void UpdateDelta(void)
@@ -141,7 +176,7 @@ void sig8_InitWindow(const char *name)
     window = SDL_CreateWindow(
             name,
             SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-            DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT,
+            DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT,
             SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 
     if (!window) {
@@ -170,9 +205,9 @@ static void UpdateBufferData(void)
             SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, screenPBO);
-    glBufferData(GL_PIXEL_UNPACK_BUFFER, sizeof screenBuffer, NULL, GL_DYNAMIC_DRAW);
-    uint8_t *ptr = glMapBufferRange(GL_PIXEL_UNPACK_BUFFER, 0, sizeof screenBuffer, GL_MAP_WRITE_BIT);
-    memcpy(ptr, screenBuffer, sizeof screenBuffer);
+    glBufferData(GL_PIXEL_UNPACK_BUFFER, screenBufferSize, NULL, GL_DYNAMIC_DRAW);
+    uint8_t *ptr = glMapBufferRange(GL_PIXEL_UNPACK_BUFFER, 0, screenBufferSize, GL_MAP_WRITE_BIT);
+    memcpy(ptr, screenBuffer, screenBufferSize);
     glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
 }
 
@@ -191,7 +226,7 @@ void sig8_InitGLES(void)
     glBufferData(GL_ARRAY_BUFFER, sizeof screenRect, screenRect, GL_STATIC_DRAW);
 
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, screenPBO);
-    glBufferData(GL_PIXEL_UNPACK_BUFFER, sizeof screenBuffer, screenBuffer, GL_DYNAMIC_DRAW);
+    glBufferData(GL_PIXEL_UNPACK_BUFFER, screenBufferSize, screenBuffer, GL_DYNAMIC_DRAW);
 
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
