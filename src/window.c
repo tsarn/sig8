@@ -46,6 +46,8 @@ static int windowWidth, windowHeight;
 // screen size in virtual pixels (e.g. 128x128)
 static int screenWidth, screenHeight;
 
+static Palette palette;
+
 static float offsetX, offsetY;
 static int pixelScale;
 
@@ -70,12 +72,13 @@ void InitializeEx(Configuration configuration)
 
     screenWidth = configuration.width;
     screenHeight = configuration.height;
+    palette = configuration.palette;
     screenBufferSize = screenWidth * screenHeight * sizeof(Color);
     screenBuffer = malloc(screenBufferSize);
 
     sig8_InitAlloc();
-    sig8_InitWindow(configuration.windowName);
     sig8_InitScreen(screenBuffer);
+    sig8_InitWindow(configuration.windowName);
     sig8_InitGLES();
     sig8_InitAudio();
     sig8_InitMusic();
@@ -88,7 +91,8 @@ void Initialize(const char *windowName)
     InitializeEx((Configuration){
         .windowName = windowName,
         .width = 128,
-        .height = 128
+        .height = 128,
+        .palette = PALETTE_DEFAULT
     });
 }
 
@@ -118,6 +122,11 @@ int GetScreenWidth(void)
 int GetScreenHeight(void)
 {
     return screenHeight;
+}
+
+Palette GetPalette(void)
+{
+    return palette;
 }
 
 static void UpdateDelta(void)

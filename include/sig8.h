@@ -11,8 +11,9 @@ extern "C" {
 // For most intents and purposes these are constants
 #define SCREEN_WIDTH GetScreenWidth()
 #define SCREEN_HEIGHT GetScreenHeight()
+#define PALETTE_SIZE (GetPalette().size)
 
-// Size of game window at startup
+// Size of the game window at startup
 #define DEFAULT_PIXEL_SIZE 4
 #define DEFAULT_WINDOW_WIDTH (SCREEN_WIDTH * DEFAULT_PIXEL_SIZE)
 #define DEFAULT_WINDOW_HEIGHT (SCREEN_HEIGHT * DEFAULT_PIXEL_SIZE)
@@ -33,13 +34,13 @@ extern "C" {
  * SPRITE_MASK_COLOR(<color goes here>)
  */
 
-#define SPRITE_HFLIP 0x10
-#define SPRITE_VFLIP 0x20
-#define SPRITE_ROTATE_CW 0x40
+#define SPRITE_HFLIP 0x01
+#define SPRITE_VFLIP 0x02
+#define SPRITE_ROTATE_CW 0x04
 #define SPRITE_ROTATE_180 (SPRITE_HFLIP | SPRITE_VFLIP)
 #define SPRITE_ROTATE_CCW (ROTATE_CW | ROTATE_180)
-#define SPRITE_ENABLE_MASK 0x80
-#define SPRITE_MASK_COLOR(color) (SPRITE_ENABLE_MASK | (color))
+#define SPRITE_ENABLE_MASK 0x08
+#define SPRITE_MASK_COLOR(color) (SPRITE_ENABLE_MASK | ((color) << 4))
 
 #define TILEMAP_WIDTH 256
 #define TILEMAP_HEIGHT 256
@@ -47,8 +48,7 @@ extern "C" {
 #define SOUND_CHANNELS 8
 #define ENVELOPE_LENGTH 32
 
-// Colors themselves are defined in graphics.c
-#define N_COLORS 16
+#ifndef DISABLE_COLOR_DEFINES
 #define BLACK 0
 #define RED 1
 #define ORANGE 2
@@ -65,6 +65,8 @@ extern "C" {
 #define INDIGO 13
 #define GRAY 14
 #define WHITE 15
+#endif
+
 #define TRANSPARENT (-1)
 
 typedef enum {
@@ -109,9 +111,17 @@ typedef struct {
 } FontDefinition;
 
 typedef struct {
+    int size;
+    const char **colors;
+} Palette;
+
+extern Palette PALETTE_DEFAULT;
+
+typedef struct {
     const char *windowName;
     int width;
     int height;
+    Palette palette;
 } Configuration;
 
 typedef const FontDefinition *Font;
@@ -193,6 +203,7 @@ bool ShouldQuit(void);
 void SetCursorShape(CursorShape cursor);
 int GetScreenWidth(void);
 int GetScreenHeight(void);
+Palette GetPalette(void);
 
 /*
  * Utility functions

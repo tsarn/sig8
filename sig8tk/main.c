@@ -5,7 +5,8 @@ int main()
     InitializeEx((Configuration){
         .windowName = "sig8 toolkit",
         .width = 192,
-        .height = 144
+        .height = 144,
+        .palette = PALETTE_DEFAULT,
     });
     MAIN_SPRITESHEET = SpriteSheetFromImage("spritesheet.png");
 
