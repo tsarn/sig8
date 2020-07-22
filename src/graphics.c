@@ -186,15 +186,15 @@ void DrawLine(int x0, int y0, int x1, int y1, int color)
 {
     if (abs(y1 - y0) < abs(x1 - x0)) {
         if (x0 > x1) {
-            DrawLineImpl(x1, y1, x0, y0, false, color);
+            DrawLineImpl(x1, y1, x0, y0, true, color);
         } else {
-            DrawLineImpl(x0, y0, x1, y1, false, color);
+            DrawLineImpl(x0, y0, x1, y1, true, color);
         }
     } else {
         if (y0 > y1) {
-            DrawLineImpl(y1, x1, y0, x0, true, color);
+            DrawLineImpl(y1, x1, y0, x0, false, color);
         } else {
-            DrawLineImpl(y0, x0, y1, x1, true, color);
+            DrawLineImpl(y0, x0, y1, x1, false, color);
         }
     }
 }
