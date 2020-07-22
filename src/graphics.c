@@ -1,39 +1,45 @@
 #include "sig8_internal.h"
 #include "stb_image.h"
 
-static int paletteMap[N_COLORS];
+static int *paletteMap;
 static Font currentFont;
 static SpriteSheet currentSpriteSheet;
 
 static Color *screenBuffer;
-static Color colorMap[N_COLORS];
+static Color *colorMap;
 
-static const char *colorNames[N_COLORS] = {
-        "#000000",
-        "#eb2167",
-        "#eb7a23",
-        "#ebe723",
-        "#26eb50",
-        "#28bdeb",
-        "#f57aab",
-        "#f2c78f",
-        "#722ca3",
-        "#961743",
-        "#734521",
-        "#208061",
-        "#194b63",
-        "#465663",
-        "#999999",
-        "#f2f7f7",
+Palette PALETTE_DEFAULT = {
+        .size = 16,
+        .colors = (const char *[]){
+            "#000000",
+            "#eb2167",
+            "#eb7a23",
+            "#ebe723",
+            "#26eb50",
+            "#28bdeb",
+            "#f57aab",
+            "#f2c78f",
+            "#722ca3",
+            "#961743",
+            "#734521",
+            "#208061",
+            "#194b63",
+            "#465663",
+            "#999999",
+            "#f2f7f7",
+        }
 };
 
 void sig8_InitScreen(Color *screen)
 {
+    Palette palette = GetPalette();
+    colorMap = malloc(sizeof(Color) * palette.size);
+    paletteMap = malloc(sizeof(int) * palette.size);
     screenBuffer = screen;
     currentFont = FONT_ASEPRITE;
 
-    for (int i = 0; i < N_COLORS; ++i) {
-        colorMap[i] = ColorFromHex(colorNames[i]);
+    for (int i = 0; i < palette.size; ++i) {
+        colorMap[i] = ColorFromHex(palette.colors[i]);
         paletteMap[i] = i;
     }
 
@@ -59,7 +65,7 @@ void RemapColor(int oldColor, int newColor)
 
 void ResetColors(void)
 {
-    for (int i = 0; i < N_COLORS; ++i) {
+    for (int i = 0; i < PALETTE_SIZE; ++i) {
         paletteMap[i] = i;
     }
 }
@@ -253,7 +259,7 @@ void DrawSubSprite(int x, int y, int sprite, int flags, int sx, int sy, int w, i
             int color = data[tx + ty * SPRITE_WIDTH];
 
             if (flags & SPRITE_ENABLE_MASK) {
-                if (color == (flags & 0x0f)) {
+                if (color == (flags >> 4)) {
                     continue;
                 }
             }
@@ -296,7 +302,7 @@ SpriteSheet SpriteSheetFromImage(const char *filename)
 
                     int bestColor = 0;
                     int err = INT32_MAX;
-                    for (int color = 0; color < N_COLORS; ++color) {
+                    for (int color = 0; color < PALETTE_SIZE; ++color) {
                         int dr = colorMap[color].r - r;
                         int dg = colorMap[color].g - g;
                         int db = colorMap[color].b - b;
