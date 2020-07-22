@@ -9,7 +9,7 @@ add_library(sig8 STATIC
         input.c
         stb_image.c
         stb_image.h
-        resources/font_aseprite.c audio.c music.c ../sig8tk/main.c alloc.c events.c)
+        resources/font_aseprite.c audio.c music.c ../sig8tk/main.c alloc.c events.c tilemap.c)
 
 set_target_properties(sig8 PROPERTIES VERSION ${PROJECT_VERSION})
 target_compile_features(sig8 PUBLIC c_std_11)
