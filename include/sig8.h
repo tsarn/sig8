@@ -8,8 +8,8 @@
 extern "C" {
 #endif
 
-#define SCREEN_WIDTH 176
-#define SCREEN_HEIGHT 128
+#define SCREEN_WIDTH 192
+#define SCREEN_HEIGHT 144
 
 // Size of game window at startup
 #define DEFAULT_PIXEL_SIZE 4
@@ -79,11 +79,6 @@ typedef struct {
 typedef struct {
     uint8_t r, g, b, a;
 } Color;
-
-typedef struct {
-    int x, y;
-    int width, height;
-} Rect;
 
 typedef enum {
     CURSOR_ARROW,     /**< Arrow */
