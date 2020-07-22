@@ -47,3 +47,13 @@ bool IsLightColor(int color)
 {
     return color < 8 || color == WHITE;
 }
+
+int Modulo(int a, int b)
+{
+    return (a % b + b) % b;
+}
+
+int Divide(int a, int b)
+{
+    return (a - Modulo(a, b)) / b;
+}

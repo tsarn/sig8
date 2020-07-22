@@ -214,6 +214,8 @@ void* TempAlloc(size_t n);
 char *Format(const char *fmt, ...);
 float GetDelta(void);
 bool IsLightColor(int color);
+int Modulo(int a, int b);
+int Divide(int a, int b);
 
 /*
  * Input functions
@@ -248,6 +250,20 @@ void FreeSpriteSheet(SpriteSheet spriteSheet);
 void DrawSprite(int x, int y, int sprite, int flags);
 void DrawSubSprite(int x, int y, int sprite, int flags, int sx, int sy, int w, int h);
 SpriteSheet SpriteSheetFromImage(const char *filename);
+
+/*
+ * TileMap functions
+ */
+
+TileMap NewTileMap(void);
+void FreeTileMap(TileMap tileMap);
+void UseTileMap(TileMap tileMap);
+void SetTile(int x, int y, int tile);
+int GetTile(int x, int y);
+
+typedef void (*TileMapDrawCallback)(int x, int y, int *sprite, int *flags);
+void DrawTileMap(int x, int y, int width, int height, int offsetX, int offsetY);
+void DrawTileMapEx(int x, int y, int width, int height, int offsetX, int offsetY, TileMapDrawCallback callback);
 
 /*
  * Audio functions
