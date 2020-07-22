@@ -40,7 +40,7 @@ static const float screenRect[] = {
     1.0f, 1.0f,
 };
 
-void ReportSDLError(void)
+static void ReportSDLError(void)
 {
     fprintf(stderr, "SDL Error: %s\n", SDL_GetError());
     Finalize();

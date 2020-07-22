@@ -94,14 +94,14 @@ void HandleEvents(void)
     }
 }
 
-void UpdateDelta(void)
+static void UpdateDelta(void)
 {
     float curTime = SDL_GetTicks() / 1000.0f;
     curDelta = curTime - lastTime;
     lastTime = curTime;
 }
 
-void ResetScratchMemory(void)
+static void ResetScratchMemory(void)
 {
     scratchMemorySize = 0;
 }
