@@ -24,52 +24,22 @@
 #define SAMPLE_RATE 44100
 #define SAMPLE_SIZE 1024
 #define PRELOAD_SOUNDS 4
-
 #define SAMPLES_PER_FRAME (SAMPLE_RATE / FRAME_RATE)
 
-typedef struct {
-    float r, g, b, a;
-} FloatColor;
+#define MAX_EVENT_HANDLERS 16
+#define FRAME_EVENT (-1)
 
-void InitializeWindow(const char *name);
-void InitializeOpenGL(void);
-void InitializeScreen(void);
-void InitializeCursors(void);
-void InitializeAudio(void);
+typedef void (*EventCallback)(SDL_Event*);
+typedef void (*FrameCallback)(void);
 
-void HandleEvents(void);
-void RedrawScreen(void);
+void sig8_InitWindow(const char *name);
+void sig8_InitGLES(void);
+void sig8_InitScreen(Color *screen);
+void sig8_InitAudio(void);
+void sig8_InitMusic(void);
+void sig8_InitInput(void);
+void sig8_InitAlloc(void);
 
-void OnResize(void);
-void UpdateBufferData(void);
-FloatColor ColorToFloatColor(Color color);
-
-int ConvertKeyCode(int keyCode);
-void FlushInputs(void);
-
-void AudioFrameCallback(void);
-void MusicFrameCallback(void);
-float GetNoteFrequency(Note note);
-
-extern int windowWidth, windowHeight, pixelScale;
-extern float offsetX, offsetY;
-extern bool shouldQuit;
-extern SDL_Window *window;
-extern SDL_GLContext glContext;
-extern SDL_Cursor *cachedCursors[SDL_NUM_SYSTEM_CURSORS];
-
-extern Color screenBuffer[SCREEN_WIDTH * SCREEN_HEIGHT];
-extern Color colorMap[N_COLORS];
-extern int paletteMap[N_COLORS];
-extern const char *colorNames[N_COLORS];
-extern Font currentFont;
-extern SpriteSheet currentSpriteSheet;
-
-extern char *scratchMemory;
-extern size_t scratchMemorySize;
-extern size_t scratchMemoryCapacity;
-
-extern uint8_t keyboardState[KEYBOARD_STATE_SIZE];
-extern uint8_t mouseState[MOUSE_STATE_SIZE];
-extern Position mousePosition;
-extern bool isMouseInsideWindow;
+void sig8_RegisterFrameCallback(FrameCallback callback);
+void sig8_RegisterEventCallback(int type, EventCallback callback);
+void sig8_HandleEvent(int type, SDL_Event *event);
