@@ -25,7 +25,7 @@ void FlushInputs(void)
     }
 }
 
-bool TestKeyState(const char *key, int state)
+static bool TestKeyState(const char *key, int state)
 {
     int mod = 0;
 
