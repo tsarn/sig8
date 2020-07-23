@@ -141,7 +141,7 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
                 for (int envelope = 0; envelope < NUMBER_OF_ENVELOPES; ++envelope) {
                     curEnvelope[channel][envelope] = GetEnvelopeValue(
                             &ch.instrument.envelopes[envelope],
-                            duration, ch.isPlaying
+                            duration / ch.instrument.speed, ch.isPlaying
                     );
                 }
 
@@ -221,7 +221,7 @@ static void PopulateQueue(void)
     frame.volume = masterVolume;
     for (int ch = 0; ch < SOUND_CHANNELS; ++ch) {
         int duration = curFrame - channels[ch].playingSince;
-        if (!channels[ch].isPlaying && duration >= ENVELOPE_LENGTH) {
+        if (!channels[ch].isPlaying && duration / channels[ch].instrument.speed >= ENVELOPE_LENGTH) {
             channels[ch].note = STOP_NOTE;
         }
 
@@ -283,6 +283,7 @@ Instrument NewInstrument(void)
     Instrument res;
     memset(&res, 0, sizeof res);
 
+    res.speed = 1;
     res.volume = 1.0f;
     res.wave = SQUARE_WAVE;
     res.envelopes[ENVELOPE_VOLUME].loopEnd = 1;

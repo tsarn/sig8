@@ -77,6 +77,10 @@ static void MusicFrameCallback(void)
         } else {
             StopMusic();
         }
+    } else if (instruction == 0x09) {
+        // instrument speed
+        int idx = GetByte();
+        instruments[idx].speed = GetByte();
     }
 }
 

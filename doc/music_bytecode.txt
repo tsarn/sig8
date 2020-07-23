@@ -17,3 +17,5 @@ play(0x06 C N): play a note (note 0 is stop)
 loop(0x07): loop here
 
 halt(0x08): if loop is not enabled, stop, otherwise loop
+
+spd(0x09 I S): set instrument speed

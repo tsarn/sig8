@@ -187,7 +187,8 @@ typedef struct {
 typedef struct {
     Wave wave;
     Envelope envelopes[NUMBER_OF_ENVELOPES];
-    float volume;
+    float volume; // volume in range [0..1]
+    int speed; // how many frames per one envelope tick
 } Instrument;
 
 /*
