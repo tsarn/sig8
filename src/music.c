@@ -35,52 +35,54 @@ static void MusicFrameCallback(void)
         return;
     }
 
-    int instruction = GetByte();
+    while (waiting == 0) {
+        int instruction = GetByte();
 
-    if (instruction == 0x01) {
-        // wait
-        waiting = GetByte();
-    } else if (instruction == 0x02) {
-        // instrument volume
-        int idx = GetByte();
-        instruments[idx].volume = (float)GetByte() / ENVELOPE_VOLUME_MAX;
-    } else if (instruction == 0x03) {
-        // instrument envelope
-        int idx = GetByte();
-        Envelope *env = &instruments[idx].envelopes[GetByte()];
-        env->loopBegin = GetByte();
-        env->loopEnd = GetByte();
-        for (int i = 0; i < ENVELOPE_LENGTH; ++i) {
-            env->value[i] = GetByte();
+        if (instruction == 0x01) {
+            // wait
+            waiting = GetByte();
+        } else if (instruction == 0x02) {
+            // instrument volume
+            int idx = GetByte();
+            instruments[idx].volume = (float) GetByte() / ENVELOPE_VOLUME_MAX;
+        } else if (instruction == 0x03) {
+            // instrument envelope
+            int idx = GetByte();
+            Envelope *env = &instruments[idx].envelopes[GetByte()];
+            env->loopBegin = GetByte();
+            env->loopEnd = GetByte();
+            for (int i = 0; i < ENVELOPE_LENGTH; ++i) {
+                env->value[i] = GetByte();
+            }
+        } else if (instruction == 0x04) {
+            // instrument wave
+            int idx = GetByte();
+            instruments[idx].wave = GetByte();
+        } else if (instruction == 0x05) {
+            // channel instrument
+            int channel = GetByte();
+            int idx = GetByte();
+            SetInstrument(channel, instruments[idx]);
+        } else if (instruction == 0x06) {
+            // play a note
+            int channel = GetByte();
+            int note = GetByte();
+            PlayNote(channel, note);
+        } else if (instruction == 0x07) {
+            // loop here
+            loop = offset;
+        } else if (instruction == 0x08) {
+            // end of song
+            if (loop != -1) {
+                offset = loop;
+            } else {
+                StopMusic();
+            }
+        } else if (instruction == 0x09) {
+            // instrument speed
+            int idx = GetByte();
+            instruments[idx].speed = GetByte();
         }
-    } else if (instruction == 0x04) {
-        // instrument wave
-        int idx = GetByte();
-        instruments[idx].wave = GetByte();
-    } else if (instruction == 0x05) {
-        // channel instrument
-        int channel = GetByte();
-        int idx = GetByte();
-        SetInstrument(channel, instruments[idx]);
-    } else if (instruction == 0x06) {
-        // play a note
-        int channel = GetByte();
-        int note = GetByte();
-        PlayNote(channel, note);
-    } else if (instruction == 0x07) {
-        // loop here
-        loop = offset;
-    } else if (instruction == 0x08) {
-        // end of song
-        if (loop != -1) {
-            offset = loop;
-        } else {
-            StopMusic();
-        }
-    } else if (instruction == 0x09) {
-        // instrument speed
-        int idx = GetByte();
-        instruments[idx].speed = GetByte();
     }
 }
 
