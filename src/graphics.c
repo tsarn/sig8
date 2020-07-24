@@ -226,7 +226,7 @@ void DrawSprite(int x, int y, int sprite, int flags)
 
 void DrawSubSprite(int x, int y, int sprite, int flags, int sx, int sy, int w, int h)
 {
-    if (sprite < 0 || sprite >= SPRITE_SHEET_SIZE) {
+    if (sprite < 0 || sprite >= SPRITE_SHEET_SIZE || !currentSpriteSheet) {
         return;
     }
 
@@ -278,12 +278,14 @@ SpriteSheet SpriteSheetFromImage(const char *filename)
     int width, height, channels;
     uint8_t *data = stbi_load(filename, &width, &height, &channels, 3);
     if (!data) {
+        fprintf(stderr, "Failed to load file '%s'\n", filename);
         return NULL;
     }
 
     uint8_t *result = calloc(SPRITE_SHEET_SIZE, SPRITE_WIDTH * SPRITE_HEIGHT);
     if (!result) {
         stbi_image_free(data);
+        fprintf(stderr, "Failed to allocate memory for a sprite sheet\n");
         return NULL;
     }
 
