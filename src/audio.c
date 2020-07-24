@@ -220,6 +220,10 @@ static void PopulateQueue(void)
     AudioFrame frame;
     frame.volume = masterVolume;
     for (int ch = 0; ch < SOUND_CHANNELS; ++ch) {
+        if (channels[ch].instrument.speed == 0) {
+            channels[ch].instrument.speed = 1;
+        }
+
         int duration = curFrame - channels[ch].playingSince;
         if (!channels[ch].isPlaying && duration / channels[ch].instrument.speed >= ENVELOPE_LENGTH) {
             channels[ch].note = STOP_NOTE;

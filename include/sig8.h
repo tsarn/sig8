@@ -264,7 +264,7 @@ int GetTile(int x, int y);
 
 typedef void (*TileMapDrawCallback)(int x, int y, int *sprite, int *flags);
 void DrawTileMap(int x, int y, int width, int height, int offsetX, int offsetY);
-void DrawTileMapEx(int x, int y, int width, int height, int offsetX, int offsetY, TileMapDrawCallback callback);
+void DrawTileMapEx(int x, int y, int width, int height, int offsetX, int offsetY, int flags, TileMapDrawCallback callback);
 
 /*
  * Audio functions
