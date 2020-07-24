@@ -12,10 +12,14 @@ int main()
 
     SpritesInit();
 
+    bool performNext = false;
+
     while (Tick()) {
+        if (!AnyEventsHappened() && !performNext) continue;
         UseSpriteSheet(MAIN_SPRITESHEET);
         SetCursorShape(CURSOR_ARROW);
         SpritesTick();
+        performNext = AnyEventsHappened();
     }
 
     Finalize();

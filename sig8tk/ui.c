@@ -8,12 +8,6 @@ void FillRectR(Rect rect, int color)
     FillRect(rect.x, rect.y, rect.width, rect.height, color);
 }
 
-void FillRectRB(Rect rect, int color, int borderColor)
-{
-    StrokeRect(rect.x - 1, rect.y - 1, rect.width + 2, rect.height + 2, borderColor);
-    FillRect(rect.x, rect.y, rect.width, rect.height, color);
-}
-
 Rect AddBorder(Rect rect, int border)
 {
     return (Rect){
@@ -34,25 +28,22 @@ void DrawToolbar(void)
     FillRect(0, 0, SCREEN_WIDTH, TOOLBAR_SIZE, TOOLBAR_COLOR);
 
     for (int i = 0; i < NUMBER_OF_EDITORS; ++i) {
-        Rect rect = {
+        Rect r = {
                 .x = 3 + 9 * i,
                 .y = 1,
                 .width = 7,
                 .height = 7
         };
 
-        if (IsMouseOver(rect)) {
+        if (IsMouseOver(r)) {
             SetCursorShape(CURSOR_HAND);
         }
 
         if (editor == i) {
-            RemapColor(WHITE, RED);
+            DrawIcon(r.x, r.y, i, RED);
         } else {
-            RemapColor(WHITE, GRAY);
+            DrawIcon(r.x, r.y, i, GRAY);
         }
-
-        DrawSprite(rect.x, rect.y, i, SPRITE_MASK_COLOR(BLACK));
-        ResetColors();
     }
 
     FillRect(0, SCREEN_HEIGHT - TOOLBAR_SIZE, SCREEN_WIDTH, TOOLBAR_SIZE, TOOLBAR_COLOR);
@@ -115,6 +106,13 @@ void DrawSlider(int x, int y, int *value)
             }
         }
     }
+}
+
+void DrawIcon(int x, int y, int sprite, int color)
+{
+    RemapColor(WHITE, color);
+    DrawSprite(x, y, sprite, SPRITE_MASK_COLOR(BLACK));
+    ResetColors();
 }
 
 bool IsMouseOver(Rect rect)

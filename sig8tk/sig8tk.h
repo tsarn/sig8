@@ -20,7 +20,6 @@ extern Editor editor;
 extern SpriteSheet MAIN_SPRITESHEET;
 
 void FillRectR(Rect rect, int color);
-void FillRectRB(Rect rect, int color, int borderColor);
 Rect AddBorder(Rect rect, int border);
 void StrokeRectR(Rect rect, int color);
 
@@ -28,6 +27,7 @@ void DrawToolbar(void);
 bool IsMouseOver(Rect rect);
 void DrawNumberInput(int x, int y, int *value);
 void DrawSlider(int x, int y, int *value);
+void DrawIcon(int x, int y, int sprite, int color);
 
 void SpritesInit(void);
 void SpritesTick(void);

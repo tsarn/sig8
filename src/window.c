@@ -58,6 +58,7 @@ static SDL_Window *window = NULL;
 static SDL_GLContext glContext = NULL;
 static bool shouldQuit = false;
 static bool initialized = false;
+static bool anyEventsHappened = false;
 
 static SDL_Cursor *cachedCursors[SDL_NUM_SYSTEM_CURSORS];
 
@@ -163,6 +164,11 @@ static void OnWindowEvent(SDL_Event *event)
     if (event->window.event == SDL_WINDOWEVENT_RESIZED) {
         OnResize();
     }
+}
+
+bool AnyEventsHappened(void)
+{
+    return anyEventsHappened;
 }
 
 static void ReportSDLError(void)
@@ -304,6 +310,7 @@ void sig8_InitGLES(void)
 
 static void HandleEvents(void)
 {
+    anyEventsHappened = false;
     sig8_HandleEvent(FRAME_EVENT, NULL);
     SDL_Event event;
     while (SDL_PollEvent(&event) != 0) {
@@ -315,7 +322,9 @@ static void HandleEvents(void)
             event.user.data2 = &y;
         }
 
-        sig8_HandleEvent(event.type, &event);
+        if (sig8_HandleEvent(event.type, &event)) {
+            anyEventsHappened = true;
+        }
     }
 }
 
