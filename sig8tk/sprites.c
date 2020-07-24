@@ -15,6 +15,21 @@ static int bgColor = BLACK;
 static int zoom = 8;
 static int spriteRegion, spriteRegionLog;
 
+typedef enum {
+    BRUSH,
+    FILL,
+    SELECT,
+    EYEDROPPER,
+    FLIP_H,
+    FLIP_V,
+    ROTATE,
+    ERASE,
+
+    NUMBER_OF_TOOLS
+} Tool;
+
+static Tool activeTool;
+
 static void FixSelected()
 {
     if (selectedX < 0) selectedX = 0;
@@ -51,11 +66,11 @@ static void DrawPalette(void)
         if (IsMouseOver(r)) {
             SetCursorShape(CURSOR_HAND);
 
-            if (MouseJustPressed(MOUSE_LEFT)) {
+            if (MousePressed(MOUSE_LEFT)) {
                 fgColor = color;
             }
 
-            if (MouseJustPressed(MOUSE_RIGHT)) {
+            if (MousePressed(MOUSE_RIGHT)) {
                 bgColor = color;
             }
         }
@@ -211,17 +226,52 @@ static void DrawStatusBar(void)
     char *string = Format("#%03d", selected);
     DrawString(SCREEN_WIDTH - 23, SCREEN_HEIGHT, RED, string);
 
-    DrawSlider(SCREEN_WIDTH - 60, SCREEN_HEIGHT - 8, &spriteRegionLog);
+    DrawSlider(SCREEN_WIDTH - 60, SCREEN_HEIGHT - 7, &spriteRegionLog);
     spriteRegion = 1 << spriteRegionLog;
     zoom = 8 / spriteRegion;
     FixSelected();
+}
+
+static void DrawTools(void)
+{
+    Rect rect = {
+            .x = 4,
+            .y = TOOLBAR_SIZE + 95
+    };
+
+    for (int tool = 0; tool < NUMBER_OF_TOOLS; ++tool) {
+        Rect r = {
+            .x = rect.x + SPRITE_WIDTH * tool,
+            .y = rect.y,
+            .width = 7,
+            .height = 7
+        };
+
+        if (tool == activeTool) {
+            DrawIcon(r.x, r.y + 1, 5 + tool, WHITE);
+        } else {
+            DrawIcon(r.x, r.y + 1, 5 + tool, BLACK);
+            DrawIcon(r.x, r.y, 5 + tool, GRAY);
+        }
+
+        if (IsMouseOver(r)) {
+            SetCursorShape(CURSOR_HAND);
+            if (MouseJustPressed(MOUSE_LEFT)) {
+                activeTool = tool;
+            }
+        }
+    }
+    ResetColors();
 }
 
 void SpritesInit(void)
 {
     editing = MAIN_SPRITESHEET;
     selected = 0;
-    editingIndex= 0;
+    editingIndex = 0;
+    spriteRegion = 1;
+    zoom = 8;
+    activeTool = BRUSH;
 }
 
 void SpritesTick(void)
@@ -232,5 +282,6 @@ void SpritesTick(void)
     DrawEditedSprite();
     DrawPalette();
     DrawStatusBar();
+    DrawTools();
     DrawNumberInput(SCREEN_WIDTH - 18, 1, &editingIndex);
 }

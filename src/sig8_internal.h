@@ -42,4 +42,4 @@ void sig8_InitAlloc(void);
 
 void sig8_RegisterFrameCallback(FrameCallback callback);
 void sig8_RegisterEventCallback(int type, EventCallback callback);
-void sig8_HandleEvent(int type, SDL_Event *event);
+bool sig8_HandleEvent(int type, SDL_Event *event);

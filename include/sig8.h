@@ -216,6 +216,7 @@ char *Format(const char *fmt, ...);
 float GetDelta(void);
 int Modulo(int a, int b);
 int Divide(int a, int b);
+bool AnyEventsHappened(void);
 
 /*
  * Input functions

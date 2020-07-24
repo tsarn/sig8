@@ -29,10 +29,12 @@ void sig8_RegisterEventCallback(int type, EventCallback callback)
     };
 }
 
-void sig8_HandleEvent(int type, SDL_Event *event)
+bool sig8_HandleEvent(int type, SDL_Event *event)
 {
+    bool flag = false;
     for (int i = 0; i < numHandlers; ++i) {
         if (handlers[i].type == type) {
+            flag = true;
             if (type == FRAME_EVENT) {
                 handlers[i].frameCallback();
             } else {
@@ -40,4 +42,5 @@ void sig8_HandleEvent(int type, SDL_Event *event)
             }
         }
     }
+    return flag;
 }
