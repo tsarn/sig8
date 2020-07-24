@@ -1,0 +1,18 @@
+Resources directory is a collection of files:
+
+spritesheetN.png - 128x128 sprite sheets in PNG format
+tilemapN.dat - tilemaps in binary format
+soundN.txt - sound/instrument in text format
+musicN.txt - music in text format
+
+(sound file example)
+
+.note 49
+.instrument
+    .volume 12
+    .speed 4
+    .wave 2
+    .envelopes
+        .loopbegin 0
+        .loopend 4
+        .value

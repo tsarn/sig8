@@ -130,9 +130,9 @@ extern const Font FONT_5X7;
 extern const Font FONT_3X5;
 extern const Font FONT_ASEPRITE;
 
-typedef const uint8_t *SpriteSheet;
-typedef const uint8_t *Music;
+typedef uint8_t *SpriteSheet;
 typedef uint8_t *TileMap;
+typedef const uint8_t *Music;
 
 typedef enum {
     STOP_NOTE = 0,
@@ -214,7 +214,6 @@ Color ColorFromHex(const char *hex);
 void* TempAlloc(size_t n);
 char *Format(const char *fmt, ...);
 float GetDelta(void);
-bool IsLightColor(int color);
 int Modulo(int a, int b);
 int Divide(int a, int b);
 
@@ -250,6 +249,8 @@ void UseSpriteSheet(SpriteSheet spriteSheet);
 void FreeSpriteSheet(SpriteSheet spriteSheet);
 void DrawSprite(int x, int y, int sprite, int flags);
 void DrawSubSprite(int x, int y, int sprite, int flags, int sx, int sy, int w, int h);
+int GetSpritePixel(int x, int y, int sprite);
+void SetSpritePixel(int x, int y, int sprite, int color);
 SpriteSheet SpriteSheetFromImage(const char *filename);
 
 /*

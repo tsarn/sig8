@@ -26,6 +26,8 @@ void StrokeRectR(Rect rect, int color);
 
 void DrawToolbar(void);
 bool IsMouseOver(Rect rect);
+void DrawNumberInput(int x, int y, int *value);
+void DrawSlider(int x, int y, int *value);
 
 void SpritesInit(void);
 void SpritesTick(void);

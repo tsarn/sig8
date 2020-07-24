@@ -111,6 +111,19 @@ static bool TestKeyState(const char *key, int state)
         break;
     }
 
+    if (!*key) {
+        for (int i = 0; i < KEYBOARD_STATE_SIZE; ++i) {
+            if (!(keyboardState[i] & state)) {
+                continue;
+            }
+
+            if ((keyboardState[i] & KEY_MODS) == mod) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     int code = Convert(SDL_GetKeyFromName(key));
     return (bool)(keyboardState[code] & state) &&
             (bool)((keyboardState[code] & KEY_MODS) == mod);
@@ -118,6 +131,18 @@ static bool TestKeyState(const char *key, int state)
 
 bool KeyPressed(const char *key)
 {
+    if (!strcmp(key, "Ctrl")) {
+        return KeyPressed("Ctrl+");
+    }
+
+    if (!strcmp(key, "Alt")) {
+        return KeyPressed("Alt+");
+    }
+
+    if (!strcmp(key, "Shift")) {
+        return KeyPressed("Shift+");
+    }
+
     return TestKeyState(key, KEY_PRESSED);
 }
 
