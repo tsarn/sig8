@@ -219,6 +219,38 @@ void FreeSpriteSheet(SpriteSheet spriteSheet)
     free((uint8_t *)spriteSheet);
 }
 
+static uint8_t* GetSpritePixelPtr(int x, int y, int sprite)
+{
+    x = sprite % 16 * SPRITE_WIDTH + x;
+    y = sprite / 16 * SPRITE_HEIGHT + y;
+    sprite = (x / SPRITE_WIDTH) + 16 * (y / SPRITE_HEIGHT);
+    if (!currentSpriteSheet || sprite < 0 || sprite >= SPRITE_SHEET_SIZE) {
+        return NULL;
+    }
+
+    x %= SPRITE_WIDTH;
+    y %= SPRITE_HEIGHT;
+    uint8_t *data = currentSpriteSheet + sprite * SPRITE_WIDTH * SPRITE_HEIGHT;
+    return &data[x + y * SPRITE_WIDTH];
+}
+
+int GetSpritePixel(int x, int y, int sprite)
+{
+    uint8_t *ptr = GetSpritePixelPtr(x, y, sprite);
+    if (!ptr) {
+        return TRANSPARENT;
+    }
+    return *ptr;
+}
+
+void SetSpritePixel(int x, int y, int sprite, int color)
+{
+    uint8_t *ptr = GetSpritePixelPtr(x, y, sprite);
+    if (ptr) {
+        *ptr = color;
+    }
+}
+
 void DrawSprite(int x, int y, int sprite, int flags)
 {
     DrawSubSprite(x, y, sprite, flags, 0, 0, SPRITE_WIDTH, SPRITE_HEIGHT);
@@ -256,11 +288,7 @@ void DrawSubSprite(int x, int y, int sprite, int flags, int sx, int sy, int w, i
                 py = w - 1 - t;
             }
 
-            if (tx < 0 || ty < 0 || tx >= SPRITE_WIDTH || ty >= SPRITE_HEIGHT) {
-                continue;
-            }
-
-            int color = data[tx + ty * SPRITE_WIDTH];
+            int color = GetSpritePixel(tx, ty, sprite);
 
             if (flags & SPRITE_ENABLE_MASK) {
                 if (color == (flags >> 4)) {

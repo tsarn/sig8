@@ -32,7 +32,6 @@ void StrokeRectR(Rect rect, int color)
 void DrawToolbar(void)
 {
     FillRect(0, 0, SCREEN_WIDTH, TOOLBAR_SIZE, TOOLBAR_COLOR);
-    DrawLine(0, TOOLBAR_SIZE, SCREEN_WIDTH - 1, TOOLBAR_SIZE, BLACK);
 
     for (int i = 0; i < NUMBER_OF_EDITORS; ++i) {
         Rect rect = {
@@ -54,6 +53,67 @@ void DrawToolbar(void)
 
         DrawSprite(rect.x, rect.y, i, SPRITE_MASK_COLOR(BLACK));
         ResetColors();
+    }
+
+    FillRect(0, SCREEN_HEIGHT - TOOLBAR_SIZE, SCREEN_WIDTH, TOOLBAR_SIZE, TOOLBAR_COLOR);
+}
+
+void DrawNumberInput(int x, int y, int *value)
+{
+    Rect rect = {
+            .x = x,
+            .y = y,
+            .width = 15,
+            .height = 7
+    };
+
+    if (IsMouseOver(rect)) {
+        SetCursorShape(CURSOR_HAND);
+        int delta = 1;
+        if (KeyPressed("Ctrl")) {
+            delta = 10;
+        }
+
+        if (MouseJustPressed(MOUSE_LEFT)) {
+            *value += delta;
+        }
+
+        if (MouseJustPressed(MOUSE_RIGHT)) {
+            *value -= delta;
+        }
+
+        *value = Modulo(*value, 256);
+    }
+
+    FillRectR(rect, BLACK);
+    SetFont(FONT_3X5);
+    DrawString(rect.x + 2, y + 6, RED, Format("%03d", *value));
+    SetFont(FONT_ASEPRITE);
+}
+
+void DrawSlider(int x, int y, int *value)
+{
+    FillRect(x, y + 2, 27, 2, WHITE);
+    StrokeRect(x, y + 1, 27, 4, BLACK);
+    for (int i = 0; i < 4; ++i) {
+        Rect r = {
+                .x = x + 7 * i,
+                .y = y,
+                .width = 6,
+                .height = 6
+        };
+
+        if (*value == i) {
+            StrokeRectR(r, BLACK);
+            FillRectR(AddBorder(r, -1), WHITE);
+        }
+
+        if (IsMouseOver(r)) {
+            SetCursorShape(CURSOR_HAND);
+            if (MousePressed(MOUSE_LEFT)) {
+                *value = i;
+            }
+        }
     }
 }
 
