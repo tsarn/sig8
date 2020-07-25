@@ -193,11 +193,30 @@ typedef struct {
 } Instrument;
 
 /*
- * System functions
+ * System functions.
+ * Some macro magic is in place.
  */
+void sig8_Initialize(const char *windowName);
+void sig8_InitializeEx(Configuration configuration);
 
-void Initialize(const char *windowName);
-void InitializeEx(Configuration configuration);
+#define SIG8_PRE_INIT
+
+// Load resources from directory
+#ifdef SIG8_USE_RESOURCE_PATH
+#undef SIG8_PRE_INIT
+#define SIG8_PRE_INIT UseResourcePath(SIG8_USE_RESOURCE_PATH);
+#endif
+
+// Automatically load resource bundles
+#ifdef SIG8_USE_DEFAULT_BUNDLE
+extern const uint8_t *SIG8_RESOURCE_BUNDLE;
+#undef SIG8_PRE_INIT
+#define SIG8_PRE_INIT UseResourceBundle(SIG8_RESOURCE_BUNDLE);
+#endif
+
+#define Initialize SIG8_PRE_INIT; sig8_Initialize
+#define InitializeEx SIG8_PRE_INIT; sig8_InitializeEx
+
 void Finalize(void);
 #ifdef __EMSCRIPTEN__
 #define Tick() sig8_EmscriptenTickWarning()
@@ -220,6 +239,13 @@ int GetScreenWidth(void);
 int GetScreenHeight(void);
 Palette GetPalette(void);
 void RunMainLoop(void (*function)(void));
+
+/*
+ * Resource / filesystem functions.
+ */
+void UseResourceBundle(const uint8_t *bundle);
+void UseResourcePath(const char *path);
+uint8_t *ReadFileContents(const char *path, int *size);
 
 /*
  * Utility functions
@@ -267,7 +293,7 @@ void DrawSprite(int x, int y, int sprite, int flags);
 void DrawSubSprite(int x, int y, int sprite, int flags, int sx, int sy, int w, int h);
 int GetSpritePixel(int x, int y, int sprite);
 void SetSpritePixel(int x, int y, int sprite, int color);
-SpriteSheet SpriteSheetFromImage(const char *filename);
+SpriteSheet LoadSpriteSheet(const char *path);
 
 /*
  * TileMap functions

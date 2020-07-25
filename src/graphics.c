@@ -301,12 +301,20 @@ void DrawSubSprite(int x, int y, int sprite, int flags, int sx, int sy, int w, i
     }
 }
 
-SpriteSheet SpriteSheetFromImage(const char *filename)
+SpriteSheet LoadSpriteSheet(const char *path)
 {
-    int width, height, channels;
-    uint8_t *data = stbi_load(filename, &width, &height, &channels, 3);
+    int width, height, channels, fileSize;
+    uint8_t *contents = ReadFileContents(path, &fileSize);
+    if (!contents) {
+        printf("Failed to load sprite sheet '%s'\n", path);
+        return NULL;
+    }
+
+    uint8_t *data = stbi_load_from_memory(contents, fileSize, &width, &height, &channels, 3);
+    free(contents);
+
     if (!data) {
-        printf("Failed to load file '%s'\n", filename);
+        printf("Failed to load sprite sheet '%s'\n", path);
         return NULL;
     }
 

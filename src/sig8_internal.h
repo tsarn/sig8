@@ -34,6 +34,8 @@ bool Tick(void);
 #define MAX_EVENT_HANDLERS 16
 #define FRAME_EVENT (-1)
 
+#define RESOURCE_PATH_PREFIX "res://"
+
 typedef void (*EventCallback)(SDL_Event*);
 typedef void (*FrameCallback)(void);
 
