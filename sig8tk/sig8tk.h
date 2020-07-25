@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sig8.h"
+#include <stdlib.h>
 
 typedef enum {
     SPRITE_EDITOR = 0,

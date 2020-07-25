@@ -13,7 +13,6 @@ add_library(sig8 STATIC
 
 set_target_properties(sig8 PROPERTIES VERSION ${PROJECT_VERSION})
 target_compile_features(sig8 PUBLIC c_std_11)
-find_package (Threads)
 
 target_include_directories(sig8
 PUBLIC
@@ -29,6 +28,5 @@ PRIVATE
     SDL2
     OpenGL::GL
     ${CMAKE_DL_LIBS}
-    Threads::Threads
     m
 )
