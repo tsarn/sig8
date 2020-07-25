@@ -47,7 +47,7 @@ uint8_t *ReadFileContents(const char *path, int *size)
         const char *stripped = path + strlen(RESOURCE_PATH_PREFIX);
         if (resourcePath) {
             char *fullPath = malloc(strlen(resourcePath) + strlen(stripped) + 4);
-            sprintf(fullPath, "%s/%s", resourcePath, stripped);
+            sprintf(fullPath, "%s%s", resourcePath, stripped);
             uint8_t *result = ReadFileContents(fullPath, size);
             free(fullPath);
             return result;

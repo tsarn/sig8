@@ -219,10 +219,11 @@ extern const uint8_t *SIG8_RESOURCE_BUNDLE;
 
 void Finalize(void);
 #ifdef __EMSCRIPTEN__
-#define Tick() sig8_EmscriptenTickWarning()
+#define Tick sig8_EmscriptenTickWarning
 int puts(const char *);
 static inline bool sig8_EmscriptenTickWarning(void) {
     puts(
+        "ERROR: "
         "You are trying to use Tick() when compiling using Emscripten. "
         "This will not work. Please use RunMainLoop(). "
         "See the documentation for details."

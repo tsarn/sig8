@@ -38,7 +38,14 @@ function(sig8_bundle)
         set(SIG8_BUNDLE_RESOURCES "")
     endif()
 
-    if ((CMAKE_BUILD_TYPE MATCHES "Release") OR (${CMAKE_SYSTEM_NAME} MATCHES "Emscripten") OR (SIG8_BUNDLE_FORCE))
+    if (${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+        foreach(RES ${SIG8_BUNDLE_RESOURCES})
+            target_link_options(${SIG8_BUNDLE_TARGET} PRIVATE
+                --preload-file "${CMAKE_CURRENT_SOURCE_DIR}/${RES}@${RES}"
+            )
+        endforeach()
+        target_compile_definitions(${SIG8_BUNDLE_TARGET} PRIVATE SIG8_USE_RESOURCE_PATH="")
+    elseif ((CMAKE_BUILD_TYPE MATCHES "Release") OR (SIG8_BUNDLE_FORCE))
         set(SIG8_BUNDLE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${SIG8_BUNDLE_FILE}")
         set(SIG8_BUNDLE_ARGS "")
 
@@ -67,6 +74,6 @@ extern const char *${SIG8_BUNDLE_NAME};"
             target_compile_definitions(${SIG8_BUNDLE_TARGET} PRIVATE SIG8_USE_DEFAULT_BUNDLE)
         endif()
     else()
-        target_compile_definitions(${SIG8_BUNDLE_TARGET} PRIVATE SIG8_USE_RESOURCE_PATH="${CMAKE_CURRENT_SOURCE_DIR}")
+        target_compile_definitions(${SIG8_BUNDLE_TARGET} PRIVATE SIG8_USE_RESOURCE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/")
     endif()
 endfunction()
