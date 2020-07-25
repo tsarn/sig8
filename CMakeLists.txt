@@ -9,6 +9,7 @@ if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
 endif()
 
 add_subdirectory(src)
+add_subdirectory(bundler)
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     # Only compile examples and sig8tk if building the library itself
