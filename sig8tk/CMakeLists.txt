@@ -1,6 +1,13 @@
 add_executable(sig8tk
         main.c
         sig8tk.h
-        sprites.c ui.c)
-target_compile_features(sig8tk PRIVATE c_std_99)
-target_link_libraries(sig8tk sig8)
+        sprites.c
+        ui.c
+)
+
+sig8_bundle(
+        TARGET sig8tk
+        RESOURCES spritesheet.png
+)
+
+sig8_platform(sig8tk)
