@@ -9,7 +9,25 @@ add_library(sig8 STATIC
         input.c
         stb_image.c
         stb_image.h
-        resources/font_aseprite.c audio.c music.c ../sig8tk/main.c alloc.c events.c tilemap.c)
+        resources/font_aseprite.c
+        audio.c
+        music.c
+        alloc.c
+        events.c
+        tilemap.c
+)
+
+
+if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+    target_compile_options(sig8 PUBLIC -sUSE_SDL=2 -sWASM=1)
+    target_link_options(sig8 PUBLIC -sUSE_SDL=2 -sFULL_ES3=1 -sWASM=1 --emrun)
+else()
+    find_package(SDL2 REQUIRED)
+    find_package(OpenGL REQUIRED)
+
+    target_include_directories(sig8 PRIVATE SDL2 OpenGL::GL)
+    target_link_libraries(sig8 PRIVATE SDL2 OpenGL::GL)
+endif()
 
 set_target_properties(sig8 PROPERTIES VERSION ${PROJECT_VERSION})
 target_compile_features(sig8 PUBLIC c_std_11)
@@ -19,14 +37,10 @@ PUBLIC
     "${CMAKE_SOURCE_DIR}/include/"
 PRIVATE
     "${CMAKE_SOURCE_DIR}/src/"
-    SDL2
-    OpenGL::GL
 )
 
 target_link_libraries(sig8
 PRIVATE
-    SDL2
-    OpenGL::GL
     ${CMAKE_DL_LIBS}
     m
 )
