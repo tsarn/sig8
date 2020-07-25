@@ -18,9 +18,7 @@ static void HandleEvent(SDL_Event *event)
 {
     switch (event->type) {
     case SDL_KEYDOWN:
-        if (!event->key.repeat) {
-            keyboardState[Convert(event->key.keysym.sym)] = KEY_PRESSED | KEY_JUST_PRESSED;
-        }
+        keyboardState[Convert(event->key.keysym.sym)] = KEY_PRESSED | KEY_JUST_PRESSED;
         break;
 
     case SDL_KEYUP:

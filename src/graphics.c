@@ -318,7 +318,7 @@ SpriteSheet LoadSpriteSheet(const char *path)
         return NULL;
     }
 
-    uint8_t *result = calloc(SPRITE_SHEET_SIZE, SPRITE_WIDTH * SPRITE_HEIGHT);
+    uint8_t *result = calloc(1, SPRITE_SHEET_BYTE_SIZE);
     if (!result) {
         stbi_image_free(data);
         printf("Failed to allocate memory for a sprite sheet\n");
