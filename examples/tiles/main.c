@@ -6,7 +6,7 @@ int main()
     Initialize("sig8 example: tiles");
 
     UseTileMap(NewTileMap());
-    UseSpriteSheet(SpriteSheetFromImage("spritesheet.png"));
+    UseSpriteSheet(LoadSpriteSheet("spritesheet.png"));
 
     for (int i = 0; i < TILEMAP_WIDTH; ++i) {
         for (int j = 0; j < TILEMAP_HEIGHT; ++j) {

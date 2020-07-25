@@ -3,10 +3,12 @@
  * This is intended to be used automatically from CMake scripts.
  *
  * Usage:
- *   ./bundler BUNDLE_NAME outfile.h ([FILE PATH] [FILE NAME])*
+ *   ./bundler BUNDLE_NAME outfile ([FILE PATH] [FILE NAME])*
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 static int lineLength;
 static FILE *file;
@@ -26,8 +28,8 @@ static inline void emit(int c)
         fputc(c, file);
         ++lineLength;
     } else {
-        fprintf(file, "\\x%02x", c);
-        lineLength += 4;
+        fprintf(file, "\\x%02x\"\"", c);
+        lineLength += 6;
     }
 
     if (lineLength > 80) {
@@ -52,7 +54,7 @@ static void processFile(const char *name, FILE *src)
     }
 
     for (int i = 0; i < size; ++i) {
-        char b;
+        unsigned char b;
         fread(&b, 1, 1, src);
         emit(b);
     }
@@ -66,15 +68,11 @@ int main(int argc, char **argv)
     }
 
     const char *bundleName = argv[1];
-    const char *fileName = argv[2];
+    char *fileName = malloc(strlen(argv[2]) + 4);
 
+    sprintf(fileName, "%s.c", argv[2]);
     file = fopen(fileName, "w");
-
-    fprintf(file, "#ifndef _BUNDLE_%s_INCLUDED_\n", bundleName);
-    fprintf(file, "#define _BUNDLE_%s_INCLUDED_\n\n", bundleName);
-
-    fprintf(file, "#ifdef COMPILE_BUNDLE_DATA\n");
-    fprintf(file, "const char %s[] =", bundleName);
+    fprintf(file, "const char *%s =", bundleName);
 
     for (int i = 3; i < argc - 1; i += 2) {
         const char *path = argv[i];
@@ -92,11 +90,6 @@ int main(int argc, char **argv)
     }
 
     fprintf(file, ";\n");
-
-    fprintf(file, "#endif /* COMPILE_BUNDLE_DATA */\n");
-    fprintf(file, "\nextern const char *%s;\n", bundleName);
-
-    fprintf(file, "\n#endif /* _BUNDLE_%s_INCLUDED_ */\n", bundleName);
     fclose(file);
     return 0;
 }

@@ -30,7 +30,7 @@ void mainLoop(void)
 int main()
 {
     Initialize("sig8 example: hello");
-    UseSpriteSheet(SpriteSheetFromImage("spritesheet.png"));
+    UseSpriteSheet(LoadSpriteSheet("res://spritesheet.png"));
     RunMainLoop(mainLoop);
     return 0;
 }

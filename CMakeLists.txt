@@ -10,6 +10,7 @@ endif()
 
 add_subdirectory(src)
 add_subdirectory(bundler)
+include(sig8util)
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     # Only compile examples and sig8tk if building the library itself

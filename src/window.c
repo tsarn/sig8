@@ -68,7 +68,7 @@ static void (*mainLoop)(void);
 
 static SDL_Cursor *cachedCursors[SDL_NUM_SYSTEM_CURSORS];
 
-void InitializeEx(Configuration configuration)
+void sig8_InitializeEx(Configuration configuration)
 {
     if (initialized) {
         puts("Repeat initialization is not supported.");
@@ -93,9 +93,9 @@ void InitializeEx(Configuration configuration)
     initialized = true;
 }
 
-void Initialize(const char *windowName)
+void sig8_Initialize(const char *windowName)
 {
-    InitializeEx((Configuration){
+    sig8_InitializeEx((Configuration){
         .windowName = windowName,
         .width = 128,
         .height = 128,

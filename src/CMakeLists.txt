@@ -15,7 +15,7 @@ add_library(sig8 STATIC
         alloc.c
         events.c
         tilemap.c
-)
+        fs.c)
 
 add_library(sig8::sig8 ALIAS sig8)
 
