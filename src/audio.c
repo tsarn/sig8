@@ -1,5 +1,4 @@
 #include "sig8_internal.h"
-#include <threads.h>
 
 static SDL_AudioDeviceID audioDevice;
 static int curFrame; // frame count since start of the program
@@ -31,7 +30,7 @@ typedef struct {
 static AudioFrame soundQueueStorage[2][PRELOAD_SOUNDS];
 static AudioFrame *soundQueue;
 static int soundQueueSize;
-static mtx_t soundQueueMutex;
+static SDL_mutex *soundQueueMutex;
 
 // Audio thread variables, do not touch from other threads.
 
@@ -81,15 +80,15 @@ static float GetNoteFrequency(Note note)
 
 static AudioFrame SoundQueuePop(void)
 {
-    mtx_lock(&soundQueueMutex);
+    SDL_LockMutex(soundQueueMutex);
     if (ShouldQuit() || soundQueueSize == 0) {
-        mtx_unlock(&soundQueueMutex);
+        SDL_UnlockMutex(soundQueueMutex);
         return SILENCE;
     }
 
     AudioFrame res = soundQueue[--soundQueueSize];
 
-    mtx_unlock(&soundQueueMutex);
+    SDL_UnlockMutex(soundQueueMutex);
 
     return res;
 }
@@ -241,10 +240,10 @@ static void PopulateQueue(void)
     }
 
     // Publish the queue
-    mtx_lock(&soundQueueMutex);
+    SDL_LockMutex(soundQueueMutex);
     soundQueue = queue;
     soundQueueSize = PRELOAD_SOUNDS;
-    mtx_unlock(&soundQueueMutex);
+    SDL_UnlockMutex(soundQueueMutex);
 }
 
 static void AudioFrameCallback(void)
@@ -262,7 +261,7 @@ void sig8_InitAudio(void)
         channels[i].volume = 1.0f;
     }
 
-    mtx_init(&soundQueueMutex, mtx_plain);
+    soundQueueMutex = SDL_CreateMutex();
     SDL_AudioSpec want, have;
     SDL_zero(want);
 

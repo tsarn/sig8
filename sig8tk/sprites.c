@@ -14,6 +14,7 @@ static int fgColor = WHITE;
 static int bgColor = BLACK;
 static int zoom = 8;
 static int spriteRegion, spriteRegionLog;
+static int width, height;
 
 typedef enum {
     BRUSH,
@@ -29,6 +30,112 @@ typedef enum {
 } Tool;
 
 static Tool activeTool;
+
+static Position neighbors[4] = {
+        { .x = 1, .y = 0 },
+        { .x = -1, .y = 0 },
+        { .x = 0, .y = 1 },
+        { .x = 0, .y = -1 },
+};
+
+static void Fill(int x, int y, int color)
+{
+    Position *queue = malloc(width * height * sizeof(Position));
+    uint8_t *used = calloc(width * height, 1);
+    int front = 0;
+    int back = 0;
+
+    queue[front++] = (Position){
+        .x = x,
+        .y = y,
+    };
+    used[x + y * width] = 1;
+
+    while (front > back) {
+        Position pos = queue[back++];
+        for (int i = 0; i < 4; ++i) {
+            Position next = {
+                    .x = pos.x + neighbors[i].x,
+                    .y = pos.y + neighbors[i].y
+            };
+
+            if (next.x < 0 || next.y < 0 || next.x >= width || next.y >= height) {
+                continue;
+            }
+
+            if (used[next.x + next.y * width]) {
+                continue;
+            }
+
+            if (GetSpritePixel(next.x, next.y, selected) !=
+                GetSpritePixel(pos.x, pos.y, selected)) {
+                continue;
+            }
+
+            queue[front++] = next;
+            used[next.x + next.y * width] = 1;
+        }
+    }
+
+    for (int j = 0; j < height; ++j) {
+        for (int i = 0; i < width; ++i) {
+            if (used[i + j * width]) {
+                SetSpritePixel(i, j, selected, color);
+            }
+        }
+    }
+
+    free(queue);
+    free(used);
+}
+
+static void UseTool(Tool tool)
+{
+    UseSpriteSheet(editing);
+
+    if (tool == ERASE) {
+        for (int j = 0; j < height; ++j) {
+            for (int i = 0; i < width; ++i) {
+                SetSpritePixel(i, j, selected, bgColor);
+            }
+        }
+    } else if (tool == FLIP_H || tool == FLIP_V || tool == ROTATE) {
+        uint8_t *data = malloc(width * height);
+        uint8_t *ptr = data;
+
+        for (int j = 0; j < height; ++j) {
+            for (int i = 0; i < width; ++i) {
+                *ptr++ = GetSpritePixel(i, j, selected);
+            }
+        }
+
+        ptr = data;
+
+        for (int j = 0; j < height; ++j) {
+            for (int i = 0; i < width; ++i) {
+                int color = *ptr++;
+
+                if (tool == FLIP_H) {
+                    SetSpritePixel(width - 1 - i, j, selected, color);
+                }
+
+                if (tool == FLIP_V) {
+                    SetSpritePixel(i, height - 1 - j, selected, color);
+                }
+
+                if (tool == ROTATE) {
+                    SetSpritePixel(j, height - 1 - i, selected, color);
+                }
+            }
+        }
+
+        free(data);
+    } else {
+        activeTool = tool;
+    }
+
+    UseSpriteSheet(MAIN_SPRITESHEET);
+}
 
 static void FixSelected()
 {
@@ -129,8 +236,8 @@ static void DrawEditedSprite(void)
     int selX = -1;
     int selY = -1;
 
-    for (int i = 0; i < SPRITE_WIDTH * spriteRegion; ++i) {
-        for (int j = 0; j < SPRITE_HEIGHT * spriteRegion; ++j) {
+    for (int j = 0; j < height; ++j) {
+        for (int i = 0; i < width; ++i) {
             Rect r = {
                     .x = rect.x + i * zoom,
                     .y = rect.y + j * zoom,
@@ -147,11 +254,31 @@ static void DrawEditedSprite(void)
                 selY = j;
 
                 if (MousePressed(MOUSE_LEFT)) {
-                    SetSpritePixel(i, j, selected, fgColor);
+                    if (activeTool == BRUSH) {
+                        SetSpritePixel(i, j, selected, fgColor);
+                    }
+
+                    if (activeTool == FILL) {
+                        Fill(i, j, fgColor);
+                    }
+
+                    if (activeTool == EYEDROPPER) {
+                        fgColor = GetSpritePixel(i, j, selected);
+                    }
                 }
 
                 if (MousePressed(MOUSE_RIGHT)) {
-                    SetSpritePixel(i, j, selected, bgColor);
+                    if (activeTool == BRUSH) {
+                        SetSpritePixel(i, j, selected, bgColor);
+                    }
+
+                    if (activeTool == FILL) {
+                        Fill(i, j, bgColor);
+                    }
+
+                    if (activeTool == EYEDROPPER) {
+                        bgColor = GetSpritePixel(i, j, selected);
+                    }
                 }
             }
         }
@@ -182,8 +309,8 @@ static void DrawSpriteSheet(void)
 
     UseSpriteSheet(editing);
 
-    for (int i = 0; i < SPR_X; ++i) {
-        for (int j = 0; j < SPR_Y; ++j) {
+    for (int j = 0; j < SPR_Y; ++j) {
+        for (int i = 0; i < SPR_X; ++i) {
             int idx = i + j * SPR_X;
             Rect r = {
                     .x = rect.x + i * SPRITE_WIDTH,
@@ -213,8 +340,8 @@ static void DrawSpriteSheet(void)
         Rect r = {
                 .x = rect.x + i * SPRITE_WIDTH,
                 .y = rect.y + j * SPRITE_HEIGHT,
-                .width = SPRITE_WIDTH * spriteRegion,
-                .height = SPRITE_HEIGHT * spriteRegion
+                .width = width,
+                .height = height
         };
         StrokeRectR(AddBorder(r, 2), WHITE);
         StrokeRectR(AddBorder(r, 1), BLACK);
@@ -229,6 +356,8 @@ static void DrawStatusBar(void)
     DrawSlider(SCREEN_WIDTH - 60, SCREEN_HEIGHT - 7, &spriteRegionLog);
     spriteRegion = 1 << spriteRegionLog;
     zoom = 8 / spriteRegion;
+    width = SPRITE_WIDTH * spriteRegion;
+    height = SPRITE_HEIGHT * spriteRegion;
     FixSelected();
 }
 
@@ -257,7 +386,7 @@ static void DrawTools(void)
         if (IsMouseOver(r)) {
             SetCursorShape(CURSOR_HAND);
             if (MouseJustPressed(MOUSE_LEFT)) {
-                activeTool = tool;
+                UseTool(tool);
             }
         }
     }
@@ -271,6 +400,8 @@ void SpritesInit(void)
     editingIndex = 0;
     spriteRegion = 1;
     zoom = 8;
+    width = SPRITE_WIDTH;
+    height = SPRITE_HEIGHT;
     activeTool = BRUSH;
 }
 
