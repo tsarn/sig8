@@ -8,7 +8,7 @@ int main()
         .height = 146,
         .palette = PALETTE_DEFAULT,
     });
-    MAIN_SPRITESHEET = LoadSpriteSheet("spritesheet.png");
+    MAIN_SPRITESHEET = LoadSpriteSheet("res://spritesheet.png");
 
     SpritesInit();
 
