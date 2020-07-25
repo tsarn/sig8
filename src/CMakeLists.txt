@@ -1,3 +1,5 @@
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
+
 add_library(sig8 STATIC
         ../include/sig8.h
         util.c
@@ -34,9 +36,9 @@ target_compile_features(sig8 PUBLIC c_std_11)
 
 target_include_directories(sig8
 PUBLIC
-    "${CMAKE_SOURCE_DIR}/include/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../include/"
 PRIVATE
-    "${CMAKE_SOURCE_DIR}/src/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../src/"
 )
 
 target_link_libraries(sig8
