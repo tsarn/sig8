@@ -306,14 +306,14 @@ SpriteSheet SpriteSheetFromImage(const char *filename)
     int width, height, channels;
     uint8_t *data = stbi_load(filename, &width, &height, &channels, 3);
     if (!data) {
-        fprintf(stderr, "Failed to load file '%s'\n", filename);
+        printf("Failed to load file '%s'\n", filename);
         return NULL;
     }
 
     uint8_t *result = calloc(SPRITE_SHEET_SIZE, SPRITE_WIDTH * SPRITE_HEIGHT);
     if (!result) {
         stbi_image_free(data);
-        fprintf(stderr, "Failed to allocate memory for a sprite sheet\n");
+        printf("Failed to allocate memory for a sprite sheet\n");
         return NULL;
     }
 

@@ -17,7 +17,7 @@ void* TempAlloc(size_t n)
         size_t allocSize = scratchMemorySize * 2;
         void *newPtr = realloc(scratchMemory, allocSize);
         if (!newPtr) {
-            fprintf(stderr, "TempAlloc: reallocation failed\n");
+            puts("TempAlloc: reallocation failed");
             Finalize();
             exit(EXIT_FAILURE);
         }

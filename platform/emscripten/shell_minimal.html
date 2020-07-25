@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+    <title>sig8</title>
+
+    <meta name="viewport" content="width=device-width">
+
+    <style>
+        body {
+            font-family: arial;
+            margin: 0;
+            padding: 0;
+            background-color: black;
+        }
+
+        #canvas {
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            margin: 0px;
+            border: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            display: block;
+        }
+
+        #status {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-family: monospace;
+            font-weight: bold;
+            font-size: 24px;
+            z-index: 100;
+            color: white;
+            padding: 16px;
+            background-color: black;
+        }
+    </style>
+</head>
+<body>
+<div id="status"></div>
+<canvas class="game" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+<script type="text/javascript">
+    var Module = {
+        preRun: [],
+        postRun: [],
+        print: function(text) {
+            if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+            console.log(text);
+        },
+        printErr: function(text) {
+            if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+            console.error(text);
+        },
+        canvas: (function() {
+            var canvas = document.getElementById('canvas');
+
+            // As a default initial behavior, pop up an alert when webgl context is lost. To make your
+            // application robust, you may want to override this behavior before shipping!
+            // See http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.15.2
+            canvas.addEventListener("webglcontextlost", function(e) { alert('WebGL context lost. You will need to reload the page.'); e.preventDefault(); }, false);
+
+            return canvas;
+        })(),
+        setStatus: function(text) {
+            if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+            var status = document.getElementById("status");
+            if (text.length === 0) {
+                status.style.display = "none";
+            } else {
+                status.style.display = "";
+            }
+            status.innerText = text;
+            console.log(text);
+        },
+        totalDependencies: 0,
+        monitorRunDependencies: function(left) {
+            this.totalDependencies = Math.max(this.totalDependencies, left);
+            Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
+        }
+    };
+    Module.setStatus('Downloading...');
+    window.onerror = function() {
+        Module.setStatus('Exception thrown, see JavaScript console');
+        spinnerElement.style.display = 'none';
+        Module.setStatus = function(text) {
+            if (text) Module.printErr('[post-exception status] ' + text);
+        };
+    };
+</script>
+{{{ SCRIPT }}}
+</body>
+</html>

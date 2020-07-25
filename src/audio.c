@@ -273,7 +273,7 @@ void sig8_InitAudio(void)
 
     audioDevice = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
     if (audioDevice == 0) {
-        fprintf(stderr, "Failed to obtain audio device\n");
+        puts("Failed to obtain audio device");
         Finalize();
         exit(EXIT_FAILURE);
     }

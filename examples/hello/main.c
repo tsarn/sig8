@@ -7,32 +7,30 @@
 
 const char *message = "Have fun with SIG-8!";
 
+void mainLoop(void)
+{
+    static int t = 0;
+    ClearScreen(BLACK);
+
+    for (int i = 0; i < 12; ++i) {
+        for (int j = 0; j < 8; ++j) {
+            int t1 = t + i * 4 - j * 4;
+            int y = 45 - j + cosf(t1 / 10.0f) * 10.0f;
+            RemapColor(WHITE, j == 7 ? WHITE : j);
+            DrawSprite(13 + i * 8, y, 10 + i,SPRITE_MASK_COLOR(BLACK));
+        }
+    }
+
+    DrawString(23, 80, PEACH, message);
+    DrawSprite(60, 90, 0, 0);
+
+    ++t;
+}
+
 int main()
 {
     Initialize("sig8 example: hello");
-
     UseSpriteSheet(SpriteSheetFromImage("spritesheet.png"));
-
-    int t = 0;
-
-    while (Tick()) {
-        ClearScreen(BLACK);
-
-        for (int i = 0; i < 12; ++i) {
-            for (int j = 0; j < 8; ++j) {
-                int t1 = t + i * 4 - j * 4;
-                int y = 45 - j + cosf(t1 / 10.0f) * 10.0f;
-                RemapColor(WHITE, j == 7 ? WHITE : j);
-                DrawSprite(13 + i * 8, y, 10 + i,SPRITE_MASK_COLOR(BLACK));
-            }
-        }
-
-        DrawString(23, 80, PEACH, message);
-        DrawSprite(60, 90, 0, 0);
-
-        ++t;
-    }
-
-    Finalize();
+    RunMainLoop(mainLoop);
     return 0;
 }
