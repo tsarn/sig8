@@ -6,6 +6,7 @@
 #include <math.h>
 
 const char *message = "Have fun with SIG-8!";
+Instrument instrument;
 
 void mainLoop(void)
 {
@@ -19,6 +20,14 @@ void mainLoop(void)
             RemapColor(WHITE, j == 7 ? WHITE : j);
             DrawSprite(13 + i * 8, y, 10 + i,SPRITE_MASK_COLOR(BLACK));
         }
+
+        if (KeyJustPressed("Z")) {
+            PlayNote(0, A4);
+        }
+
+        if (KeyJustReleased("Z")) {
+            StopNote(0);
+        }
     }
 
     DrawString(23, 80, PEACH, message);
@@ -30,6 +39,8 @@ void mainLoop(void)
 int main()
 {
     Initialize("sig8 example: hello");
+    instrument = NewInstrument();
+    SetInstrument(0, instrument);
     UseSpriteSheet(LoadSpriteSheet("res://spritesheet.png"));
     RunMainLoop(mainLoop);
     return 0;

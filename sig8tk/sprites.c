@@ -15,6 +15,7 @@ static int bgColor = BLACK;
 static int zoom = 8;
 static int spriteRegion, spriteRegionLog;
 static int width, height;
+static int brushSize;
 static HistoryItem curAction;
 static History history;
 
@@ -338,13 +339,26 @@ static void DrawEditedSprite(void)
 
             if (IsMouseOver(r)) {
                 SetCursorShape(CURSOR_HAND);
-                selX = i;
-                selY = j;
+                int br = 1;
+                if (activeTool == BRUSH) {
+                    br = 1 + brushSize;
+                }
+                selX = i - br / 2;
+                selY = j - br / 2;
+
+                if (selX < 0) selX = 0;
+                if (selY < 0) selY = 0;
+                if (selX + br > width) selX = width - br;
+                if (selY + br > height) selY = height - br;
 
                 if (MousePressed(MOUSE_LEFT)) {
                     BeginUndoableAction();
                     if (activeTool == BRUSH) {
-                        SetSpritePixel(i, j, selected, fgColor);
+                        for (int x = selX; x < selX + br; ++x) {
+                            for (int y = selY; y < selY + br; ++y) {
+                                SetSpritePixel(x, y, selected, fgColor);
+                            }
+                        }
                     }
 
                     if (activeTool == FILL) {
@@ -377,11 +391,16 @@ static void DrawEditedSprite(void)
     }
 
     if (selX != -1) {
+        int br = 1;
+        if (activeTool == BRUSH) {
+            br = 1 + brushSize;
+        }
+
         Rect r = {
                 .x = rect.x + selX * zoom,
                 .y = rect.y + selY * zoom,
-                .width = zoom - 1,
-                .height = zoom - 1
+                .width = zoom * br,
+                .height = zoom * br
         };
         StrokeRectR(AddBorder(r, 1), BLACK);
         StrokeRectR(AddBorder(r, 2), WHITE);
@@ -445,6 +464,10 @@ static void DrawStatusBar(void)
     char *string = Format("#%03d", selected);
     DrawString(SCREEN_WIDTH - 23, SCREEN_HEIGHT, RED, string);
 
+    if (activeTool == BRUSH) {
+        DrawSlider(2, SCREEN_HEIGHT - 7, &brushSize);
+    }
+
     DrawSlider(SCREEN_WIDTH - 60, SCREEN_HEIGHT - 7, &spriteRegionLog);
     spriteRegion = 1 << spriteRegionLog;
     zoom = 8 / spriteRegion;
@@ -502,6 +525,7 @@ void SpritesInit(void)
     selected = 0;
     editingIndex = 0;
     spriteRegion = 1;
+    brushSize = 0;
     zoom = 8;
     width = SPRITE_WIDTH;
     height = SPRITE_HEIGHT;
