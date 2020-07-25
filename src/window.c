@@ -1,5 +1,10 @@
 #include "sig8_internal.h"
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#include <emscripten/html5.h>
+#endif
+
 static const char *vertexShaderSource =
         "#version 300 es\n"
         "layout (location = 0) in vec2 pos;\n"
@@ -59,6 +64,7 @@ static SDL_GLContext glContext = NULL;
 static bool shouldQuit = false;
 static bool initialized = false;
 static bool anyEventsHappened = false;
+static void (*mainLoop)(void);
 
 static SDL_Cursor *cachedCursors[SDL_NUM_SYSTEM_CURSORS];
 
@@ -184,7 +190,7 @@ void sig8_InitWindow(const char *name)
     sig8_RegisterEventCallback(SDL_QUIT, OnQuit);
     sig8_RegisterEventCallback(SDL_WINDOWEVENT, OnWindowEvent);
 
-    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+    if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO) != 0) {
         ReportSDLError();
     }
 
@@ -221,7 +227,8 @@ static void UpdateBufferData(void)
 
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, screenPBO);
     glBufferData(GL_PIXEL_UNPACK_BUFFER, screenBufferSize, NULL, GL_DYNAMIC_DRAW);
-    uint8_t *ptr = glMapBufferRange(GL_PIXEL_UNPACK_BUFFER, 0, screenBufferSize, GL_MAP_WRITE_BIT);
+    uint8_t *ptr = glMapBufferRange(GL_PIXEL_UNPACK_BUFFER, 0, screenBufferSize,
+            GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
     memcpy(ptr, screenBuffer, screenBufferSize);
     glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
 }
@@ -340,7 +347,7 @@ static void RedrawScreen(void)
 
     glUniform2f(offLoc, offsetX, offsetY);
 
-    glDrawArrays(GL_TRIANGLES, 0, SCREEN_WIDTH * SCREEN_HEIGHT * 6);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
     SDL_GL_SwapWindow(window);
 }
 
@@ -358,6 +365,32 @@ bool Tick(void)
     HandleEvents();
 
     return !shouldQuit;
+}
+
+#ifdef __EMSCRIPTEN__
+static void EmscriptenAnimationFrame(void* data) {
+    if (!Tick()) {
+        emscripten_cancel_main_loop();
+        Finalize();
+        return;
+    }
+
+    mainLoop();
+}
+#endif
+
+void RunMainLoop(void (*function)(void))
+{
+    mainLoop = function;
+
+#ifdef __EMSCRIPTEN__
+    emscripten_set_main_loop_arg(EmscriptenAnimationFrame, NULL, -1, 1);
+#else
+    while (Tick()) {
+        mainLoop();
+    }
+    Finalize();
+#endif
 }
 
 void Quit(void)

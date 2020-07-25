@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include <assert.h>
 
 #ifdef  __cplusplus
 extern "C" {
@@ -198,13 +199,27 @@ typedef struct {
 void Initialize(const char *windowName);
 void InitializeEx(Configuration configuration);
 void Finalize(void);
+#ifdef __EMSCRIPTEN__
+#define Tick() sig8_EmscriptenTickWarning()
+int puts(const char *);
+static inline bool sig8_EmscriptenTickWarning(void) {
+    puts(
+        "You are trying to use Tick() when compiling using Emscripten. "
+        "This will not work. Please use RunMainLoop(). "
+        "See the documentation for details."
+    );
+    return 0;
+}
+#else
 bool Tick(void);
+#endif
 void Quit(void);
 bool ShouldQuit(void);
 void SetCursorShape(CursorShape cursor);
 int GetScreenWidth(void);
 int GetScreenHeight(void);
 Palette GetPalette(void);
+void RunMainLoop(void (*function)(void));
 
 /*
  * Utility functions
