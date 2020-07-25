@@ -33,10 +33,11 @@
             left: 10px;
             font-family: monospace;
             font-weight: bold;
-            font-size: 24px;
+            font-size: 16px;
             z-index: 100;
             color: white;
             padding: 16px;
+            max-width: 300px;
             background-color: black;
         }
     </style>
@@ -45,15 +46,21 @@
 <div id="status"></div>
 <canvas class="game" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
 <script type="text/javascript">
+    var stickyMessage = "";
     var Module = {
         preRun: [],
         postRun: [],
         print: function(text) {
             if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+            if (text.startsWith("ERROR:")) {
+                stickyMessage += text.slice(6);
+                Module.setStatus("");
+            }
             console.log(text);
         },
         printErr: function(text) {
             if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+            Module.setStatus(text);
             console.error(text);
         },
         canvas: (function() {
@@ -69,13 +76,13 @@
         setStatus: function(text) {
             if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
             var status = document.getElementById("status");
+            text = stickyMessage + text;
             if (text.length === 0) {
                 status.style.display = "none";
             } else {
                 status.style.display = "";
             }
             status.innerText = text;
-            console.log(text);
         },
         totalDependencies: 0,
         monitorRunDependencies: function(left) {

@@ -9,7 +9,11 @@ if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
 endif()
 
 add_subdirectory(src)
-add_subdirectory(bundler)
+
+if(NOT CMAKE_CROSSCOMPILING)
+    add_subdirectory(bundler)
+endif()
+
 include(sig8util)
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
