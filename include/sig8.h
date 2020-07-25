@@ -22,6 +22,7 @@ extern "C" {
 #define SPRITE_SHEET_SIZE 256
 #define SPRITE_WIDTH 8
 #define SPRITE_HEIGHT 8
+#define SPRITE_SHEET_BYTE_SIZE (SPRITE_SHEET_SIZE * SPRITE_WIDTH * SPRITE_HEIGHT)
 
 /*
  * Sprite flags

@@ -3,7 +3,7 @@ add_executable(sig8tk
         sig8tk.h
         sprites.c
         ui.c
-)
+        history.c)
 
 sig8_bundle(
         TARGET sig8tk

@@ -15,6 +15,8 @@ static int bgColor = BLACK;
 static int zoom = 8;
 static int spriteRegion, spriteRegionLog;
 static int width, height;
+static HistoryItem curAction;
+static History history;
 
 typedef enum {
     BRUSH,
@@ -37,6 +39,90 @@ static Position neighbors[4] = {
         { .x = 0, .y = 1 },
         { .x = 0, .y = -1 },
 };
+
+static void BeginUndoableAction(void)
+{
+    curAction.oldResource = editingIndex;
+    curAction.data = TempAlloc(SPRITE_SHEET_BYTE_SIZE);
+    memcpy(curAction.data, editing, SPRITE_SHEET_BYTE_SIZE);
+}
+
+static void EndUndoableAction(void)
+{
+    bool anythingChanged = false;
+    curAction.newResource = editingIndex;
+    for (int i = 0; i < SPRITE_SHEET_BYTE_SIZE; ++i) {
+        curAction.data[i] ^= editing[i];
+        if (curAction.data[i]) {
+            anythingChanged = true;
+        }
+    }
+
+    if (!anythingChanged) {
+        return;
+    }
+
+    // very simple compression
+    int last = curAction.data[0], len = 1, j = 0;
+    for (int i = 1; i <= SPRITE_SHEET_BYTE_SIZE; ++i) {
+        if (i < SPRITE_SHEET_BYTE_SIZE) {
+            if (curAction.data[i] == last) {
+                if (len < 127) {
+                    ++len;
+                    continue;
+                }
+            }
+        }
+        if (len == 1) {
+            curAction.data[j++] = (uint8_t)last | 0x80u;
+        } else {
+            curAction.data[j++] = len;
+            curAction.data[j++] = last;
+        }
+
+        last = curAction.data[i];
+        len = 1;
+    }
+
+    uint8_t *oldData = curAction.data;
+
+    curAction.data = malloc(j);
+    memcpy(curAction.data, oldData, j);
+    HistoryPush(&history, curAction);
+    curAction.data = NULL;
+}
+
+static void ApplyUndo(HistoryItem historyItem)
+{
+    int i = 0, j = 0;
+    while (j < SPRITE_SHEET_BYTE_SIZE) {
+        uint8_t t = historyItem.data[i++];
+        int end = t + j;
+        if (t & 0x80u) {
+            end = 1 + j;
+            t ^= 0x80u;
+        } else {
+            t = historyItem.data[i++];
+        }
+        for (; j < end; ++j) {
+            editing[j] ^= t;
+        }
+    }
+}
+
+static void Undo(void)
+{
+    if (HistoryCanUndo(&history)) {
+        ApplyUndo(HistoryUndo(&history));
+    }
+}
+
+static void Redo(void)
+{
+    if (HistoryCanRedo(&history)) {
+        ApplyUndo(HistoryRedo(&history));
+    }
+}
 
 static void Fill(int x, int y, int color)
 {
@@ -94,13 +180,16 @@ static void UseTool(Tool tool)
     UseSpriteSheet(editing);
 
     if (tool == ERASE) {
+        BeginUndoableAction();
         for (int j = 0; j < height; ++j) {
             for (int i = 0; i < width; ++i) {
                 SetSpritePixel(i, j, selected, bgColor);
             }
         }
+        EndUndoableAction();
     } else if (tool == FLIP_H || tool == FLIP_V || tool == ROTATE) {
-        uint8_t *data = malloc(width * height);
+        BeginUndoableAction();
+        uint8_t *data = TempAlloc(width * height);
         uint8_t *ptr = data;
 
         for (int j = 0; j < height; ++j) {
@@ -128,8 +217,7 @@ static void UseTool(Tool tool)
                 }
             }
         }
-
-        free(data);
+        EndUndoableAction();
     } else {
         activeTool = tool;
     }
@@ -254,6 +342,7 @@ static void DrawEditedSprite(void)
                 selY = j;
 
                 if (MousePressed(MOUSE_LEFT)) {
+                    BeginUndoableAction();
                     if (activeTool == BRUSH) {
                         SetSpritePixel(i, j, selected, fgColor);
                     }
@@ -265,9 +354,11 @@ static void DrawEditedSprite(void)
                     if (activeTool == EYEDROPPER) {
                         fgColor = GetSpritePixel(i, j, selected);
                     }
+                    EndUndoableAction();
                 }
 
                 if (MousePressed(MOUSE_RIGHT)) {
+                    BeginUndoableAction();
                     if (activeTool == BRUSH) {
                         SetSpritePixel(i, j, selected, bgColor);
                     }
@@ -279,6 +370,7 @@ static void DrawEditedSprite(void)
                     if (activeTool == EYEDROPPER) {
                         bgColor = GetSpritePixel(i, j, selected);
                     }
+                    EndUndoableAction();
                 }
             }
         }
@@ -393,6 +485,17 @@ static void DrawTools(void)
     ResetColors();
 }
 
+static void HandleInput(void)
+{
+    if (KeyJustPressed("Ctrl+Z")) {
+        Undo();
+    }
+
+    if (KeyJustPressed("Ctrl+Y")) {
+        Redo();
+    }
+}
+
 void SpritesInit(void)
 {
     editing = MAIN_SPRITESHEET;
@@ -403,6 +506,12 @@ void SpritesInit(void)
     width = SPRITE_WIDTH;
     height = SPRITE_HEIGHT;
     activeTool = BRUSH;
+    history = (History) {
+        .size = 0,
+        .capacity = 0,
+        .cur = 0,
+        .data = NULL
+    };
 }
 
 void SpritesTick(void)
@@ -415,4 +524,5 @@ void SpritesTick(void)
     DrawStatusBar();
     DrawTools();
     DrawNumberInput(SCREEN_WIDTH - 18, 1, &editingIndex);
+    HandleInput();
 }
