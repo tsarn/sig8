@@ -9,6 +9,11 @@
 #include <SDL2/SDL.h>
 #include <GLES3/gl3.h>
 
+#ifdef __EMSCRIPTEN__
+#undef Tick
+bool Tick(void);
+#endif
+
 #define KEYBOARD_STATE_SIZE 512
 #define MOUSE_STATE_SIZE 16
 #define KEY_PRESSED 0x01

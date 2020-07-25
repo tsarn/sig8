@@ -19,8 +19,8 @@ add_library(sig8 STATIC
 
 
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
-    target_compile_options(sig8 PUBLIC -sUSE_SDL=2 -sWASM=1)
-    target_link_options(sig8 PUBLIC -sUSE_SDL=2 -sFULL_ES3=1 -sWASM=1 --emrun)
+    target_compile_options(sig8 PUBLIC -sUSE_SDL=2)
+    target_link_options(sig8 PUBLIC -sUSE_SDL=2 -sFULL_ES3=1)
 else()
     find_package(SDL2 REQUIRED)
     find_package(OpenGL REQUIRED)
