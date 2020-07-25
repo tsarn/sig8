@@ -71,8 +71,8 @@ static SDL_Cursor *cachedCursors[SDL_NUM_SYSTEM_CURSORS];
 void InitializeEx(Configuration configuration)
 {
     if (initialized) {
-        fprintf(stderr, "Repeat initialization is not supported.\n");
-        fprintf(stderr, "Do not call Initialize() more than once.\n");
+        puts("Repeat initialization is not supported.");
+        puts("Do not call Initialize() more than once.");
         Finalize();
         exit(EXIT_FAILURE);
     }
@@ -179,7 +179,7 @@ bool AnyEventsHappened(void)
 
 static void ReportSDLError(void)
 {
-    fprintf(stderr, "SDL Error: %s\n", SDL_GetError());
+    printf("SDL Error: %s\n", SDL_GetError());
     Finalize();
     exit(EXIT_FAILURE);
 }
@@ -274,9 +274,9 @@ void sig8_InitGLES(void)
 
     glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
     if (!success) {
-        fprintf(stderr, "Vertex shader compilation failed.\n");
+        puts("Vertex shader compilation failed.");
         glGetShaderInfoLog(vertexShader, sizeof infoLog, NULL, infoLog);
-        fputs(infoLog, stderr);
+        puts(infoLog);
         exit(EXIT_FAILURE);
     }
 
@@ -287,9 +287,9 @@ void sig8_InitGLES(void)
 
     glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
     if (!success) {
-        fprintf(stderr, "Fragment shader compilation failed.\n");
+        puts("Fragment shader compilation failed.");
         glGetShaderInfoLog(fragmentShader, sizeof infoLog, NULL, infoLog);
-        fputs(infoLog, stderr);
+        puts(infoLog);
         exit(EXIT_FAILURE);
     }
 
@@ -300,9 +300,9 @@ void sig8_InitGLES(void)
 
     glGetProgramiv(shader, GL_LINK_STATUS, &success);
     if (!success) {
-        fprintf(stderr, "Shader linkage failed.\n");
+        puts("Shader linkage failed.");
         glGetProgramInfoLog(shader, sizeof infoLog, NULL, infoLog);
-        fputs(infoLog, stderr);
+        puts(infoLog);
         exit(EXIT_FAILURE);
     }
 
