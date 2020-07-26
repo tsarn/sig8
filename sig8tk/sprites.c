@@ -73,18 +73,15 @@ static void EndUndoableAction(void)
     for (int i = 1; i <= SPRITE_SHEET_BYTE_SIZE; ++i) {
         if (i < SPRITE_SHEET_BYTE_SIZE) {
             if (curAction.data[i] == last) {
-                if (len < 127) {
+                if (len < 255) {
                     ++len;
                     continue;
                 }
             }
         }
-        if (len == 1) {
-            curAction.data[j++] = (uint8_t)last | 0x80u;
-        } else {
-            curAction.data[j++] = len;
-            curAction.data[j++] = last;
-        }
+
+        curAction.data[j++] = len;
+        curAction.data[j++] = last;
 
         last = curAction.data[i];
         len = 1;
@@ -102,14 +99,8 @@ static void ApplyUndo(HistoryItem historyItem)
 {
     int i = 0, j = 0;
     while (j < SPRITE_SHEET_BYTE_SIZE) {
+        int end = historyItem.data[i++] + j;
         uint8_t t = historyItem.data[i++];
-        int end = t + j;
-        if (t & 0x80u) {
-            end = 1 + j;
-            t ^= 0x80u;
-        } else {
-            t = historyItem.data[i++];
-        }
         for (; j < end; ++j) {
             editing[j] ^= t;
         }

@@ -62,17 +62,19 @@ function(sig8_bundle)
             VERBATIM
         )
 
-        file(WRITE "${SIG8_BUNDLE_PATH}.h"
-                "#pragma once
-extern const char *${SIG8_BUNDLE_NAME};"
-        )
-
-        target_include_directories(${SIG8_BUNDLE_TARGET} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
-        target_sources(${SIG8_BUNDLE_TARGET} PRIVATE "${SIG8_BUNDLE_PATH}.h" "${SIG8_BUNDLE_PATH}.c")
-
         if (SIG8_DEFAULT_BUNDLE)
             target_compile_definitions(${SIG8_BUNDLE_TARGET} PRIVATE SIG8_USE_DEFAULT_BUNDLE)
+        else()
+            file(WRITE "${SIG8_BUNDLE_PATH}.h"
+                    "#pragma once
+extern const char *${SIG8_BUNDLE_NAME};"
+                    )
+
+            target_include_directories(${SIG8_BUNDLE_TARGET} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+            target_sources(${SIG8_BUNDLE_TARGET} PRIVATE "${SIG8_BUNDLE_PATH}.h")
         endif()
+        
+        target_sources(${SIG8_BUNDLE_TARGET} PRIVATE "${SIG8_BUNDLE_PATH}.c")
     else()
         target_compile_definitions(${SIG8_BUNDLE_TARGET} PRIVATE SIG8_USE_RESOURCE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/")
     endif()
