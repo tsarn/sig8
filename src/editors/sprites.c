@@ -1,4 +1,5 @@
-#include "sig8tk.h"
+#ifdef SIG8_COMPILE_EDITORS
+#include "editors.h"
 
 #define SPR_X 16
 #define SPR_Y 16
@@ -88,7 +89,7 @@ static void EndUndoableAction(void)
 
     curAction.data = malloc(j);
     memcpy(curAction.data, oldData, j);
-    HistoryPush(&history, curAction);
+    sig8_HistoryPush(&history, curAction);
     curAction.data = NULL;
 }
 
@@ -106,15 +107,15 @@ static void ApplyUndo(HistoryItem historyItem)
 
 static void Undo(void)
 {
-    if (HistoryCanUndo(&history)) {
-        ApplyUndo(HistoryUndo(&history));
+    if (sig8_HistoryCanUndo(&history)) {
+        ApplyUndo(sig8_HistoryUndo(&history));
     }
 }
 
 static void Redo(void)
 {
-    if (HistoryCanRedo(&history)) {
-        ApplyUndo(HistoryRedo(&history));
+    if (sig8_HistoryCanRedo(&history)) {
+        ApplyUndo(sig8_HistoryRedo(&history));
     }
 }
 
@@ -223,7 +224,7 @@ static void UseTool(Tool tool)
         activeTool = tool;
     }
 
-    UseSpriteSheet(MAIN_SPRITESHEET);
+    UseSpriteSheet(sig8_EDITORS_SPRITESHEET);
 }
 
 static void FixSelected()
@@ -256,10 +257,10 @@ static void DrawPalette(void)
                 .height = PALETTE_STRIDE
         };
 
-        FillRectR(r, color);
-        StrokeRectR(AddBorder(r, 1), WHITE);
+        sig8_FillRectR(r, color);
+        sig8_StrokeRectR(sig8_AddBorder(r, 1), WHITE);
 
-        if (IsMouseOver(r)) {
+        if (sig8_IsMouseOver(r)) {
             SetCursorShape(CURSOR_HAND);
 
             if (MousePressed(MOUSE_LEFT)) {
@@ -284,8 +285,8 @@ static void DrawPalette(void)
                 .height = PALETTE_STRIDE
         };
 
-        FillRectR(AddBorder(r, 1), fgColor);
-        StrokeRectR(AddBorder(r, 2), WHITE);
+        sig8_FillRectR(sig8_AddBorder(r, 1), fgColor);
+        sig8_StrokeRectR(sig8_AddBorder(r, 2), WHITE);
     }
 
     {
@@ -318,7 +319,7 @@ static void DrawEditedSprite(void)
             .height = EDIT_Y
     };
 
-    StrokeRectR(AddBorder(rect, 1), WHITE);
+    sig8_StrokeRectR(sig8_AddBorder(rect, 1), WHITE);
 
     UseSpriteSheet(editing);
 
@@ -335,9 +336,9 @@ static void DrawEditedSprite(void)
             };
 
             int color = GetSpritePixel(i, j, selected);
-            FillRectR(r, color);
+            sig8_FillRectR(r, color);
 
-            if (IsMouseOver(r)) {
+            if (sig8_IsMouseOver(r)) {
                 SetCursorShape(CURSOR_HAND);
                 int br = 1;
                 if (activeTool == BRUSH) {
@@ -402,11 +403,11 @@ static void DrawEditedSprite(void)
                 .width = zoom * br,
                 .height = zoom * br
         };
-        StrokeRectR(AddBorder(r, 1), BLACK);
-        StrokeRectR(AddBorder(r, 2), WHITE);
+        sig8_StrokeRectR(sig8_AddBorder(r, 1), BLACK);
+        sig8_StrokeRectR(sig8_AddBorder(r, 2), WHITE);
     }
 
-    UseSpriteSheet(MAIN_SPRITESHEET);
+    UseSpriteSheet(sig8_EDITORS_SPRITESHEET);
 }
 
 static void DrawSpriteSheet(void)
@@ -431,7 +432,7 @@ static void DrawSpriteSheet(void)
             };
             DrawSprite(r.x, r.y, idx, 0);
 
-            if (IsMouseOver(r)) {
+            if (sig8_IsMouseOver(r)) {
                 SetCursorShape(CURSOR_HAND);
                 if (MousePressed(MOUSE_LEFT)) {
                     selectedX = i - spriteRegion / 2;
@@ -442,7 +443,7 @@ static void DrawSpriteSheet(void)
         }
     }
 
-    UseSpriteSheet(MAIN_SPRITESHEET);
+    UseSpriteSheet(sig8_EDITORS_SPRITESHEET);
 
     {
         int i = selected % SPR_X;
@@ -454,8 +455,8 @@ static void DrawSpriteSheet(void)
                 .width = width,
                 .height = height
         };
-        StrokeRectR(AddBorder(r, 2), WHITE);
-        StrokeRectR(AddBorder(r, 1), BLACK);
+        sig8_StrokeRectR(sig8_AddBorder(r, 2), WHITE);
+        sig8_StrokeRectR(sig8_AddBorder(r, 1), BLACK);
     }
 }
 
@@ -468,10 +469,10 @@ static void DrawStatusBar(void)
     SetFont(FONT_ASEPRITE);
 
     if (activeTool == BRUSH) {
-        DrawSlider(4, 116, &brushSize);
+        sig8_DrawSlider(4, 116, &brushSize);
     }
 
-    DrawSlider(SCREEN_WIDTH - 60, SCREEN_HEIGHT - 7, &spriteRegionLog);
+    sig8_DrawSlider(SCREEN_WIDTH - 60, SCREEN_HEIGHT - 7, &spriteRegionLog);
     spriteRegion = 1 << spriteRegionLog;
     zoom = 8 / spriteRegion;
     width = SPRITE_WIDTH * spriteRegion;
@@ -495,13 +496,13 @@ static void DrawTools(void)
         };
 
         if ((Tool)tool == activeTool) {
-            DrawIcon(r.x, r.y + 1, 5 + tool, WHITE);
+            sig8_DrawIcon(r.x, r.y + 1, 5 + tool, WHITE);
         } else {
-            DrawIcon(r.x, r.y + 1, 5 + tool, BLACK);
-            DrawIcon(r.x, r.y, 5 + tool, GRAY);
+            sig8_DrawIcon(r.x, r.y + 1, 5 + tool, BLACK);
+            sig8_DrawIcon(r.x, r.y, 5 + tool, GRAY);
         }
 
-        if (IsMouseOver(r)) {
+        if (sig8_IsMouseOver(r)) {
             SetCursorShape(CURSOR_HAND);
             statusLine = toolNames[tool];
             if (MouseJustPressed(MOUSE_LEFT)) {
@@ -523,9 +524,9 @@ static void HandleInput(void)
     }
 }
 
-void SpritesInit(void)
+void sig8_SpriteEditorInit(sig8_ManagedResource *what)
 {
-    editing = MAIN_SPRITESHEET;
+    editing = what->resource;
     selected = 0;
     spriteRegion = 1;
     brushSize = 0;
@@ -541,15 +542,26 @@ void SpritesInit(void)
     };
 }
 
-void SpritesTick(void)
+void sig8_SpriteEditorTick(void)
 {
+    UseSpriteSheet(sig8_EDITORS_SPRITESHEET);
+    SetCursorShape(CURSOR_ARROW);
+
     ClearScreen(INDIGO);
     statusLine = "";
-    DrawToolbar();
+    sig8_DrawToolbar();
     DrawSpriteSheet();
     DrawEditedSprite();
     DrawPalette();
     DrawTools();
     DrawStatusBar();
     HandleInput();
+
+    if (KeyJustPressed("Escape")) {
+        SetCursorShape(CURSOR_ARROW);
+        sig8_HistoryClear(&history);
+        sig8_LeaveEditor();
+    }
 }
+
+#endif

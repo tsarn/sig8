@@ -7,6 +7,7 @@
 
 const char *message = "Have fun with SIG-8!";
 Instrument instrument;
+SpriteSheet spriteSheet;
 
 void mainLoop(void)
 {
@@ -28,6 +29,10 @@ void mainLoop(void)
         if (KeyJustReleased("Z")) {
             StopNote(0);
         }
+
+        if (KeyJustPressed("E")) {
+            EditResource(spriteSheet);
+        }
     }
 
     DrawString(23, 80, PEACH, message);
@@ -41,7 +46,8 @@ int main()
     Initialize("sig8 example: hello");
     instrument = NewInstrument();
     SetInstrument(0, instrument);
-    UseSpriteSheet(LoadSpriteSheet("res://spritesheet.png"));
+    spriteSheet = LoadSpriteSheet("res://spritesheet.png");
+    UseSpriteSheet(spriteSheet);
     RunMainLoop(mainLoop);
     return 0;
 }

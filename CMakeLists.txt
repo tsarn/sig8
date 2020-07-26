@@ -8,6 +8,7 @@ if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
     set(CMAKE_EXECUTABLE_SUFFIX .html)
 endif()
 
+include(sig8util)
 add_subdirectory(thirdparty)
 add_subdirectory(src)
 
@@ -15,10 +16,8 @@ if(NOT CMAKE_CROSSCOMPILING)
     add_subdirectory(bundler)
 endif()
 
-include(sig8util)
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
-    # Only compile examples and sig8tk if building the library itself
+    # Only compile examples if building the library itself
     add_subdirectory(examples)
-    add_subdirectory(sig8tk)
 endif()

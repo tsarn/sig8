@@ -65,10 +65,18 @@ static bool shouldQuit = false;
 static bool initialized = false;
 static bool anyEventsHappened = false;
 static void (*mainLoop)(void);
+static Configuration configuration;
 
 static SDL_Cursor *cachedCursors[SDL_NUM_SYSTEM_CURSORS];
 
-void sig8_InitializeEx(Configuration configuration)
+#ifdef SIG8_COMPILE_EDITORS
+static bool pendingEditorEnter = false;
+static bool pendingEditorLeave = false;
+static bool editorsEnabled = false;
+static void (*editorLoop)(void);
+#endif
+
+void sig8_InitializeEx(Configuration cfg)
 {
     if (initialized) {
         puts("Repeat initialization is not supported.");
@@ -77,9 +85,11 @@ void sig8_InitializeEx(Configuration configuration)
         exit(EXIT_FAILURE);
     }
 
-    screenWidth = configuration.width ? configuration.width : 128;
-    screenHeight = configuration.height ? configuration.height : 128;
-    palette = configuration.palette.size ? configuration.palette : PALETTE_DEFAULT;
+    screenWidth = cfg.width = cfg.width ? cfg.width : 128;
+    screenHeight = cfg.height =  cfg.height ? cfg.height : 128;
+    palette = cfg.palette.size ? cfg.palette : PALETTE_DEFAULT;
+
+    configuration = cfg;
 
     screenBufferSize = screenWidth * screenHeight * sizeof(Color);
     screenBuffer = malloc(screenBufferSize);
@@ -91,6 +101,12 @@ void sig8_InitializeEx(Configuration configuration)
     sig8_InitAudio();
     sig8_InitMusic();
     sig8_InitInput();
+#ifdef SIG8_COMPILE_EDITORS
+    const uint8_t *old = sig8_GetResourceBundle();
+    UseResourceBundle(SIG8_EDITORS_BUNDLE);
+    sig8_EDITORS_SPRITESHEET = LoadSpriteSheet("res://editors/spritesheet.png");
+    UseResourceBundle(old);
+#endif
     initialized = true;
 }
 
@@ -117,6 +133,39 @@ void Finalize(void)
     }
 
     SDL_Quit();
+}
+
+static void OnResize(void)
+{
+    SDL_GetWindowSize(window, &windowWidth, &windowHeight);
+
+    int pixelScaleX = windowWidth / screenWidth;
+    int pixelScaleY = windowHeight / screenHeight;
+
+    if (pixelScaleX < pixelScaleY) {
+        pixelScale = pixelScaleX;
+    } else {
+        pixelScale = pixelScaleY;
+    }
+
+    offsetX = (1.0f - screenWidth * pixelScale * 1.0f / windowWidth) / 2.0f;
+    offsetY = (1.0f - screenHeight * pixelScale * 1.0f / windowHeight) / 2.0f;
+}
+
+void sig8_ResizeScreen(int newWidth, int newHeight)
+{
+    // This function is only called AFTER everything has been initialized.
+    // That means, that the screen of default size has already been allocated
+    // and all the GLES buffers are already allocated as well.
+
+    free(screenBuffer);
+    screenWidth = newWidth;
+    screenHeight = newHeight;
+    screenBufferSize = screenWidth * screenHeight * sizeof(Color);
+    screenBuffer = malloc(screenBufferSize);
+    sig8_InitScreen(screenBuffer);
+    sig8_InitGLESPixelBuffer();
+    OnResize();
 }
 
 int GetScreenWidth(void)
@@ -147,23 +196,6 @@ static void OnQuit(SDL_Event *event)
     Quit();
 }
 
-static void OnResize(void)
-{
-    SDL_GetWindowSize(window, &windowWidth, &windowHeight);
-
-    int pixelScaleX = windowWidth / SCREEN_WIDTH;
-    int pixelScaleY = windowHeight / SCREEN_HEIGHT;
-
-    if (pixelScaleX < pixelScaleY) {
-        pixelScale = pixelScaleX;
-    } else {
-        pixelScale = pixelScaleY;
-    }
-
-    offsetX = (1.0f - SCREEN_WIDTH * pixelScale * 1.0f / windowWidth) / 2.0f;
-    offsetY = (1.0f - SCREEN_HEIGHT * pixelScale * 1.0f / windowHeight) / 2.0f;
-}
-
 static void OnWindowEvent(SDL_Event *event)
 {
     if (event->window.event == SDL_WINDOWEVENT_RESIZED) {
@@ -185,7 +217,7 @@ static void ReportSDLError(void)
 
 void sig8_InitWindow(const char *name)
 {
-    sig8_RegisterFrameCallback(UpdateDelta);
+    sig8_RegisterCallback(FRAME_EVENT, UpdateDelta);
     sig8_RegisterEventCallback(SDL_QUIT, OnQuit);
     sig8_RegisterEventCallback(SDL_WINDOWEVENT, OnWindowEvent);
 
@@ -232,6 +264,13 @@ static void UpdateBufferData(void)
     glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
 }
 
+void sig8_InitGLESPixelBuffer(void)
+{
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, screenPBO);
+    glBufferData(GL_PIXEL_UNPACK_BUFFER, screenBufferSize, screenBuffer, GL_DYNAMIC_DRAW);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+}
+
 void sig8_InitGLES(void)
 {
     glGenBuffers(1, &screenVBO);
@@ -246,9 +285,6 @@ void sig8_InitGLES(void)
     glBindBuffer(GL_ARRAY_BUFFER, screenVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof screenRect, screenRect, GL_STATIC_DRAW);
 
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, screenPBO);
-    glBufferData(GL_PIXEL_UNPACK_BUFFER, screenBufferSize, screenBuffer, GL_DYNAMIC_DRAW);
-
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
@@ -259,7 +295,8 @@ void sig8_InitGLES(void)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+
+    sig8_InitGLESPixelBuffer();
 
     // Compile shaders
 
@@ -317,7 +354,7 @@ void sig8_InitGLES(void)
 static void HandleEvents(void)
 {
     anyEventsHappened = false;
-    sig8_HandleEvent(FRAME_EVENT, NULL);
+    sig8_EmitEvent(FRAME_EVENT, NULL);
     SDL_Event event;
     while (SDL_PollEvent(&event) != 0) {
         float x, y;
@@ -330,7 +367,7 @@ static void HandleEvents(void)
             event.user.data2 = &y;
         }
 
-        if (sig8_HandleEvent(event.type, &event)) {
+        if (sig8_EmitEvent(event.type, &event)) {
             anyEventsHappened = true;
         }
     }
@@ -357,11 +394,25 @@ float GetDelta(void)
     return curDelta;
 }
 
-bool Tick(void)
+static bool Tick(void)
 {
     RedrawScreen();
 
     // previous frame ends here
+
+#ifdef SIG8_COMPILE_EDITORS
+    if (pendingEditorEnter) {
+        sig8_EmitEvent(EDITOR_ENTER_EVENT, NULL);
+        sig8_ResizeScreen(EDITOR_WIDTH, EDITOR_HEIGHT);
+        pendingEditorEnter = false;
+    }
+
+    if (pendingEditorLeave) {
+        sig8_ResizeScreen(configuration.width, configuration.height);
+        sig8_EmitEvent(EDITOR_LEAVE_EVENT, NULL);
+        pendingEditorLeave = false;
+    }
+#endif
 
     bool q = shouldQuit;
     HandleEvents();
@@ -376,7 +427,15 @@ static void EmscriptenAnimationFrame(void* data) {
         return;
     }
 
+#ifdef SIG8_COMPILE_EDITORS
+    if (editorLoop) {
+        editorLoop();
+    } else {
+        mainLoop();
+    }
+#else
     mainLoop();
+#endif
 }
 #endif
 
@@ -388,7 +447,15 @@ void RunMainLoop(void (*function)(void))
     emscripten_set_main_loop_arg(EmscriptenAnimationFrame, NULL, -1, 1);
 #else
     while (Tick()) {
+#ifdef SIG8_COMPILE_EDITORS
+        if (editorLoop) {
+            editorLoop();
+        } else {
+            mainLoop();
+        }
+#else
         mainLoop();
+#endif
     }
     Finalize();
 #endif
@@ -407,4 +474,33 @@ bool ShouldQuit(void)
 void SetCursorShape(CursorShape cursor)
 {
     SDL_SetCursor(cachedCursors[cursor]);
+}
+
+void EnableEditors(void)
+{
+#ifdef SIG8_COMPILE_EDITORS
+    editorsEnabled = true;
+#endif
+}
+
+#ifdef SIG8_COMPILE_EDITORS
+void sig8_LeaveEditor(void)
+{
+    editorLoop = NULL;
+    pendingEditorLeave = true;
+}
+#endif
+
+void EditResource(uint8_t *resource)
+{
+#ifdef SIG8_COMPILE_EDITORS
+    if (!editorsEnabled) {
+        return;
+    }
+
+    sig8_ManagedResource *res = sig8_GetManagedResource(resource);
+    editorLoop = sig8_SpriteEditorTick;
+    pendingEditorEnter = true;
+    sig8_SpriteEditorInit(res);
+#endif
 }
