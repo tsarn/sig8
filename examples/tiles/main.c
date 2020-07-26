@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include "sig8.h"
 
+SpriteSheet spriteSheet;
+
 void mainLoop(void)
 {
     static int offsetX = 0;
@@ -14,6 +16,9 @@ void mainLoop(void)
     if (KeyJustPressed("Up")) offsetY -= 5;
     if (KeyJustPressed("Down")) offsetY += 5;
     if (KeyJustPressed("Left")) offsetX -= 5;
+    if (KeyJustPressed("E")) {
+        EditResource(spriteSheet);
+    }
 }
 
 int main()
@@ -21,7 +26,8 @@ int main()
     Initialize("sig8 example: tiles");
 
     UseTileMap(NewTileMap());
-    UseSpriteSheet(LoadSpriteSheet("res://spritesheet.png"));
+    spriteSheet = LoadSpriteSheet("res://spritesheet.png");
+    UseSpriteSheet(spriteSheet);
 
     for (int i = 0; i < TILEMAP_WIDTH; ++i) {
         for (int j = 0; j < TILEMAP_HEIGHT; ++j) {
