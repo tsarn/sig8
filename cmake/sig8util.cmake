@@ -56,7 +56,7 @@ function(sig8_bundle)
 
         add_custom_command(
             OUTPUT "${SIG8_BUNDLE_PATH}.c"
-            COMMAND $<TARGET_FILE:bundler> "${SIG8_BUNDLE_NAME}" "${SIG8_BUNDLE_FILE}" ${SIG8_BUNDLE_ARGS}
+            COMMAND $<TARGET_FILE:bundler> "${SIG8_BUNDLE_NAME}" "${SIG8_BUNDLE_PATH}.c" ${SIG8_BUNDLE_ARGS}
             DEPENDS bundler ${SIG8_BUNDLE_RESOURCES}
             COMMENT "Generating bundles for target ${SIG8_BUNDLE_TARGET}"
             VERBATIM

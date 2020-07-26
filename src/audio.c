@@ -111,6 +111,7 @@ static float GetArgument(int channel)
 
 static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
 {
+    (void)userData;
     float *stream = (float*)byteStream;
     int len = byteLen / sizeof(float);
 

@@ -3,7 +3,7 @@
  * This is intended to be used automatically from CMake scripts.
  *
  * Usage:
- *   ./bundler BUNDLE_NAME outfile ([FILE PATH] [FILE NAME])*
+ *   ./bundler BUNDLE_NAME outfile.c ([FILE PATH] [FILE NAME])*
  */
 
 #include <stdio.h>
@@ -68,9 +68,7 @@ int main(int argc, char **argv)
     }
 
     const char *bundleName = argv[1];
-    char *fileName = malloc(strlen(argv[2]) + 4);
-
-    sprintf(fileName, "%s.c", argv[2]);
+    const char *fileName = argv[2];
     file = fopen(fileName, "w");
     fprintf(file, "const char *%s =", bundleName);
 

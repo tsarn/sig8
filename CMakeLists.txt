@@ -8,6 +8,7 @@ if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
     set(CMAKE_EXECUTABLE_SUFFIX .html)
 endif()
 
+add_subdirectory(thirdparty)
 add_subdirectory(src)
 
 if(NOT CMAKE_CROSSCOMPILING)

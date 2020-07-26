@@ -145,6 +145,7 @@ static void UpdateDelta(void)
 
 static void OnQuit(SDL_Event *event)
 {
+    (void)event;
     Quit();
 }
 
@@ -321,9 +322,11 @@ static void HandleEvents(void)
     sig8_HandleEvent(FRAME_EVENT, NULL);
     SDL_Event event;
     while (SDL_PollEvent(&event) != 0) {
+        float x, y;
         if (event.type == SDL_MOUSEMOTION) {
-            float x = (event.motion.x * 1.0f / windowWidth - offsetX) / (1.0f - 2.0f * offsetX);
-            float y = (event.motion.y * 1.0f / windowHeight - offsetY) / (1.0f - 2.0f * offsetY);
+            // this is a quick hack, but it works
+            x = (event.motion.x * 1.0f / windowWidth - offsetX) / (1.0f - 2.0f * offsetX);
+            y = (event.motion.y * 1.0f / windowHeight - offsetY) / (1.0f - 2.0f * offsetY);
 
             event.user.data1 = &x;
             event.user.data2 = &y;
