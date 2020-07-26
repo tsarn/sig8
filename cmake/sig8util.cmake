@@ -10,6 +10,7 @@ function(sig8_platform target)
     target_link_libraries(${target} sig8::sig8)
     if (CMAKE_BUILD_TYPE MATCHES "Debug")
         target_compile_definitions(${target} PRIVATE SIG8_USE_EDITORS)
+        target_compile_definitions(${target} PRIVATE SIG8_USE_RESOURCE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/")
     endif()
 endfunction()
 

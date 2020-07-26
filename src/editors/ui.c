@@ -58,9 +58,9 @@ void sig8_DrawNumberInput(int x, int y, int *value)
     }
 
     sig8_FillRectR(rect, BLACK);
-    SetFont(FONT_3X5);
+    UseFont(FONT_3X5);
     DrawString(rect.x + 2, y + 6, RED, Format("%03d", *value));
-    SetFont(FONT_ASEPRITE);
+    UseFont(FONT_ASEPRITE);
 }
 
 void sig8_DrawSlider(int x, int y, int *value)
