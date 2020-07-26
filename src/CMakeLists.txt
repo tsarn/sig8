@@ -17,7 +17,7 @@ add_library(sig8 STATIC
         resource.c
         editors/editors.h
         editors/history.c
-        editors/sprites.c
+        editors/sprite_editor.c
         editors/ui.c
         )
 
