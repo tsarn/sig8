@@ -79,7 +79,7 @@ void sig8_FreeResource(uint8_t *resource);
 extern SpriteSheet sig8_EDITORS_SPRITESHEET;
 
 #define EDITOR_WIDTH 200
-#define EDITOR_HEIGHT 146
+#define EDITOR_HEIGHT 148
 
 typedef struct {
     ResourceType type;

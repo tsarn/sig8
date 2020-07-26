@@ -8,7 +8,7 @@
 #define PALETTE_STRIDE 7
 #define ROW_COLORS 8
 
-#define TOOLBAR_SIZE 9
+#define TOOLBAR_SIZE 10
 
 static SpriteSheet editing;
 static sig8_ManagedResource *managedResource;
@@ -37,14 +37,14 @@ typedef enum {
 } Tool;
 
 static const char* toolNames[] = {
-    "BRUSH",
-    "FILL",
-    "SELECT",
-    "COLOR PICKER",
+    "BRUSH [B]",
+    "FILL [F]",
+    "SELECT [S]",
+    "COLOR PICKER [P]",
     "FLIP HORIZONTALLY",
     "FLIP VERTICALLY",
     "ROTATE",
-    "CLEAR SPRITE",
+    "CLEAR SPRITE [DEL]",
 };
 
 static Tool activeTool = BRUSH;
@@ -120,6 +120,31 @@ static void Redo(void)
     if (sig8_HistoryCanRedo(&history)) {
         ApplyUndo(sig8_HistoryRedo(&history));
     }
+}
+
+static void Save(void)
+{
+    if (!managedResource->path) {
+        return;
+    }
+
+    char *path = ResolvePath(managedResource->path);
+
+    if (!path) {
+        return;
+    }
+
+    uint8_t data[3 * SPRITE_WIDTH * SPRITE_HEIGHT * SPRITE_SHEET_SIZE];
+    for (int i = 0; i < SPRITE_WIDTH * SPRITE_HEIGHT * SPRITE_SHEET_SIZE; ++i) {
+        Color color = ColorFromIndex(editing[i]);
+        data[3 * i] = color.r;
+        data[3 * i + 1] = color.g;
+        data[3 * i + 2] = color.b;
+    }
+
+    stbi_write_png(path, SPR_X * SPRITE_WIDTH, SPR_Y * SPRITE_HEIGHT, 3, data, 0);
+
+    free(path);
 }
 
 static void Fill(int x, int y, int color)
@@ -453,13 +478,52 @@ static void DrawSpriteSheet(void)
     }
 }
 
+static void DrawTopButtons(void)
+{
+    Rect r = {
+            .x = SCREEN_WIDTH - 25,
+            .y = 1,
+            .width = SPRITE_WIDTH - 1,
+            .height = SPRITE_HEIGHT - 1
+    };
+
+    for (int i = 0; i < 3; ++i) {
+        // Undo, Redo & Save
+        sig8_DrawIcon(r.x, r.y + 1, 13 + i, BLACK);
+        sig8_DrawIcon(r.x, r.y, 13 + i, GRAY);
+
+        if (sig8_IsMouseOver(r)) {
+            SetCursorShape(CURSOR_HAND);
+
+            switch (i) {
+            case 0: statusLine = "UNDO [CTRL-Z]"; break;
+            case 1: statusLine = "REDO [CTRL-Y]"; break;
+            case 2: statusLine = "SAVE [CTRL-S]"; break;
+            default: break;
+            }
+
+            if (MouseJustPressed(MOUSE_LEFT)) {
+                switch (i) {
+                case 0: Undo(); break;
+                case 1: Redo(); break;
+                case 2: Save(); break;
+                default: break;
+                }
+            }
+        }
+
+        r.x += SPRITE_WIDTH;
+    }
+}
+
 static void DrawStatusBar(void)
 {
     FillRect(0, 0, SCREEN_WIDTH, TOOLBAR_SIZE, DARK_BLUE);
+    DrawTopButtons();
     FillRect(0, SCREEN_HEIGHT - TOOLBAR_SIZE, SCREEN_WIDTH, TOOLBAR_SIZE, DARK_BLUE);
 
     char *string = Format("#%03d", selected);
-    DrawString(SCREEN_WIDTH - 23, SCREEN_HEIGHT, RED, string);
+    DrawString(SCREEN_WIDTH - 23, SCREEN_HEIGHT - 1, RED, string);
     UseFont(FONT_3X5);
     DrawString(2, SCREEN_HEIGHT - 2, GRAY, statusLine);
     UseFont(FONT_ASEPRITE);
@@ -514,12 +578,43 @@ static void DrawTools(void)
 
 static void HandleInput(void)
 {
+    if (KeyJustPressed("Escape")) {
+        SetCursorShape(CURSOR_ARROW);
+        sig8_HistoryClear(&history);
+        sig8_LeaveEditor();
+        return;
+    }
+
+    if (KeyJustPressed("Ctrl+S")) {
+        Save();
+    }
+
     if (KeyJustPressed("Ctrl+Z")) {
         Undo();
     }
 
     if (KeyJustPressed("Ctrl+Y")) {
         Redo();
+    }
+
+    if (KeyJustPressed("B")) {
+        UseTool(BRUSH);
+    }
+
+    if (KeyJustPressed("F")) {
+        UseTool(FILL);
+    }
+
+    if (KeyJustPressed("S")) {
+        UseTool(SELECT);
+    }
+
+    if (KeyJustPressed("P")) {
+        UseTool(COLOR_PICKER);
+    }
+
+    if (KeyJustPressed("Delete")) {
+        UseTool(ERASE);
     }
 }
 
@@ -535,31 +630,6 @@ void sig8_SpriteEditorInit(sig8_ManagedResource *what)
     };
 }
 
-static void Save(void)
-{
-    if (!managedResource->path) {
-        return;
-    }
-
-    char *path = ResolvePath(managedResource->path);
-
-    if (!path) {
-        return;
-    }
-
-    uint8_t data[3 * SPRITE_WIDTH * SPRITE_HEIGHT * SPRITE_SHEET_SIZE];
-    for (int i = 0; i < SPRITE_WIDTH * SPRITE_HEIGHT * SPRITE_SHEET_SIZE; ++i) {
-        Color color = ColorFromIndex(editing[i]);
-        data[3 * i] = color.r;
-        data[3 * i + 1] = color.g;
-        data[3 * i + 2] = color.b;
-    }
-
-    stbi_write_png(path, SPR_X * SPRITE_WIDTH, SPR_Y * SPRITE_HEIGHT, 3, data, 0);
-
-    free(path);
-}
-
 void sig8_SpriteEditorTick(void)
 {
     UseSpriteSheet(sig8_EDITORS_SPRITESHEET);
@@ -573,16 +643,6 @@ void sig8_SpriteEditorTick(void)
     DrawEditedSprite();
     DrawPalette();
     HandleInput();
-
-    if (KeyJustPressed("Escape")) {
-        SetCursorShape(CURSOR_ARROW);
-        sig8_HistoryClear(&history);
-        sig8_LeaveEditor();
-    }
-
-    if (KeyJustPressed("Ctrl+S")) {
-        Save();
-    }
 }
 
 #endif
