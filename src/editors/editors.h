@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sig8_internal.h"
+#include "stb_image_write.h"
 
 typedef struct {
     int x, y;

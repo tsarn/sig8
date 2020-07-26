@@ -23,13 +23,13 @@ add_library(sig8 STATIC
 
 add_library(sig8::sig8 ALIAS sig8)
 
-if(MSVC)
+if (MSVC)
     target_compile_options(sig8 PRIVATE /W4)
 else()
     target_compile_options(sig8 PRIVATE -Wall -Wextra)
 endif()
 
-if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+if (${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
     target_compile_options(sig8 PUBLIC -sUSE_SDL=2)
     target_link_options(sig8 PUBLIC -sUSE_SDL=2 -sFULL_ES3=1)
 else()
@@ -49,6 +49,8 @@ if (CMAKE_BUILD_TYPE MATCHES "Debug")
         FILE sig8_editors_resources
         RESOURCES editors/spritesheet.png
     )
+
+    target_link_libraries(sig8 PRIVATE stb_image_write::stb_image_write)
 endif()
 
 set_target_properties(sig8 PROPERTIES VERSION ${SIG8_VERSION})

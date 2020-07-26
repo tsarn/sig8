@@ -104,6 +104,14 @@ void ResetColors(void)
     }
 }
 
+Color ColorFromIndex(int color)
+{
+    if (color < 0 || color >= PALETTE_SIZE) {
+        return (Color){};
+    }
+    return colorMap[color];
+}
+
 void DrawPixel(int x, int y, int color) {
     if (color == TRANSPARENT) {
         return;
@@ -253,35 +261,31 @@ void FreeSpriteSheet(SpriteSheet spriteSheet)
     sig8_FreeResource(spriteSheet);
 }
 
-static uint8_t* GetSpritePixelPtr(int x, int y, int sprite)
+static inline int GetSpritePixelIndex(int x, int y, int sprite)
 {
-    x = sprite % 16 * SPRITE_WIDTH + x;
-    y = sprite / 16 * SPRITE_HEIGHT + y;
-    sprite = (x / SPRITE_WIDTH) + 16 * (y / SPRITE_HEIGHT);
-    if (!currentSpriteSheet || sprite < 0 || sprite >= SPRITE_SHEET_SIZE) {
-        return NULL;
+    x += sprite % 16 * SPRITE_WIDTH;
+    y += sprite / 16 * SPRITE_HEIGHT;
+    int idx = x + y * 16 * SPRITE_WIDTH;
+    if (idx < 0 || idx >= SPRITE_SHEET_BYTE_SIZE) {
+        return -1;
     }
-
-    x %= SPRITE_WIDTH;
-    y %= SPRITE_HEIGHT;
-    uint8_t *data = currentSpriteSheet + sprite * SPRITE_WIDTH * SPRITE_HEIGHT;
-    return &data[x + y * SPRITE_WIDTH];
+    return idx;
 }
 
 int GetSpritePixel(int x, int y, int sprite)
 {
-    uint8_t *ptr = GetSpritePixelPtr(x, y, sprite);
-    if (!ptr) {
+    int idx = GetSpritePixelIndex(x, y, sprite);
+    if (idx == -1) {
         return TRANSPARENT;
     }
-    return *ptr;
+    return currentSpriteSheet[idx];
 }
 
 void SetSpritePixel(int x, int y, int sprite, int color)
 {
-    uint8_t *ptr = GetSpritePixelPtr(x, y, sprite);
-    if (ptr) {
-        *ptr = color;
+    int idx = GetSpritePixelIndex(x, y, sprite);
+    if (idx != -1) {
+        currentSpriteSheet[idx] = color;
     }
 }
 
@@ -335,26 +339,27 @@ void DrawSubSprite(int x, int y, int sprite, int flags, int sx, int sy, int w, i
 
 SpriteSheet LoadSpriteSheet(const char *path)
 {
+    uint8_t *result = sig8_AllocateResource(RESOURCE_SPRITESHEET, path, SPRITE_SHEET_BYTE_SIZE);
+
     int width, height, channels, fileSize;
     uint8_t *contents = ReadFileContents(path, &fileSize);
+
     if (!contents) {
-        printf("Failed to load sprite sheet '%s'\n", path);
-        return NULL;
+        printf("WARNING: Failed to load sprite sheet '%s'\n", path);
+        return result;
     }
 
     uint8_t *data = stbi_load_from_memory(contents, fileSize, &width, &height, &channels, 3);
     free(contents);
 
     if (!data) {
-        printf("Failed to load sprite sheet '%s'\n", path);
-        return NULL;
+        printf("WARNING: Failed to load sprite sheet '%s'\n", path);
+        return result;
     }
-
-    uint8_t *result = sig8_AllocateResource(RESOURCE_SPRITESHEET, path, SPRITE_SHEET_BYTE_SIZE);
 
     int sizeX = width / SPRITE_WIDTH;
     int sizeY = height / SPRITE_HEIGHT;
-    int offset = 0;
+    int sprite = 0;
 
     for (int i = 0; i < sizeY; ++i) {
         for (int j = 0; j < sizeX; ++j) {
@@ -382,11 +387,11 @@ SpriteSheet LoadSpriteSheet(const char *path)
                         }
                     }
 
-                    result[offset + x + y * SPRITE_WIDTH] = bestColor;
+                    result[GetSpritePixelIndex(x, y, sprite)] = bestColor;
                 }
             }
 
-            offset += SPRITE_WIDTH * SPRITE_HEIGHT;
+            ++sprite;
         }
     }
 

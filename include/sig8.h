@@ -243,6 +243,10 @@ void RunMainLoop(void (*function)(void));
 void UseResourceBundle(const uint8_t *bundle);
 void UseResourcePath(const char *path);
 uint8_t *ReadFileContents(const char *path, int *size);
+void WriteFileContents(const char *path, const void *data, int size);
+const uint8_t *GetResourceBundle(void);
+const char *GetResourcePath(void);
+char *ResolvePath(const char *path);
 
 /*
  * Editors. These functions do nothing when
@@ -255,6 +259,7 @@ void EditResource(uint8_t *resource);
  * Utility functions
  */
 Color ColorFromHex(const char *hex);
+Color ColorFromIndex(int color);
 void* TempAlloc(size_t n);
 char *Format(const char *fmt, ...);
 float GetDelta(void);
