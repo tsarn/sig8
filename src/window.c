@@ -80,7 +80,7 @@ void sig8_InitializeEx(Configuration configuration)
     screenWidth = configuration.width ? configuration.width : 128;
     screenHeight = configuration.height ? configuration.height : 128;
     palette = configuration.palette.size ? configuration.palette : PALETTE_DEFAULT;
-    
+
     screenBufferSize = screenWidth * screenHeight * sizeof(Color);
     screenBuffer = malloc(screenBufferSize);
 
@@ -363,9 +363,9 @@ bool Tick(void)
 
     // previous frame ends here
 
+    bool q = shouldQuit;
     HandleEvents();
-
-    return !shouldQuit;
+    return !q;
 }
 
 #ifdef __EMSCRIPTEN__

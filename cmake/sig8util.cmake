@@ -73,7 +73,7 @@ extern const char *${SIG8_BUNDLE_NAME};"
             target_include_directories(${SIG8_BUNDLE_TARGET} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
             target_sources(${SIG8_BUNDLE_TARGET} PRIVATE "${SIG8_BUNDLE_PATH}.h")
         endif()
-        
+
         target_sources(${SIG8_BUNDLE_TARGET} PRIVATE "${SIG8_BUNDLE_PATH}.c")
     else()
         target_compile_definitions(${SIG8_BUNDLE_TARGET} PRIVATE SIG8_USE_RESOURCE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/")
