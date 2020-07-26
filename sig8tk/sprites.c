@@ -8,7 +8,6 @@
 #define ROW_COLORS 8
 
 static SpriteSheet editing;
-static int editingIndex;
 static int selected, selectedX, selectedY;
 static int fgColor = WHITE;
 static int bgColor = BLACK;
@@ -48,7 +47,6 @@ static Tool activeTool;
 
 static void BeginUndoableAction(void)
 {
-    curAction.oldResource = editingIndex;
     curAction.data = TempAlloc(SPRITE_SHEET_BYTE_SIZE);
     memcpy(curAction.data, editing, SPRITE_SHEET_BYTE_SIZE);
 }
@@ -56,7 +54,6 @@ static void BeginUndoableAction(void)
 static void EndUndoableAction(void)
 {
     bool anythingChanged = false;
-    curAction.newResource = editingIndex;
     for (int i = 0; i < SPRITE_SHEET_BYTE_SIZE; ++i) {
         curAction.data[i] ^= editing[i];
         if (curAction.data[i]) {
@@ -530,7 +527,6 @@ void SpritesInit(void)
 {
     editing = MAIN_SPRITESHEET;
     selected = 0;
-    editingIndex = 0;
     spriteRegion = 1;
     brushSize = 0;
     zoom = 8;
@@ -554,7 +550,6 @@ void SpritesTick(void)
     DrawEditedSprite();
     DrawPalette();
     DrawTools();
-    DrawNumberInput(SCREEN_WIDTH - 18, 1, &editingIndex);
     DrawStatusBar();
     HandleInput();
 }

@@ -2,6 +2,7 @@
 
 #include "sig8.h"
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 typedef enum {
@@ -19,8 +20,6 @@ typedef struct {
 } Rect;
 
 typedef struct {
-    int oldResource;
-    int newResource;
     uint8_t *data;
 } HistoryItem;
 
