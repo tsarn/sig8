@@ -262,8 +262,6 @@ void DrawSubSprite(int x, int y, int sprite, int flags, int sx, int sy, int w, i
         return;
     }
 
-    const uint8_t *data = currentSpriteSheet + sprite * SPRITE_WIDTH * SPRITE_HEIGHT;
-
     for (int i = 0; i < w; ++i) {
         for (int j = 0; j < h; ++j) {
             // coordinates inside of sprite

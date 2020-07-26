@@ -18,12 +18,13 @@ static int width, height;
 static int brushSize;
 static HistoryItem curAction;
 static History history;
+static const char *statusLine;
 
 typedef enum {
     BRUSH,
     FILL,
     SELECT,
-    EYEDROPPER,
+    COLOR_PICKER,
     FLIP_H,
     FLIP_V,
     ROTATE,
@@ -32,14 +33,18 @@ typedef enum {
     NUMBER_OF_TOOLS
 } Tool;
 
-static Tool activeTool;
-
-static Position neighbors[4] = {
-        { .x = 1, .y = 0 },
-        { .x = -1, .y = 0 },
-        { .x = 0, .y = 1 },
-        { .x = 0, .y = -1 },
+static const char* toolNames[] = {
+    "BRUSH",
+    "FILL",
+    "SELECT",
+    "COLOR PICKER",
+    "FLIP HORIZONTALLY",
+    "FLIP VERTICALLY",
+    "ROTATE",
+    "CLEAR SPRITE",
 };
+
+static Tool activeTool;
 
 static void BeginUndoableAction(void)
 {
@@ -127,8 +132,18 @@ static void Redo(void)
 
 static void Fill(int x, int y, int color)
 {
-    Position *queue = malloc(width * height * sizeof(Position));
-    uint8_t *used = calloc(width * height, 1);
+    // simple breadth-first search
+
+    static const Position neighbors[4] = {
+            { .x = 1, .y = 0 },
+            { .x = -1, .y = 0 },
+            { .x = 0, .y = 1 },
+            { .x = 0, .y = -1 },
+    };
+
+    Position *queue = TempAlloc(width * height * sizeof(Position));
+    uint8_t *used = TempAlloc(width * height);
+    memset(used, 0, width * height);
     int front = 0;
     int back = 0;
 
@@ -171,9 +186,6 @@ static void Fill(int x, int y, int color)
             }
         }
     }
-
-    free(queue);
-    free(used);
 }
 
 static void UseTool(Tool tool)
@@ -365,7 +377,7 @@ static void DrawEditedSprite(void)
                         Fill(i, j, fgColor);
                     }
 
-                    if (activeTool == EYEDROPPER) {
+                    if (activeTool == COLOR_PICKER) {
                         fgColor = GetSpritePixel(i, j, selected);
                     }
                     EndUndoableAction();
@@ -381,7 +393,7 @@ static void DrawEditedSprite(void)
                         Fill(i, j, bgColor);
                     }
 
-                    if (activeTool == EYEDROPPER) {
+                    if (activeTool == COLOR_PICKER) {
                         bgColor = GetSpritePixel(i, j, selected);
                     }
                     EndUndoableAction();
@@ -463,9 +475,12 @@ static void DrawStatusBar(void)
 {
     char *string = Format("#%03d", selected);
     DrawString(SCREEN_WIDTH - 23, SCREEN_HEIGHT, RED, string);
+    SetFont(FONT_3X5);
+    DrawString(2, SCREEN_HEIGHT - 2, GRAY, statusLine);
+    SetFont(FONT_ASEPRITE);
 
     if (activeTool == BRUSH) {
-        DrawSlider(2, SCREEN_HEIGHT - 7, &brushSize);
+        DrawSlider(4, 116, &brushSize);
     }
 
     DrawSlider(SCREEN_WIDTH - 60, SCREEN_HEIGHT - 7, &spriteRegionLog);
@@ -491,7 +506,7 @@ static void DrawTools(void)
             .height = 7
         };
 
-        if (tool == activeTool) {
+        if ((Tool)tool == activeTool) {
             DrawIcon(r.x, r.y + 1, 5 + tool, WHITE);
         } else {
             DrawIcon(r.x, r.y + 1, 5 + tool, BLACK);
@@ -500,6 +515,7 @@ static void DrawTools(void)
 
         if (IsMouseOver(r)) {
             SetCursorShape(CURSOR_HAND);
+            statusLine = toolNames[tool];
             if (MouseJustPressed(MOUSE_LEFT)) {
                 UseTool(tool);
             }
@@ -541,12 +557,13 @@ void SpritesInit(void)
 void SpritesTick(void)
 {
     ClearScreen(INDIGO);
+    statusLine = "";
     DrawToolbar();
     DrawSpriteSheet();
     DrawEditedSprite();
     DrawPalette();
-    DrawStatusBar();
     DrawTools();
     DrawNumberInput(SCREEN_WIDTH - 18, 1, &editingIndex);
+    DrawStatusBar();
     HandleInput();
 }

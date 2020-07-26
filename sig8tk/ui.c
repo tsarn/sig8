@@ -39,7 +39,7 @@ void DrawToolbar(void)
             SetCursorShape(CURSOR_HAND);
         }
 
-        if (editor == i) {
+        if (editor == (Editor)i) {
             DrawIcon(r.x, r.y, i, RED);
         } else {
             DrawIcon(r.x, r.y, i, GRAY);

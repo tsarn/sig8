@@ -7,8 +7,6 @@ add_library(sig8 STATIC
         resources/font3x5.c
         window.c
         input.c
-        stb_image.c
-        stb_image.h
         resources/font_aseprite.c
         audio.c
         music.c
@@ -19,6 +17,11 @@ add_library(sig8 STATIC
 
 add_library(sig8::sig8 ALIAS sig8)
 
+if(MSVC)
+    target_compile_options(sig8 PRIVATE /W4)
+else()
+    target_compile_options(sig8 PRIVATE -Wall -Wextra)
+endif()
 
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
     target_compile_options(sig8 PUBLIC -sUSE_SDL=2)
@@ -38,11 +41,12 @@ target_include_directories(sig8
 PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/../include/"
 PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/../src/"
+    "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
 target_link_libraries(sig8
 PRIVATE
     ${CMAKE_DL_LIBS}
+    stb_image::stb_image
     m
 )
