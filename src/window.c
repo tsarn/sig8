@@ -502,5 +502,7 @@ void EditResource(uint8_t *resource)
     editorLoop = sig8_SpriteEditorTick;
     pendingEditorEnter = true;
     sig8_SpriteEditorInit(res);
+#else
+    (void)resource;
 #endif
 }

@@ -73,7 +73,7 @@ void DrawTileMapEx(int x, int y, int width, int height, int offsetX, int offsetY
                 callback(i, j, &sprite, &thisFlags);
             }
 
-            DrawSubSprite(x + x1, y + y1, sprite, thisFlags, x1 - x0, y1 - y0, x2 - x0, y2 - y0);
+            DrawSubSprite(x + x1, y + y1, sprite, thisFlags, x1 - x0, y1 - y0, x2 - x1, y2 - y1);
         }
     }
 }
