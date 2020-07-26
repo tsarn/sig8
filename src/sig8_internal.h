@@ -64,7 +64,6 @@ void sig8_InitInput(void);
 void sig8_InitAlloc(void);
 void sig8_ResizeScreen(int newWidth, int newHeight);
 void sig8_LeaveEditor(void);
-const uint8_t *sig8_GetResourceBundle(void);
 
 void sig8_RegisterCallback(int type, Callback callback);
 void sig8_RegisterEventCallback(int type, EventCallback callback);

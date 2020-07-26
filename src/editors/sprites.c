@@ -355,7 +355,7 @@ static void DrawEditedSprite(void)
                 if (selX + br > width) selX = width - br;
                 if (selY + br > height) selY = height - br;
 
-                int *col = fgColor;
+                int *col = &fgColor;
 
                 if (MousePressed(MOUSE_LEFT) || MousePressed(MOUSE_RIGHT)) {
                     if (MousePressed(MOUSE_RIGHT)) {
@@ -535,6 +535,31 @@ void sig8_SpriteEditorInit(sig8_ManagedResource *what)
     };
 }
 
+static void Save(void)
+{
+    if (!managedResource->path) {
+        return;
+    }
+
+    char *path = ResolvePath(managedResource->path);
+
+    if (!path) {
+        return;
+    }
+
+    uint8_t data[3 * SPRITE_WIDTH * SPRITE_HEIGHT * SPRITE_SHEET_SIZE];
+    for (int i = 0; i < SPRITE_WIDTH * SPRITE_HEIGHT * SPRITE_SHEET_SIZE; ++i) {
+        Color color = ColorFromIndex(editing[i]);
+        data[3 * i] = color.r;
+        data[3 * i + 1] = color.g;
+        data[3 * i + 2] = color.b;
+    }
+
+    stbi_write_png(path, SPR_X * SPRITE_WIDTH, SPR_Y * SPRITE_HEIGHT, 3, data, 0);
+
+    free(path);
+}
+
 void sig8_SpriteEditorTick(void)
 {
     UseSpriteSheet(sig8_EDITORS_SPRITESHEET);
@@ -553,6 +578,10 @@ void sig8_SpriteEditorTick(void)
         SetCursorShape(CURSOR_ARROW);
         sig8_HistoryClear(&history);
         sig8_LeaveEditor();
+    }
+
+    if (KeyJustPressed("Ctrl+S")) {
+        Save();
     }
 }
 
