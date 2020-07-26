@@ -77,9 +77,10 @@ void sig8_InitializeEx(Configuration configuration)
         exit(EXIT_FAILURE);
     }
 
-    screenWidth = configuration.width;
-    screenHeight = configuration.height;
-    palette = configuration.palette;
+    screenWidth = configuration.width ? configuration.width : 128;
+    screenHeight = configuration.height ? configuration.height : 128;
+    palette = configuration.palette.size ? configuration.palette : PALETTE_DEFAULT;
+    
     screenBufferSize = screenWidth * screenHeight * sizeof(Color);
     screenBuffer = malloc(screenBufferSize);
 
@@ -96,10 +97,7 @@ void sig8_InitializeEx(Configuration configuration)
 void sig8_Initialize(const char *windowName)
 {
     sig8_InitializeEx((Configuration){
-        .windowName = windowName,
-        .width = 128,
-        .height = 128,
-        .palette = PALETTE_DEFAULT
+        .windowName = windowName
     });
 }
 
