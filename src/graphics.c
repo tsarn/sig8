@@ -39,6 +39,7 @@ Palette PALETTE_DEFAULT = {
 #ifdef SIG8_COMPILE_EDITORS
 static void OnEditorEnter(void)
 {
+    ResetColors();
     savedScreenBuffer = malloc(sizeof(Color) * SCREEN_WIDTH * SCREEN_HEIGHT);
     memcpy(savedScreenBuffer, screenBuffer, sizeof(Color) * SCREEN_WIDTH * SCREEN_HEIGHT);
     savedFont = currentFont;
@@ -47,6 +48,7 @@ static void OnEditorEnter(void)
 
 static void OnEditorLeave(void)
 {
+    ResetColors();
     memcpy(screenBuffer, savedScreenBuffer, sizeof(Color) * SCREEN_WIDTH * SCREEN_HEIGHT);
     free(savedScreenBuffer);
     currentFont = savedFont;
@@ -85,7 +87,7 @@ void ClearScreen(int color)
     }
 }
 
-void SetFont(Font font)
+void UseFont(Font font)
 {
     currentFont = font;
 }

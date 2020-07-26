@@ -9,12 +9,13 @@
 #define ROW_COLORS 8
 
 static SpriteSheet editing;
+static sig8_ManagedResource *managedResource;
 static int selected, selectedX, selectedY;
 static int fgColor = WHITE;
 static int bgColor = BLACK;
 static int zoom = 8;
-static int spriteRegion, spriteRegionLog;
-static int width, height;
+static int spriteRegion = 1, spriteRegionLog;
+static int width = SPRITE_WIDTH, height = SPRITE_HEIGHT;
 static int brushSize;
 static HistoryItem curAction;
 static History history;
@@ -44,7 +45,7 @@ static const char* toolNames[] = {
     "CLEAR SPRITE",
 };
 
-static Tool activeTool;
+static Tool activeTool = BRUSH;
 
 static void BeginUndoableAction(void)
 {
@@ -464,9 +465,12 @@ static void DrawStatusBar(void)
 {
     char *string = Format("#%03d", selected);
     DrawString(SCREEN_WIDTH - 23, SCREEN_HEIGHT, RED, string);
-    SetFont(FONT_3X5);
+    UseFont(FONT_3X5);
     DrawString(2, SCREEN_HEIGHT - 2, GRAY, statusLine);
-    SetFont(FONT_ASEPRITE);
+    UseFont(FONT_ASEPRITE);
+    if (managedResource->path) {
+        DrawString(2, 8, GRAY, managedResource->path);
+    }
 
     if (activeTool == BRUSH) {
         sig8_DrawSlider(4, 116, &brushSize);
@@ -527,13 +531,7 @@ static void HandleInput(void)
 void sig8_SpriteEditorInit(sig8_ManagedResource *what)
 {
     editing = what->resource;
-    selected = 0;
-    spriteRegion = 1;
-    brushSize = 0;
-    zoom = 8;
-    width = SPRITE_WIDTH;
-    height = SPRITE_HEIGHT;
-    activeTool = BRUSH;
+    managedResource = what;
     history = (History) {
         .size = 0,
         .capacity = 0,

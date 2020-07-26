@@ -281,7 +281,7 @@ void ClearScreen(int color);
 void RemapColor(int oldColor, int newColor);
 void ResetColors(void);
 void DrawPixel(int x, int y, int color);
-void SetFont(Font font);
+void UseFont(Font font);
 void DrawString(int x, int y, int color, const char *string);
 int MeasureString(const char *string);
 void StrokeRect(int x, int y, int w, int h, int color);
