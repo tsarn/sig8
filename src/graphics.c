@@ -8,6 +8,12 @@ static SpriteSheet currentSpriteSheet;
 static Color *screenBuffer;
 static Color *colorMap;
 
+#ifdef SIG8_COMPILE_EDITORS
+static Color *savedScreenBuffer;
+static Font savedFont;
+static SpriteSheet savedSpriteSheet;
+#endif
+
 Palette PALETTE_DEFAULT = {
         .size = 16,
         .colors = (const char *[]){
@@ -30,11 +36,37 @@ Palette PALETTE_DEFAULT = {
         }
 };
 
+#ifdef SIG8_COMPILE_EDITORS
+static void OnEditorEnter(void)
+{
+    savedScreenBuffer = malloc(sizeof(Color) * SCREEN_WIDTH * SCREEN_HEIGHT);
+    memcpy(savedScreenBuffer, screenBuffer, sizeof(Color) * SCREEN_WIDTH * SCREEN_HEIGHT);
+    savedFont = currentFont;
+    savedSpriteSheet = currentSpriteSheet;
+}
+
+static void OnEditorLeave(void)
+{
+    memcpy(screenBuffer, savedScreenBuffer, sizeof(Color) * SCREEN_WIDTH * SCREEN_HEIGHT);
+    free(savedScreenBuffer);
+    currentFont = savedFont;
+    currentSpriteSheet = savedSpriteSheet;
+}
+#endif
+
 void sig8_InitScreen(Color *screen)
 {
     Palette palette = GetPalette();
-    colorMap = malloc(sizeof(Color) * palette.size);
-    paletteMap = malloc(sizeof(int) * palette.size);
+
+    if (!colorMap) {
+        colorMap = malloc(sizeof(Color) * palette.size);
+        paletteMap = malloc(sizeof(int) * palette.size);
+#ifdef SIG8_COMPILE_EDITORS
+        sig8_RegisterCallback(EDITOR_ENTER_EVENT, OnEditorEnter);
+        sig8_RegisterCallback(EDITOR_LEAVE_EVENT, OnEditorLeave);
+#endif
+    }
+
     screenBuffer = screen;
     currentFont = FONT_ASEPRITE;
 
@@ -216,7 +248,7 @@ void UseSpriteSheet(SpriteSheet spriteSheet)
 
 void FreeSpriteSheet(SpriteSheet spriteSheet)
 {
-    free((uint8_t *)spriteSheet);
+    sig8_FreeResource(spriteSheet);
 }
 
 static uint8_t* GetSpritePixelPtr(int x, int y, int sprite)
@@ -316,12 +348,7 @@ SpriteSheet LoadSpriteSheet(const char *path)
         return NULL;
     }
 
-    uint8_t *result = calloc(1, SPRITE_SHEET_BYTE_SIZE);
-    if (!result) {
-        stbi_image_free(data);
-        printf("Failed to allocate memory for a sprite sheet\n");
-        return NULL;
-    }
+    uint8_t *result = sig8_AllocateResource(RESOURCE_SPRITESHEET, path, SPRITE_SHEET_BYTE_SIZE);
 
     int sizeX = width / SPRITE_WIDTH;
     int sizeY = height / SPRITE_HEIGHT;

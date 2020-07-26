@@ -13,7 +13,13 @@ add_library(sig8 STATIC
         alloc.c
         events.c
         tilemap.c
-        fs.c)
+        fs.c
+        resource.c
+        editors/editors.h
+        editors/history.c
+        editors/sprites.c
+        editors/ui.c
+        )
 
 add_library(sig8::sig8 ALIAS sig8)
 
@@ -32,6 +38,17 @@ else()
 
     target_include_directories(sig8 PRIVATE SDL2 OpenGL::GL)
     target_link_libraries(sig8 PRIVATE SDL2 OpenGL::GL)
+endif()
+
+if (CMAKE_BUILD_TYPE MATCHES "Debug")
+    # enable support for editors
+    target_compile_definitions(sig8 PRIVATE SIG8_COMPILE_EDITORS)
+    sig8_bundle(sig8
+        FORCE
+        NAME SIG8_EDITORS_BUNDLE
+        FILE sig8_editors_resources
+        RESOURCES editors/spritesheet.png
+    )
 endif()
 
 set_target_properties(sig8 PROPERTIES VERSION ${SIG8_VERSION})

@@ -3,7 +3,7 @@ add_executable(${EXAMPLE_NAME} main.c)
 target_link_libraries(${EXAMPLE_NAME} m)
 
 sig8_bundle(
-    TARGET ${EXAMPLE_NAME}
+    ${EXAMPLE_NAME}
     RESOURCES spritesheet.png
 )
 

@@ -3,6 +3,11 @@
 static const uint8_t *resourceBundle;
 static const char *resourcePath;
 
+const uint8_t *sig8_GetResourceBundle(void)
+{
+    return resourceBundle;
+}
+
 void UseResourceBundle(const uint8_t *bundle)
 {
     resourceBundle = bundle;
@@ -45,17 +50,18 @@ uint8_t *ReadFileContents(const char *path, int *size)
 {
     if (!strncmp(path, RESOURCE_PATH_PREFIX, strlen(RESOURCE_PATH_PREFIX))) {
         const char *stripped = path + strlen(RESOURCE_PATH_PREFIX);
-        if (resourcePath) {
-            char *fullPath = malloc(strlen(resourcePath) + strlen(stripped) + 4);
-            sprintf(fullPath, "%s%s", resourcePath, stripped);
-            uint8_t *result = ReadFileContents(fullPath, size);
-            free(fullPath);
-            return result;
-        }
 
         const uint8_t *data = BundleSeek(stripped, size);
         if (!data) {
-            return NULL;
+            if (resourcePath) {
+                char *fullPath = malloc(strlen(resourcePath) + strlen(stripped) + 4);
+                sprintf(fullPath, "%s%s", resourcePath, stripped);
+                uint8_t *result = ReadFileContents(fullPath, size);
+                free(fullPath);
+                return result;
+            } else {
+                return NULL;
+            }
         }
 
         uint8_t *result = malloc(*size);

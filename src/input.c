@@ -75,7 +75,7 @@ static void FlushInputs(void)
 
 void sig8_InitInput(void)
 {
-    sig8_RegisterFrameCallback(FlushInputs);
+    sig8_RegisterCallback(FRAME_EVENT, FlushInputs);
     sig8_RegisterEventCallback(SDL_KEYDOWN, HandleEvent);
     sig8_RegisterEventCallback(SDL_KEYUP, HandleEvent);
     sig8_RegisterEventCallback(SDL_MOUSEMOTION, HandleEvent);

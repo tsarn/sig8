@@ -253,9 +253,24 @@ static void AudioFrameCallback(void)
     PopulateQueue();
 }
 
+#ifdef SIG8_COMPILE_EDITORS
+static void OnEditor(void)
+{
+    for (int i = 0; i < SOUND_CHANNELS; ++i) {
+        channels[i].volume = 0.0f;
+        channels[i].note = STOP_NOTE;
+    }
+}
+#endif
+
 void sig8_InitAudio(void)
 {
-    sig8_RegisterFrameCallback(AudioFrameCallback);
+    sig8_RegisterCallback(FRAME_EVENT, AudioFrameCallback);
+#ifdef SIG8_COMPILE_EDITORS
+    sig8_RegisterCallback(EDITOR_ENTER_EVENT, OnEditor);
+    sig8_RegisterCallback(EDITOR_LEAVE_EVENT, OnEditor);
+#endif
+
     soundQueue = soundQueueStorage[0];
     for (int i = 0; i < SOUND_CHANNELS; ++i) {
         SILENCE.channels[i].note = STOP_NOTE;

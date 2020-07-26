@@ -35,5 +35,5 @@ static void ResetScratchMemory(void)
 
 void sig8_InitAlloc(void)
 {
-    sig8_RegisterFrameCallback(ResetScratchMemory);
+    sig8_RegisterCallback(FRAME_EVENT, ResetScratchMemory);
 }

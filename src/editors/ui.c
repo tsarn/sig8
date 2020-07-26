@@ -1,14 +1,14 @@
-#include "sig8tk.h"
+#ifdef SIG8_COMPILE_EDITORS
+#include "editors.h"
 
-Editor editor;
-SpriteSheet MAIN_SPRITESHEET;
+SpriteSheet sig8_EDITORS_SPRITESHEET;
 
-void FillRectR(Rect rect, int color)
+void sig8_FillRectR(Rect rect, int color)
 {
     FillRect(rect.x, rect.y, rect.width, rect.height, color);
 }
 
-Rect AddBorder(Rect rect, int border)
+Rect sig8_AddBorder(Rect rect, int border)
 {
     return (Rect){
         .x = rect.x - border,
@@ -18,38 +18,19 @@ Rect AddBorder(Rect rect, int border)
     };
 }
 
-void StrokeRectR(Rect rect, int color)
+void sig8_StrokeRectR(Rect rect, int color)
 {
     StrokeRect(rect.x, rect.y, rect.width, rect.height, color);
 }
 
-void DrawToolbar(void)
+void sig8_DrawToolbar(void)
 {
     FillRect(0, 0, SCREEN_WIDTH, TOOLBAR_SIZE, TOOLBAR_COLOR);
-
-    for (int i = 0; i < NUMBER_OF_EDITORS; ++i) {
-        Rect r = {
-                .x = 3 + 9 * i,
-                .y = 1,
-                .width = 7,
-                .height = 7
-        };
-
-        if (IsMouseOver(r)) {
-            SetCursorShape(CURSOR_HAND);
-        }
-
-        if (editor == (Editor)i) {
-            DrawIcon(r.x, r.y, i, RED);
-        } else {
-            DrawIcon(r.x, r.y, i, GRAY);
-        }
-    }
 
     FillRect(0, SCREEN_HEIGHT - TOOLBAR_SIZE, SCREEN_WIDTH, TOOLBAR_SIZE, TOOLBAR_COLOR);
 }
 
-void DrawNumberInput(int x, int y, int *value)
+void sig8_DrawNumberInput(int x, int y, int *value)
 {
     Rect rect = {
             .x = x,
@@ -58,7 +39,7 @@ void DrawNumberInput(int x, int y, int *value)
             .height = 7
     };
 
-    if (IsMouseOver(rect)) {
+    if (sig8_IsMouseOver(rect)) {
         SetCursorShape(CURSOR_HAND);
         int delta = 1;
         if (KeyPressed("Ctrl")) {
@@ -76,13 +57,13 @@ void DrawNumberInput(int x, int y, int *value)
         *value = Modulo(*value, 256);
     }
 
-    FillRectR(rect, BLACK);
+    sig8_FillRectR(rect, BLACK);
     SetFont(FONT_3X5);
     DrawString(rect.x + 2, y + 6, RED, Format("%03d", *value));
     SetFont(FONT_ASEPRITE);
 }
 
-void DrawSlider(int x, int y, int *value)
+void sig8_DrawSlider(int x, int y, int *value)
 {
     FillRect(x, y + 2, 27, 2, WHITE);
     StrokeRect(x, y + 1, 27, 4, BLACK);
@@ -95,11 +76,11 @@ void DrawSlider(int x, int y, int *value)
         };
 
         if (*value == i) {
-            StrokeRectR(r, BLACK);
-            FillRectR(AddBorder(r, -1), WHITE);
+            sig8_StrokeRectR(r, BLACK);
+            sig8_FillRectR(sig8_AddBorder(r, -1), WHITE);
         }
 
-        if (IsMouseOver(r)) {
+        if (sig8_IsMouseOver(r)) {
             SetCursorShape(CURSOR_HAND);
             if (MousePressed(MOUSE_LEFT)) {
                 *value = i;
@@ -108,14 +89,14 @@ void DrawSlider(int x, int y, int *value)
     }
 }
 
-void DrawIcon(int x, int y, int sprite, int color)
+void sig8_DrawIcon(int x, int y, int sprite, int color)
 {
     RemapColor(WHITE, color);
     DrawSprite(x, y, sprite, SPRITE_MASK_COLOR(BLACK));
     ResetColors();
 }
 
-bool IsMouseOver(Rect rect)
+bool sig8_IsMouseOver(Rect rect)
 {
     Position pos = GetMousePosition();
 
@@ -129,3 +110,5 @@ bool IsMouseOver(Rect rect)
 
     return true;
 }
+
+#endif

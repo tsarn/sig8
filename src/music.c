@@ -88,5 +88,9 @@ static void MusicFrameCallback(void)
 
 void sig8_InitMusic(void)
 {
-    sig8_RegisterFrameCallback(MusicFrameCallback);
+    sig8_RegisterCallback(FRAME_EVENT, MusicFrameCallback);
+#ifdef SIG8_COMPILE_EDITORS
+    sig8_RegisterCallback(EDITOR_ENTER_EVENT, StopMusic);
+    sig8_RegisterCallback(EDITOR_LEAVE_EVENT, StopMusic);
+#endif
 }

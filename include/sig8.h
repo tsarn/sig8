@@ -132,9 +132,10 @@ extern const Font FONT_5X7;
 extern const Font FONT_3X5;
 extern const Font FONT_ASEPRITE;
 
+// Just for semantics
 typedef uint8_t *SpriteSheet;
 typedef uint8_t *TileMap;
-typedef const uint8_t *Music;
+typedef uint8_t *Music;
 
 typedef enum {
     STOP_NOTE = 0,
@@ -200,40 +201,33 @@ typedef struct {
 void sig8_Initialize(const char *windowName);
 void sig8_InitializeEx(Configuration configuration);
 
-#define SIG8_PRE_INIT
+#define SIG8_PRE_INIT_EDITORS
+#define SIG8_PRE_INIT_RESOURCES
+
+// Enable editors
+#ifdef SIG8_USE_EDITORS
+#undef SIG8_PRE_INIT_EDITORS
+#define SIG8_PRE_INIT_EDITORS EnableEditors();
+#endif
 
 // Load resources from directory
 #ifdef SIG8_USE_RESOURCE_PATH
-#undef SIG8_PRE_INIT
-#define SIG8_PRE_INIT UseResourcePath(SIG8_USE_RESOURCE_PATH);
+#undef SIG8_PRE_INIT_RESOURCES
+#define SIG8_PRE_INIT_RESOURCES UseResourcePath(SIG8_USE_RESOURCE_PATH);
 #endif
 
 // Automatically load resource bundles
 #ifdef SIG8_USE_DEFAULT_BUNDLE
 extern const uint8_t *SIG8_RESOURCE_BUNDLE;
-#undef SIG8_PRE_INIT
-#define SIG8_PRE_INIT UseResourceBundle(SIG8_RESOURCE_BUNDLE);
+#undef SIG8_PRE_INIT_RESOURCES
+#define SIG8_PRE_INIT_RESOURCES UseResourceBundle(SIG8_RESOURCE_BUNDLE);
 #endif
 
-#define Initialize SIG8_PRE_INIT; sig8_Initialize
-#define InitializeEx SIG8_PRE_INIT; sig8_InitializeEx
+#define SIG8_PRE_INIT SIG8_PRE_INIT_EDITORS SIG8_PRE_INIT_RESOURCES
+#define Initialize SIG8_PRE_INIT sig8_Initialize
+#define InitializeEx SIG8_PRE_INIT sig8_InitializeEx
 
 void Finalize(void);
-#ifdef __EMSCRIPTEN__
-#define Tick sig8_EmscriptenTickWarning
-int puts(const char *);
-static inline bool sig8_EmscriptenTickWarning(void) {
-    puts(
-        "ERROR: "
-        "You are trying to use Tick() when compiling using Emscripten. "
-        "This will not work. Please use RunMainLoop(). "
-        "See the documentation for details."
-    );
-    return 0;
-}
-#else
-bool Tick(void);
-#endif
 void Quit(void);
 bool ShouldQuit(void);
 void SetCursorShape(CursorShape cursor);
@@ -244,15 +238,22 @@ void RunMainLoop(void (*function)(void));
 
 /*
  * Resource / filesystem functions.
+ * Mostly for internal use.
  */
 void UseResourceBundle(const uint8_t *bundle);
 void UseResourcePath(const char *path);
 uint8_t *ReadFileContents(const char *path, int *size);
 
 /*
+ * Editors. These functions do nothing when
+ * support for editors is disabled.
+ */
+void EnableEditors(void);
+void EditResource(uint8_t *resource);
+
+/*
  * Utility functions
  */
-
 Color ColorFromHex(const char *hex);
 void* TempAlloc(size_t n);
 char *Format(const char *fmt, ...);
@@ -264,7 +265,6 @@ bool AnyEventsHappened(void);
 /*
  * Input functions
  */
-
 bool KeyPressed(const char *key);
 bool KeyJustPressed(const char *key);
 bool KeyJustReleased(const char *key);
@@ -277,7 +277,6 @@ bool MouseJustReleased(MouseButton button);
 /*
  * Drawing functions
  */
-
 void ClearScreen(int color);
 void RemapColor(int oldColor, int newColor);
 void ResetColors(void);

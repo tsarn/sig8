@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <stddef.h>
 #include <time.h>
 #include <SDL2/SDL.h>
 #include <GLES3/gl3.h>
@@ -31,22 +32,65 @@ bool Tick(void);
 #define PRELOAD_SOUNDS 4
 #define SAMPLES_PER_FRAME (SAMPLE_RATE / FRAME_RATE)
 
+#ifdef SIG8_COMPILE_EDITORS
+#define MAX_EVENT_HANDLERS 32
+#else
 #define MAX_EVENT_HANDLERS 16
+#endif
+
 #define FRAME_EVENT (-1)
+#define EDITOR_ENTER_EVENT (-2)
+#define EDITOR_LEAVE_EVENT (-3)
 
 #define RESOURCE_PATH_PREFIX "res://"
 
+typedef enum {
+    RESOURCE_SPRITESHEET,
+    RESOURCE_TILEMAP,
+    RESOURCE_SOUND,
+    RESOURCE_MUSIC,
+} ResourceType;
+
 typedef void (*EventCallback)(SDL_Event*);
-typedef void (*FrameCallback)(void);
+typedef void (*Callback)(void);
 
 void sig8_InitWindow(const char *name);
 void sig8_InitGLES(void);
+void sig8_InitGLESPixelBuffer(void);
 void sig8_InitScreen(Color *screen);
 void sig8_InitAudio(void);
 void sig8_InitMusic(void);
 void sig8_InitInput(void);
 void sig8_InitAlloc(void);
+void sig8_ResizeScreen(int newWidth, int newHeight);
+void sig8_LeaveEditor(void);
+const uint8_t *sig8_GetResourceBundle(void);
 
-void sig8_RegisterFrameCallback(FrameCallback callback);
+void sig8_RegisterCallback(int type, Callback callback);
 void sig8_RegisterEventCallback(int type, EventCallback callback);
-bool sig8_HandleEvent(int type, SDL_Event *event);
+bool sig8_EmitEvent(int type, SDL_Event *event);
+
+uint8_t *sig8_AllocateResource(ResourceType type, const char *path, int size);
+void sig8_FreeResource(uint8_t *resource);
+
+#ifdef SIG8_COMPILE_EDITORS
+
+#include "sig8_editors_resources.h"
+
+extern SpriteSheet sig8_EDITORS_SPRITESHEET;
+
+#define EDITOR_WIDTH 200
+#define EDITOR_HEIGHT 146
+
+typedef struct {
+    ResourceType type;
+    char *path;
+    uint8_t *resource;
+} sig8_ManagedResource;
+
+sig8_ManagedResource *sig8_GetManagedResource(uint8_t *resource);
+
+void sig8_SpriteEditorInit(sig8_ManagedResource *what);
+void sig8_SpriteEditorTick(void);
+
+#endif

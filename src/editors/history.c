@@ -1,6 +1,15 @@
-#include "sig8tk.h"
+#ifdef SIG8_COMPILE_EDITORS
+#include "editors.h"
 
-void HistoryPush(History *history, HistoryItem item)
+void sig8_HistoryClear(History *history)
+{
+    for (int i = 0; i < history->size; ++i) {
+        free(history->data[i].data);
+    }
+    free(history->data);
+}
+
+void sig8_HistoryPush(History *history, HistoryItem item)
 {
     for (int i = history->cur; i < history->size; ++i) {
         free(history->data[i].data);
@@ -18,22 +27,24 @@ void HistoryPush(History *history, HistoryItem item)
     ++history->cur;
 }
 
-bool HistoryCanUndo(History *history)
+bool sig8_HistoryCanUndo(History *history)
 {
     return history->cur > 0;
 }
 
-bool HistoryCanRedo(History *history)
+bool sig8_HistoryCanRedo(History *history)
 {
     return history->cur < history->size;
 }
 
-HistoryItem HistoryUndo(History *history)
+HistoryItem sig8_HistoryUndo(History *history)
 {
     return history->data[--history->cur];
 }
 
-HistoryItem HistoryRedo(History *history)
+HistoryItem sig8_HistoryRedo(History *history)
 {
     return history->data[history->cur++];
 }
+
+#endif

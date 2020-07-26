@@ -8,22 +8,21 @@ function(sig8_platform target)
     endif()
 
     target_link_libraries(${target} sig8::sig8)
+    if (CMAKE_BUILD_TYPE MATCHES "Debug")
+        target_compile_definitions(${target} PRIVATE SIG8_USE_EDITORS)
+    endif()
 endfunction()
 
-function(sig8_bundle)
+function(sig8_bundle target)
     cmake_parse_arguments(
         SIG8_BUNDLE
         "FORCE"
-        "TARGET;NAME;FILE"
+        "NAME;FILE"
         "RESOURCES"
         ${ARGN}
     )
 
     set(SIG8_DEFAULT_BUNDLE NO)
-
-    if (NOT DEFINED SIG8_BUNDLE_TARGET)
-        message(FATAL_ERROR "sig8_bundle: TARGET not specified")
-    endif()
 
     if (NOT DEFINED SIG8_BUNDLE_NAME)
         set(SIG8_BUNDLE_NAME SIG8_RESOURCE_BUNDLE)
@@ -40,11 +39,11 @@ function(sig8_bundle)
 
     if (${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
         foreach(RES ${SIG8_BUNDLE_RESOURCES})
-            target_link_options(${SIG8_BUNDLE_TARGET} PRIVATE
+            target_link_options(${target} PRIVATE
                 --preload-file "${CMAKE_CURRENT_SOURCE_DIR}/${RES}@${RES}"
             )
         endforeach()
-        target_compile_definitions(${SIG8_BUNDLE_TARGET} PRIVATE SIG8_USE_RESOURCE_PATH="")
+        target_compile_definitions(${target} PRIVATE SIG8_USE_RESOURCE_PATH="")
     elseif ((CMAKE_BUILD_TYPE MATCHES "Release") OR (SIG8_BUNDLE_FORCE))
         set(SIG8_BUNDLE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${SIG8_BUNDLE_FILE}")
         set(SIG8_BUNDLE_ARGS "")
@@ -58,24 +57,24 @@ function(sig8_bundle)
             OUTPUT "${SIG8_BUNDLE_PATH}.c"
             COMMAND $<TARGET_FILE:bundler> "${SIG8_BUNDLE_NAME}" "${SIG8_BUNDLE_PATH}.c" ${SIG8_BUNDLE_ARGS}
             DEPENDS bundler ${SIG8_BUNDLE_RESOURCES}
-            COMMENT "Generating bundles for target ${SIG8_BUNDLE_TARGET}"
+            COMMENT "Generating bundles for target ${target}"
             VERBATIM
         )
 
         if (SIG8_DEFAULT_BUNDLE)
-            target_compile_definitions(${SIG8_BUNDLE_TARGET} PRIVATE SIG8_USE_DEFAULT_BUNDLE)
+            target_compile_definitions(${target} PRIVATE SIG8_USE_DEFAULT_BUNDLE)
         else()
             file(WRITE "${SIG8_BUNDLE_PATH}.h"
                     "#pragma once
-extern const char *${SIG8_BUNDLE_NAME};"
+extern const unsigned char *${SIG8_BUNDLE_NAME};"
                     )
 
-            target_include_directories(${SIG8_BUNDLE_TARGET} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
-            target_sources(${SIG8_BUNDLE_TARGET} PRIVATE "${SIG8_BUNDLE_PATH}.h")
+            target_include_directories(${target} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+            target_sources(${target} PRIVATE "${SIG8_BUNDLE_PATH}.h")
         endif()
 
-        target_sources(${SIG8_BUNDLE_TARGET} PRIVATE "${SIG8_BUNDLE_PATH}.c")
+        target_sources(${target} PRIVATE "${SIG8_BUNDLE_PATH}.c")
     else()
-        target_compile_definitions(${SIG8_BUNDLE_TARGET} PRIVATE SIG8_USE_RESOURCE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/")
+        target_compile_definitions(${target} PRIVATE SIG8_USE_RESOURCE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/")
     endif()
 endfunction()
