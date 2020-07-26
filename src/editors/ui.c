@@ -23,13 +23,6 @@ void sig8_StrokeRectR(Rect rect, int color)
     StrokeRect(rect.x, rect.y, rect.width, rect.height, color);
 }
 
-void sig8_DrawToolbar(void)
-{
-    FillRect(0, 0, SCREEN_WIDTH, TOOLBAR_SIZE, TOOLBAR_COLOR);
-
-    FillRect(0, SCREEN_HEIGHT - TOOLBAR_SIZE, SCREEN_WIDTH, TOOLBAR_SIZE, TOOLBAR_COLOR);
-}
-
 void sig8_DrawNumberInput(int x, int y, int *value)
 {
     Rect rect = {

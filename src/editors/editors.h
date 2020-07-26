@@ -22,7 +22,6 @@ void sig8_FillRectR(Rect rect, int color);
 Rect sig8_AddBorder(Rect rect, int border);
 void sig8_StrokeRectR(Rect rect, int color);
 
-void sig8_DrawToolbar(void);
 bool sig8_IsMouseOver(Rect rect);
 void sig8_DrawNumberInput(int x, int y, int *value);
 void sig8_DrawSlider(int x, int y, int *value);
@@ -34,6 +33,3 @@ bool sig8_HistoryCanUndo(History *history);
 bool sig8_HistoryCanRedo(History *history);
 HistoryItem sig8_HistoryUndo(History *history);
 HistoryItem sig8_HistoryRedo(History *history);
-
-#define TOOLBAR_SIZE 9
-#define TOOLBAR_COLOR DARK_BLUE

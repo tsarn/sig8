@@ -8,6 +8,8 @@
 #define PALETTE_STRIDE 7
 #define ROW_COLORS 8
 
+#define TOOLBAR_SIZE 9
+
 static SpriteSheet editing;
 static sig8_ManagedResource *managedResource;
 static int selected, selectedX, selectedY;
@@ -353,38 +355,28 @@ static void DrawEditedSprite(void)
                 if (selX + br > width) selX = width - br;
                 if (selY + br > height) selY = height - br;
 
-                if (MousePressed(MOUSE_LEFT)) {
+                int *col = fgColor;
+
+                if (MousePressed(MOUSE_LEFT) || MousePressed(MOUSE_RIGHT)) {
+                    if (MousePressed(MOUSE_RIGHT)) {
+                        col = &bgColor;
+                    }
+
                     BeginUndoableAction();
                     if (activeTool == BRUSH) {
-                        for (int x = selX; x < selX + br; ++x) {
-                            for (int y = selY; y < selY + br; ++y) {
-                                SetSpritePixel(x, y, selected, fgColor);
+                        for (int x = selX; (x < selX + br) && (x < width); ++x) {
+                            for (int y = selY; (y < selY + br) && (y < height); ++y) {
+                                SetSpritePixel(x, y, selected, *col);
                             }
                         }
                     }
 
                     if (activeTool == FILL) {
-                        Fill(i, j, fgColor);
+                        Fill(i, j, *col);
                     }
 
                     if (activeTool == COLOR_PICKER) {
-                        fgColor = GetSpritePixel(i, j, selected);
-                    }
-                    EndUndoableAction();
-                }
-
-                if (MousePressed(MOUSE_RIGHT)) {
-                    BeginUndoableAction();
-                    if (activeTool == BRUSH) {
-                        SetSpritePixel(i, j, selected, bgColor);
-                    }
-
-                    if (activeTool == FILL) {
-                        Fill(i, j, bgColor);
-                    }
-
-                    if (activeTool == COLOR_PICKER) {
-                        bgColor = GetSpritePixel(i, j, selected);
+                        *col = GetSpritePixel(i, j, selected);
                     }
                     EndUndoableAction();
                 }
@@ -463,6 +455,9 @@ static void DrawSpriteSheet(void)
 
 static void DrawStatusBar(void)
 {
+    FillRect(0, 0, SCREEN_WIDTH, TOOLBAR_SIZE, DARK_BLUE);
+    FillRect(0, SCREEN_HEIGHT - TOOLBAR_SIZE, SCREEN_WIDTH, TOOLBAR_SIZE, DARK_BLUE);
+
     char *string = Format("#%03d", selected);
     DrawString(SCREEN_WIDTH - 23, SCREEN_HEIGHT, RED, string);
     UseFont(FONT_3X5);
@@ -547,12 +542,11 @@ void sig8_SpriteEditorTick(void)
 
     ClearScreen(INDIGO);
     statusLine = "";
-    sig8_DrawToolbar();
+    DrawTools();
+    DrawStatusBar();
     DrawSpriteSheet();
     DrawEditedSprite();
     DrawPalette();
-    DrawTools();
-    DrawStatusBar();
     HandleInput();
 
     if (KeyJustPressed("Escape")) {
