@@ -295,6 +295,7 @@ void DrawLine(int x0, int y0, int x1, int y1, int color);
 
 void UseSpriteSheet(SpriteSheet spriteSheet);
 void FreeSpriteSheet(SpriteSheet spriteSheet);
+SpriteSheet GetCurrentSpriteSheet(void);
 void DrawSprite(int x, int y, int sprite, int flags);
 void DrawSubSprite(int x, int y, int sprite, int flags, int sx, int sy, int w, int h);
 int GetSpritePixel(int x, int y, int sprite);
@@ -308,6 +309,7 @@ SpriteSheet LoadSpriteSheet(const char *path);
 TileMap NewTileMap(void);
 void FreeTileMap(TileMap tileMap);
 void UseTileMap(TileMap tileMap);
+TileMap GetCurrentTileMap(void);
 void SetTile(int x, int y, int tile);
 int GetTile(int x, int y);
 

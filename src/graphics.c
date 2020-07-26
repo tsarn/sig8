@@ -261,6 +261,11 @@ void FreeSpriteSheet(SpriteSheet spriteSheet)
     sig8_FreeResource(spriteSheet);
 }
 
+SpriteSheet GetCurrentSpriteSheet(void)
+{
+    return currentSpriteSheet;
+}
+
 static inline int GetSpritePixelIndex(int x, int y, int sprite)
 {
     x += sprite % 16 * SPRITE_WIDTH;
