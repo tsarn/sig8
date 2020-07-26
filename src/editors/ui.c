@@ -2,6 +2,7 @@
 #include "editors.h"
 
 SpriteSheet sig8_EDITORS_SPRITESHEET;
+const char *sig8_StatusLine = "";
 
 void sig8_FillRectR(Rect rect, int color)
 {
@@ -102,6 +103,104 @@ bool sig8_IsMouseOver(Rect rect)
     }
 
     return true;
+}
+
+void sig8_DrawSpriteSheet(int x, int y, SpriteSheet spriteSheet, int region, int *selected)
+{
+    int selectedX = *selected % SPR_X;
+    int selectedY = *selected / SPR_X;
+    int width = region * SPRITE_WIDTH;
+    int height = region * SPRITE_HEIGHT;
+
+    Rect rect = {
+            .x = x,
+            .y = y,
+            .width = SPR_X * SPRITE_WIDTH,
+            .height = SPR_Y * SPRITE_HEIGHT,
+    };
+
+    UseSpriteSheet(spriteSheet);
+
+    for (int j = 0; j < SPR_Y; ++j) {
+        for (int i = 0; i < SPR_X; ++i) {
+            int idx = i + j * SPR_X;
+            Rect r = {
+                    .x = rect.x + i * SPRITE_WIDTH,
+                    .y = rect.y + j * SPRITE_HEIGHT,
+                    .width = SPRITE_WIDTH,
+                    .height = SPRITE_HEIGHT
+            };
+            DrawSprite(r.x, r.y, idx, 0);
+
+            if (sig8_IsMouseOver(r)) {
+                SetCursorShape(CURSOR_HAND);
+                if (MousePressed(MOUSE_LEFT)) {
+                    selectedX = i - region / 2;
+                    selectedY = j - region / 2;
+                }
+            }
+        }
+    }
+
+    UseSpriteSheet(sig8_EDITORS_SPRITESHEET);
+
+    if (selectedX < 0) selectedX = 0;
+    if (selectedY < 0) selectedY = 0;
+    if (selectedX + region > SPR_X) selectedX = SPR_X - region;
+    if (selectedY + region > SPR_Y) selectedY = SPR_Y - region;
+
+    *selected = selectedX + selectedY * SPR_X;
+
+    Rect r = {
+            .x = rect.x + selectedX * SPRITE_WIDTH,
+            .y = rect.y + selectedY * SPRITE_HEIGHT,
+            .width = width,
+            .height = height
+    };
+    sig8_StrokeRectR(sig8_AddBorder(r, 2), WHITE);
+    sig8_StrokeRectR(sig8_AddBorder(r, 1), BLACK);
+}
+
+bool sig8_DrawButton(int x, int y, Button button, bool pressed)
+{
+    Rect r = {
+            .x = x,
+            .y = y,
+            .width = SPRITE_WIDTH - 1,
+            .height = SPRITE_HEIGHT - 1
+    };
+
+    bool active = false;
+
+    if (!pressed) {
+        sig8_DrawIcon(r.x, r.y + 1, button.sprite, BLACK);
+        sig8_DrawIcon(r.x, r.y, button.sprite, GRAY);
+    } else {
+        sig8_DrawIcon(r.x, r.y + 1, button.sprite, WHITE);
+    }
+
+    if (sig8_IsMouseOver(r)) {
+        SetCursorShape(CURSOR_HAND);
+        sig8_StatusLine = button.hint;
+
+        if (MouseJustPressed(MOUSE_LEFT)) {
+            if (button.handler) {
+                button.handler();
+            }
+            active = true;
+        }
+    }
+
+    if (button.shortcut) {
+        if (KeyJustPressed(button.shortcut)) {
+            if (button.handler) {
+                button.handler();
+            }
+            active = true;
+        }
+    }
+
+    return active;
 }
 
 #endif

@@ -4,17 +4,23 @@ static TileMap currentTileMap;
 
 TileMap NewTileMap(void)
 {
-    return calloc(TILEMAP_WIDTH * TILEMAP_HEIGHT, sizeof(*currentTileMap));
+    return sig8_AllocateResource(RESOURCE_TILEMAP, NULL,
+            TILEMAP_WIDTH * TILEMAP_HEIGHT * sizeof(*currentTileMap));
 }
 
 void FreeTileMap(TileMap tileMap)
 {
-    free(tileMap);
+    sig8_FreeResource(tileMap);
 }
 
 void UseTileMap(TileMap tileMap)
 {
     currentTileMap = tileMap;
+}
+
+TileMap GetCurrentTileMap(void)
+{
+    return currentTileMap;
 }
 
 void SetTile(int x, int y, int tile)

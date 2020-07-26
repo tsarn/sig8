@@ -19,7 +19,7 @@ add_library(sig8 STATIC
         editors/history.c
         editors/sprite_editor.c
         editors/ui.c
-        )
+        editors/tile_editor.c)
 
 add_library(sig8::sig8 ALIAS sig8)
 

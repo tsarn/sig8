@@ -1,8 +1,6 @@
 #ifdef SIG8_COMPILE_EDITORS
 #include "editors.h"
 
-#define SPR_X 16
-#define SPR_Y 16
 #define EDIT_X 64
 #define EDIT_Y 64
 #define PALETTE_STRIDE 7
@@ -10,9 +8,8 @@
 
 #define TOOLBAR_SIZE 10
 
-static SpriteSheet editing;
-static sig8_ManagedResource *managedResource;
-static int selected, selectedX, selectedY;
+static sig8_ManagedResource *editing;
+static int selected;
 static int fgColor = WHITE;
 static int bgColor = BLACK;
 static int zoom = 8;
@@ -21,7 +18,6 @@ static int width = SPRITE_WIDTH, height = SPRITE_HEIGHT;
 static int brushSize;
 static HistoryItem curAction;
 static History history;
-static const char *statusLine;
 
 typedef enum {
     BRUSH,
@@ -36,15 +32,15 @@ typedef enum {
     NUMBER_OF_TOOLS
 } Tool;
 
-static const char* toolNames[] = {
-    "BRUSH [B]",
-    "FILL [F]",
-    "SELECT [S]",
-    "COLOR PICKER [P]",
-    "FLIP HORIZONTALLY",
-    "FLIP VERTICALLY",
-    "ROTATE",
-    "CLEAR SPRITE [DEL]",
+static const Button toolButtons[] = {
+    { NULL, "BRUSH [B]", "B", 5 },
+    { NULL, "FILL [F]", "F", 6 },
+    { NULL, "SELECT [S]", "S", 7 },
+    { NULL, "COLOR PICKER [P]", "P", 8 },
+    { NULL, "FLIP HORIZONTALLY [H]", "H", 9 },
+    { NULL, "FLIP VERTICALLY [V]", "V", 10 },
+    { NULL, "ROTATE [R]", "R", 11 },
+    { NULL, "CLEAR SPRITE [DEL]", "Delete", 12 }
 };
 
 static Tool activeTool = BRUSH;
@@ -52,14 +48,14 @@ static Tool activeTool = BRUSH;
 static void BeginUndoableAction(void)
 {
     curAction.data = TempAlloc(SPRITE_SHEET_BYTE_SIZE);
-    memcpy(curAction.data, editing, SPRITE_SHEET_BYTE_SIZE);
+    memcpy(curAction.data, editing->resource, SPRITE_SHEET_BYTE_SIZE);
 }
 
 static void EndUndoableAction(void)
 {
     bool anythingChanged = false;
     for (int i = 0; i < SPRITE_SHEET_BYTE_SIZE; ++i) {
-        curAction.data[i] ^= editing[i];
+        curAction.data[i] ^= editing->resource[i];
         if (curAction.data[i]) {
             anythingChanged = true;
         }
@@ -103,7 +99,7 @@ static void ApplyUndo(HistoryItem historyItem)
         int end = historyItem.data[i++] + j;
         uint8_t t = historyItem.data[i++];
         for (; j < end; ++j) {
-            editing[j] ^= t;
+            editing->resource[j] ^= t;
         }
     }
 }
@@ -124,11 +120,11 @@ static void Redo(void)
 
 static void Save(void)
 {
-    if (!managedResource->path) {
+    if (!editing->path) {
         return;
     }
 
-    char *path = ResolvePath(managedResource->path);
+    char *path = ResolvePath(editing->path);
 
     if (!path) {
         return;
@@ -136,7 +132,7 @@ static void Save(void)
 
     uint8_t data[3 * SPRITE_WIDTH * SPRITE_HEIGHT * SPRITE_SHEET_SIZE];
     for (int i = 0; i < SPRITE_WIDTH * SPRITE_HEIGHT * SPRITE_SHEET_SIZE; ++i) {
-        Color color = ColorFromIndex(editing[i]);
+        Color color = ColorFromIndex(editing->resource[i]);
         data[3 * i] = color.r;
         data[3 * i + 1] = color.g;
         data[3 * i + 2] = color.b;
@@ -207,7 +203,7 @@ static void Fill(int x, int y, int color)
 
 static void UseTool(Tool tool)
 {
-    UseSpriteSheet(editing);
+    UseSpriteSheet(editing->resource);
 
     if (tool == ERASE) {
         BeginUndoableAction();
@@ -253,16 +249,6 @@ static void UseTool(Tool tool)
     }
 
     UseSpriteSheet(sig8_EDITORS_SPRITESHEET);
-}
-
-static void FixSelected()
-{
-    if (selectedX < 0) selectedX = 0;
-    if (selectedY < 0) selectedY = 0;
-    if (selectedX + spriteRegion > SPR_X) selectedX = SPR_X - spriteRegion;
-    if (selectedY + spriteRegion > SPR_Y) selectedY = SPR_Y - spriteRegion;
-
-    selected = selectedX + selectedY * SPR_X;
 }
 
 static void DrawPalette(void)
@@ -349,7 +335,7 @@ static void DrawEditedSprite(void)
 
     sig8_StrokeRectR(sig8_AddBorder(rect, 1), WHITE);
 
-    UseSpriteSheet(editing);
+    UseSpriteSheet(editing->resource);
 
     int selX = -1;
     int selY = -1;
@@ -430,90 +416,38 @@ static void DrawEditedSprite(void)
 
 static void DrawSpriteSheet(void)
 {
-    Rect rect = {
-            .y = TOOLBAR_SIZE,
-            .width = SPR_X * SPRITE_WIDTH,
-            .height = SPR_Y * SPRITE_HEIGHT,
-    };
-    rect.x = SCREEN_WIDTH - rect.width;
-
-    UseSpriteSheet(editing);
-
-    for (int j = 0; j < SPR_Y; ++j) {
-        for (int i = 0; i < SPR_X; ++i) {
-            int idx = i + j * SPR_X;
-            Rect r = {
-                    .x = rect.x + i * SPRITE_WIDTH,
-                    .y = rect.y + j * SPRITE_HEIGHT,
-                    .width = SPRITE_WIDTH,
-                    .height = SPRITE_HEIGHT
-            };
-            DrawSprite(r.x, r.y, idx, 0);
-
-            if (sig8_IsMouseOver(r)) {
-                SetCursorShape(CURSOR_HAND);
-                if (MousePressed(MOUSE_LEFT)) {
-                    selectedX = i - spriteRegion / 2;
-                    selectedY = j - spriteRegion / 2;
-                    FixSelected();
-                }
-            }
-        }
-    }
-
-    UseSpriteSheet(sig8_EDITORS_SPRITESHEET);
-
-    {
-        int i = selected % SPR_X;
-        int j = selected / SPR_X;
-
-        Rect r = {
-                .x = rect.x + i * SPRITE_WIDTH,
-                .y = rect.y + j * SPRITE_HEIGHT,
-                .width = width,
-                .height = height
-        };
-        sig8_StrokeRectR(sig8_AddBorder(r, 2), WHITE);
-        sig8_StrokeRectR(sig8_AddBorder(r, 1), BLACK);
-    }
+    sig8_DrawSpriteSheet(
+            SCREEN_WIDTH - SPR_X * SPRITE_WIDTH, TOOLBAR_SIZE,
+            editing->resource, spriteRegion, &selected
+    );
 }
 
 static void DrawTopButtons(void)
 {
-    Rect r = {
-            .x = SCREEN_WIDTH - 25,
-            .y = 1,
-            .width = SPRITE_WIDTH - 1,
-            .height = SPRITE_HEIGHT - 1
+    static const Button UndoButton = {
+            .sprite = 13,
+            .shortcut = "Ctrl+Z",
+            .hint = "UNDO [CTRL-Z]",
+            .handler = Undo
     };
 
-    for (int i = 0; i < 3; ++i) {
-        // Undo, Redo & Save
-        sig8_DrawIcon(r.x, r.y + 1, 13 + i, BLACK);
-        sig8_DrawIcon(r.x, r.y, 13 + i, GRAY);
+    static const Button RedoButton = {
+            .sprite = 14,
+            .shortcut = "Ctrl+Y",
+            .hint = "REDO [CTRL-Y]",
+            .handler = Redo
+    };
 
-        if (sig8_IsMouseOver(r)) {
-            SetCursorShape(CURSOR_HAND);
+    static const Button SaveButton = {
+            .sprite = 15,
+            .shortcut = "Ctrl+S",
+            .hint = "SAVE [CTRL-S]",
+            .handler = Save
+    };
 
-            switch (i) {
-            case 0: statusLine = "UNDO [CTRL-Z]"; break;
-            case 1: statusLine = "REDO [CTRL-Y]"; break;
-            case 2: statusLine = "SAVE [CTRL-S]"; break;
-            default: break;
-            }
-
-            if (MouseJustPressed(MOUSE_LEFT)) {
-                switch (i) {
-                case 0: Undo(); break;
-                case 1: Redo(); break;
-                case 2: Save(); break;
-                default: break;
-                }
-            }
-        }
-
-        r.x += SPRITE_WIDTH;
-    }
+    sig8_DrawButton(SCREEN_WIDTH - 25, 1, UndoButton, false);
+    sig8_DrawButton(SCREEN_WIDTH - 17, 1, RedoButton, false);
+    sig8_DrawButton(SCREEN_WIDTH - 9, 1, SaveButton, false);
 }
 
 static void DrawStatusBar(void)
@@ -525,10 +459,10 @@ static void DrawStatusBar(void)
     char *string = Format("#%03d", selected);
     DrawString(SCREEN_WIDTH - 23, SCREEN_HEIGHT - 1, RED, string);
     UseFont(FONT_3X5);
-    DrawString(2, SCREEN_HEIGHT - 2, GRAY, statusLine);
+    DrawString(2, SCREEN_HEIGHT - 2, GRAY, sig8_StatusLine);
     UseFont(FONT_ASEPRITE);
-    if (managedResource->path) {
-        DrawString(2, 8, GRAY, managedResource->path);
+    if (editing->path) {
+        DrawString(2, 8, GRAY, editing->path);
     }
 
     if (activeTool == BRUSH) {
@@ -540,40 +474,16 @@ static void DrawStatusBar(void)
     zoom = 8 / spriteRegion;
     width = SPRITE_WIDTH * spriteRegion;
     height = SPRITE_HEIGHT * spriteRegion;
-    FixSelected();
 }
 
 static void DrawTools(void)
 {
-    Rect rect = {
-            .x = 4,
-            .y = TOOLBAR_SIZE + 95
-    };
-
     for (int tool = 0; tool < NUMBER_OF_TOOLS; ++tool) {
-        Rect r = {
-            .x = rect.x + SPRITE_WIDTH * tool,
-            .y = rect.y,
-            .width = 7,
-            .height = 7
-        };
-
-        if ((Tool)tool == activeTool) {
-            sig8_DrawIcon(r.x, r.y + 1, 5 + tool, WHITE);
-        } else {
-            sig8_DrawIcon(r.x, r.y + 1, 5 + tool, BLACK);
-            sig8_DrawIcon(r.x, r.y, 5 + tool, GRAY);
-        }
-
-        if (sig8_IsMouseOver(r)) {
-            SetCursorShape(CURSOR_HAND);
-            statusLine = toolNames[tool];
-            if (MouseJustPressed(MOUSE_LEFT)) {
-                UseTool(tool);
-            }
+        if (sig8_DrawButton(4 + SPRITE_WIDTH * tool, TOOLBAR_SIZE + 95,
+                toolButtons[tool], (Tool)tool == activeTool)) {
+            UseTool(tool);
         }
     }
-    ResetColors();
 }
 
 static void HandleInput(void)
@@ -584,44 +494,11 @@ static void HandleInput(void)
         sig8_LeaveEditor();
         return;
     }
-
-    if (KeyJustPressed("Ctrl+S")) {
-        Save();
-    }
-
-    if (KeyJustPressed("Ctrl+Z")) {
-        Undo();
-    }
-
-    if (KeyJustPressed("Ctrl+Y")) {
-        Redo();
-    }
-
-    if (KeyJustPressed("B")) {
-        UseTool(BRUSH);
-    }
-
-    if (KeyJustPressed("F")) {
-        UseTool(FILL);
-    }
-
-    if (KeyJustPressed("S")) {
-        UseTool(SELECT);
-    }
-
-    if (KeyJustPressed("P")) {
-        UseTool(COLOR_PICKER);
-    }
-
-    if (KeyJustPressed("Delete")) {
-        UseTool(ERASE);
-    }
 }
 
 void sig8_SpriteEditorInit(sig8_ManagedResource *what)
 {
-    editing = what->resource;
-    managedResource = what;
+    editing = what;
     history = (History) {
         .size = 0,
         .capacity = 0,
@@ -636,7 +513,7 @@ void sig8_SpriteEditorTick(void)
     SetCursorShape(CURSOR_ARROW);
 
     ClearScreen(INDIGO);
-    statusLine = "";
+    sig8_StatusLine = "";
     DrawTools();
     DrawStatusBar();
     DrawSpriteSheet();
