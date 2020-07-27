@@ -37,15 +37,9 @@ function(sig8_bundle target)
         set(SIG8_BUNDLE_RESOURCES "")
     endif()
 
-    if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
-        set(SIG8_BUNDLE_VISIBILITY PUBLIC)
-    else()
-        set(SIG8_BUNDLE_VISIBILITY PRIVATE)
-    endif()
-
     if ((${CMAKE_SYSTEM_NAME} MATCHES "Emscripten") AND (NOT SIG8_BUNDLE_FORCE))
         foreach(RES ${SIG8_BUNDLE_RESOURCES})
-            target_link_options(${target} ${SIG8_BUNDLE_VISIBILITY}
+            target_link_options(${target} PRIVATE
                 "SHELL:--preload-file \"${CMAKE_CURRENT_SOURCE_DIR}/${RES}@${RES}\""
             )
         endforeach()
