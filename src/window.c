@@ -420,7 +420,7 @@ static bool Tick(void)
 }
 
 #ifdef __EMSCRIPTEN__
-static void EmscriptenAnimationFrame(void* data) {
+static void EmscriptenAnimationFrame(void) {
     if (!Tick()) {
         emscripten_cancel_main_loop();
         Finalize();
@@ -444,7 +444,7 @@ void RunMainLoop(void (*function)(void))
     mainLoop = function;
 
 #ifdef __EMSCRIPTEN__
-    emscripten_set_main_loop_arg(EmscriptenAnimationFrame, NULL, -1, 1);
+    emscripten_set_main_loop(EmscriptenAnimationFrame, -1, 1);
 #else
     while (Tick()) {
 #ifdef SIG8_COMPILE_EDITORS
