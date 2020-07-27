@@ -166,7 +166,7 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
 
             switch (ch.instrument.wave) {
             case NOISE:
-                value = 1.0f * rand() / RAND_MAX;
+                value = (float)rand() / (float)RAND_MAX;
                 break;
 
             case SQUARE_WAVE: {

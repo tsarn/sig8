@@ -20,5 +20,4 @@ foreach(index RANGE 1 "${N}")
 \"${name}\\0\"\"${size}\\0\"\"${contents}\"
 ")
 endforeach()
-file(APPEND "${SIG8_BUNDLE_PATH}"
-        ";")
+file(APPEND "${SIG8_BUNDLE_PATH}" ";")
