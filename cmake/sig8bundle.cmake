@@ -1,8 +1,5 @@
 # This file is intended to be called using cmake -P
 
-message(paths: "${SIG8_RESOURCE_PATHS}")
-message(names: "${SIG8_RESOURCE_NAMES}")
-
 file(WRITE "${SIG8_BUNDLE_PATH}"
         "const char *${SIG8_BUNDLE_NAME} = \"\"
 ")

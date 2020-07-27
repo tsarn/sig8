@@ -60,13 +60,16 @@ function(sig8_bundle target)
             list(APPEND SIG8_RESOURCE_NAMES "${RES}")
         endforeach()
 
+        string (REPLACE ";" "$<SEMICOLON>" SIG8_RESOURCE_PATHS_ESCAPED "${SIG8_RESOURCE_PATHS}")
+        string (REPLACE ";" "$<SEMICOLON>" SIG8_RESOURCE_NAMES_ESCAPED "${SIG8_RESOURCE_NAMES}")
+
         add_custom_command(
             OUTPUT "${SIG8_BUNDLE_PATH}.c"
             COMMAND "${CMAKE_COMMAND}"
                 -DSIG8_BUNDLE_NAME=${SIG8_BUNDLE_NAME}
                 -DSIG8_BUNDLE_PATH=${SIG8_BUNDLE_PATH}.c
-                -DSIG8_RESOURCE_PATHS=${SIG8_RESOURCE_PATHS}
-                -DSIG8_RESOURCE_NAMES=${SIG8_RESOURCE_NAMES}
+                -DSIG8_RESOURCE_PATHS=${SIG8_RESOURCE_PATHS_ESCAPED}
+                -DSIG8_RESOURCE_NAMES=${SIG8_RESOURCE_NAMES_ESCAPED}
                 -P "${PROJECT_SOURCE_DIR}/cmake/sig8bundle.cmake"
             DEPENDS ${PROJECT_SOURCE_DIR}/cmake/sig8bundle.cmake ${SIG8_BUNDLE_RESOURCES}
             COMMENT "Generating bundles for target ${target}"
