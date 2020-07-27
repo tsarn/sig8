@@ -12,10 +12,6 @@ include(sig8util)
 add_subdirectory(thirdparty)
 add_subdirectory(src)
 
-if(NOT CMAKE_CROSSCOMPILING)
-    add_subdirectory(bundler)
-endif()
-
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     # Only compile examples if building the library itself

@@ -43,7 +43,7 @@ function(sig8_bundle target)
         set(SIG8_BUNDLE_VISIBILITY PRIVATE)
     endif()
 
-    if ((${CMAKE_SYSTEM_NAME} MATCHES "Emscripten"))
+    if ((${CMAKE_SYSTEM_NAME} MATCHES "Emscripten") AND (NOT SIG8_BUNDLE_FORCE))
         foreach(RES ${SIG8_BUNDLE_RESOURCES})
             target_link_options(${target} ${SIG8_BUNDLE_VISIBILITY}
                 "SHELL:--preload-file \"${CMAKE_CURRENT_SOURCE_DIR}/${RES}@${RES}\""
@@ -52,17 +52,23 @@ function(sig8_bundle target)
         target_compile_definitions(${target} PRIVATE SIG8_USE_RESOURCE_PATH="")
     elseif ((CMAKE_BUILD_TYPE MATCHES "Release") OR (SIG8_BUNDLE_FORCE))
         set(SIG8_BUNDLE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${SIG8_BUNDLE_FILE}")
-        set(SIG8_BUNDLE_ARGS "")
+        set(SIG8_RESOURCE_PATHS "")
+        set(SIG8_RESOURCE_NAMES "")
 
         foreach(RES ${SIG8_BUNDLE_RESOURCES})
-            list(APPEND SIG8_BUNDLE_ARGS "${CMAKE_CURRENT_SOURCE_DIR}/${RES}")
-            list(APPEND SIG8_BUNDLE_ARGS "${RES}")
+            list(APPEND SIG8_RESOURCE_PATHS "${CMAKE_CURRENT_SOURCE_DIR}/${RES}")
+            list(APPEND SIG8_RESOURCE_NAMES "${RES}")
         endforeach()
 
         add_custom_command(
             OUTPUT "${SIG8_BUNDLE_PATH}.c"
-            COMMAND $<TARGET_FILE:bundler> "${SIG8_BUNDLE_NAME}" "${SIG8_BUNDLE_PATH}.c" ${SIG8_BUNDLE_ARGS}
-            DEPENDS bundler ${SIG8_BUNDLE_RESOURCES}
+            COMMAND "${CMAKE_COMMAND}"
+                -DSIG8_BUNDLE_NAME=${SIG8_BUNDLE_NAME}
+                -DSIG8_BUNDLE_PATH=${SIG8_BUNDLE_PATH}.c
+                -DSIG8_RESOURCE_PATHS=${SIG8_RESOURCE_PATHS}
+                -DSIG8_RESOURCE_NAMES=${SIG8_RESOURCE_NAMES}
+                -P "${PROJECT_SOURCE_DIR}/cmake/sig8bundle.cmake"
+            DEPENDS ${PROJECT_SOURCE_DIR}/cmake/sig8bundle.cmake ${SIG8_BUNDLE_RESOURCES}
             COMMENT "Generating bundles for target ${target}"
             VERBATIM
         )
