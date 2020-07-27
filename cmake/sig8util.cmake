@@ -10,7 +10,6 @@ function(sig8_platform target)
     target_link_libraries(${target} sig8::sig8)
     if (CMAKE_BUILD_TYPE MATCHES "Debug")
         target_compile_definitions(${target} PRIVATE SIG8_USE_EDITORS)
-        target_compile_definitions(${target} PRIVATE SIG8_USE_RESOURCE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/")
     endif()
 endfunction()
 
@@ -38,10 +37,16 @@ function(sig8_bundle target)
         set(SIG8_BUNDLE_RESOURCES "")
     endif()
 
-    if (${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+    if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+        set(SIG8_BUNDLE_VISIBILITY PUBLIC)
+    else()
+        set(SIG8_BUNDLE_VISIBILITY PRIVATE)
+    endif()
+
+    if ((${CMAKE_SYSTEM_NAME} MATCHES "Emscripten"))
         foreach(RES ${SIG8_BUNDLE_RESOURCES})
-            target_link_options(${target} PRIVATE
-                --preload-file "${CMAKE_CURRENT_SOURCE_DIR}/${RES}@${RES}"
+            target_link_options(${target} ${SIG8_BUNDLE_VISIBILITY}
+                "SHELL:--preload-file \"${CMAKE_CURRENT_SOURCE_DIR}/${RES}@${RES}\""
             )
         endforeach()
         target_compile_definitions(${target} PRIVATE SIG8_USE_RESOURCE_PATH="")

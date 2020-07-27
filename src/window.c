@@ -102,10 +102,18 @@ void sig8_InitializeEx(Configuration cfg)
     sig8_InitMusic();
     sig8_InitInput();
 #ifdef SIG8_COMPILE_EDITORS
+
+#ifndef __EMSCRIPTEN__
     const uint8_t *old = GetResourceBundle();
     UseResourceBundle(SIG8_EDITORS_BUNDLE);
+#endif
+
     sig8_EDITORS_SPRITESHEET = LoadSpriteSheet("res://editors/spritesheet.png");
+
+#ifndef __EMSCRIPTEN__
     UseResourceBundle(old);
+#endif
+
 #endif
     initialized = true;
 }

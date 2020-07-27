@@ -69,7 +69,9 @@ void sig8_FreeResource(uint8_t *resource);
 
 #ifdef SIG8_COMPILE_EDITORS
 
+#ifndef __EMSCRIPTEN__
 #include "sig8_editors_resources.h"
+#endif
 
 extern SpriteSheet sig8_EDITORS_SPRITESHEET;
 
