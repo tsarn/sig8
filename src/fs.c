@@ -36,17 +36,15 @@ static const uint8_t *BundleSeek(const char *name, int *size)
             ok = true;
         }
 
-        ptr = ptr + strlen((const char*)ptr) + 1;
-        *size = 0;
-        for (int i = 0; i < 4; ++i) {
-            *size |= (*ptr++ << (8 * i));
-        }
+        ptr += strlen((const char*)ptr) + 1;
+        *size = atoi((const char*)ptr);
+        ptr += strlen((const char*)ptr) + 1;
 
         if (ok) {
             return ptr;
         }
 
-        ptr += *size;
+        ptr += *size * 2;
     }
     return NULL;
 }
@@ -87,7 +85,15 @@ uint8_t *ReadFileContents(const char *path, int *size)
         }
 
         uint8_t *result = malloc(*size);
-        memcpy(result, data, *size);
+
+        for (int i = 0; i < *size; ++i) {
+            char tmp[3];
+            tmp[0] = data[2 * i];
+            tmp[1] = data[2 * i + 1];
+            tmp[2] = '\0';
+            result[i] = strtol(tmp, NULL, 16);
+        }
+
         return result;
     } else {
         FILE *file = fopen(path, "rb");
