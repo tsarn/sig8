@@ -12,7 +12,6 @@ include(sig8util)
 add_subdirectory(thirdparty)
 add_subdirectory(src)
 
-
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     # Only compile examples if building the library itself
     add_subdirectory(examples)
