@@ -5,7 +5,6 @@ add_library(stb_image_write STATIC
 add_library(stb_image_write::stb_image_write ALIAS stb_image_write)
 
 target_compile_features(stb_image_write PRIVATE c_std_99)
-set_target_properties(stb_image_write PROPERTIES VERSION 2.26.0)
 target_include_directories(stb_image_write
 PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
