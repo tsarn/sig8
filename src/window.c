@@ -54,7 +54,7 @@ static int screenWidth, screenHeight;
 static Palette palette;
 
 static float offsetX, offsetY;
-static int pixelScale;
+static float pixelScale;
 
 static Color *screenBuffer;
 static int screenBufferSize;
@@ -135,8 +135,8 @@ static void OnResize(void)
 {
     SDL_GetWindowSize(window, &windowWidth, &windowHeight);
 
-    int pixelScaleX = windowWidth / screenWidth;
-    int pixelScaleY = windowHeight / screenHeight;
+    float pixelScaleX = (float)windowWidth / (float)screenWidth;
+    float pixelScaleY = (float)windowHeight / (float)screenHeight;
 
     if (pixelScaleX < pixelScaleY) {
         pixelScale = pixelScaleX;
@@ -144,8 +144,8 @@ static void OnResize(void)
         pixelScale = pixelScaleY;
     }
 
-    offsetX = (1.0f - screenWidth * pixelScale * 1.0f / windowWidth) / 2.0f;
-    offsetY = (1.0f - screenHeight * pixelScale * 1.0f / windowHeight) / 2.0f;
+    offsetX = (1.0f - (float)screenWidth * pixelScale / (float)windowWidth) / 2.0f;
+    offsetY = (1.0f - (float)screenHeight * pixelScale  / (float)windowHeight) / 2.0f;
 }
 
 void sig8_ResizeScreen(int newWidth, int newHeight)
