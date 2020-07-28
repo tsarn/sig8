@@ -274,7 +274,7 @@ void sig8_InitGLESPixelBuffer(void)
 
 void sig8_InitGLES(void)
 {
-#ifndef __EMSCRIPTEN__
+#ifdef SIG8_USE_GLAD
     if (!gladLoadGLES2Loader((GLADloadproc)SDL_GL_GetProcAddress)) {
         printf("ERROR: Failed to load GLES3 loader\n");
         Finalize();

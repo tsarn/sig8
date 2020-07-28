@@ -1,4 +1,3 @@
-#ifdef SIG8_COMPILE_EDITORS
 #include "editors.h"
 
 SpriteSheet sig8_EDITORS_SPRITESHEET;
@@ -202,5 +201,3 @@ bool sig8_DrawButton(int x, int y, Button button, bool pressed)
 
     return active;
 }
-
-#endif
