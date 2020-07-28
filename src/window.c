@@ -120,11 +120,6 @@ void sig8_Initialize(const char *windowName)
 
 void Finalize(void)
 {
-    if (screenBuffer) {
-        free(screenBuffer);
-        screenBuffer = NULL;
-    }
-    
     if (glContext) {
         SDL_GL_DeleteContext(glContext);
     }
