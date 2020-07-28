@@ -14,14 +14,11 @@ add_library(sig8 STATIC
         events.c
         tilemap.c
         fs.c
-        resource.c
-        editors/editors.h
-        editors/history.c
-        editors/sprite_editor.c
-        editors/ui.c
-        editors/tile_editor.c)
+        resource.c)
 
 add_library(sig8::sig8 ALIAS sig8)
+
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/config.h.in" "${CMAKE_CURRENT_BINARY_DIR}/config.h")
 
 if (MSVC)
     target_compile_options(sig8 PRIVATE /W4)
@@ -40,9 +37,7 @@ else()
     target_link_libraries(sig8 PRIVATE SDL2 OpenGL::GL glad)
 endif()
 
-if (CMAKE_BUILD_TYPE MATCHES "Debug")
-    # enable support for editors
-    target_compile_definitions(sig8 PRIVATE SIG8_COMPILE_EDITORS)
+if (SIG8_COMPILE_EDITORS)
     sig8_bundle(sig8
         FORCE
         NAME SIG8_EDITORS_BUNDLE
@@ -51,6 +46,12 @@ if (CMAKE_BUILD_TYPE MATCHES "Debug")
     )
 
     target_link_libraries(sig8 PRIVATE stb_image_write::stb_image_write)
+    target_sources(sig8 PRIVATE
+            editors/editors.h
+            editors/history.c
+            editors/sprite_editor.c
+            editors/ui.c
+            editors/tile_editor.c)
 endif()
 
 set_target_properties(sig8 PROPERTIES VERSION ${SIG8_VERSION})
@@ -61,6 +62,7 @@ PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/../include/"
 PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_BINARY_DIR}"
 )
 
 target_link_libraries(sig8

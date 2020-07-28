@@ -1,0 +1,4 @@
+#pragma once
+
+#cmakedefine SIG8_COMPILE_EDITORS
+#cmakedefine SIG8_USE_GLAD

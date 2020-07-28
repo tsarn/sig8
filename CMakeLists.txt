@@ -8,6 +8,14 @@ if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
     set(CMAKE_EXECUTABLE_SUFFIX .html)
 endif()
 
+option(SIG8_COMPILE_EDITORS "Compile library with editor support" ON)
+
+if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+    option(SIG8_USE_GLAD "Use GLAD to load OpenGL ES" OFF)
+else()
+    option(SIG8_USE_GLAD "Use GLAD to load OpenGL ES" ON)
+endif()
+
 include(sig8util)
 add_subdirectory(thirdparty)
 add_subdirectory(src)

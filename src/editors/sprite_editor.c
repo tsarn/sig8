@@ -1,4 +1,3 @@
-#ifdef SIG8_COMPILE_EDITORS
 #include "editors.h"
 
 #define EDIT_X 64
@@ -521,5 +520,3 @@ void sig8_SpriteEditorTick(void)
     DrawPalette();
     HandleInput();
 }
-
-#endif

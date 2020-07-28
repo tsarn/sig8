@@ -1,4 +1,3 @@
-#ifdef SIG8_COMPILE_EDITORS
 #include "editors.h"
 
 #define TOOLBAR_SIZE 10
@@ -25,5 +24,3 @@ void sig8_TileEditorTick(void)
     ClearScreen(INDIGO);
     DrawStatusBar();
 }
-
-#endif

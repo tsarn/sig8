@@ -1,4 +1,3 @@
-#ifdef SIG8_COMPILE_EDITORS
 #include "editors.h"
 
 void sig8_HistoryClear(History *history)
@@ -46,5 +45,3 @@ HistoryItem sig8_HistoryRedo(History *history)
 {
     return history->data[history->cur++];
 }
-
-#endif
