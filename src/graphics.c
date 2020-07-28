@@ -307,6 +307,14 @@ void SetSpritePixel(int x, int y, int sprite, int color)
 
 void DrawSprite(int x, int y, int sprite)
 {
+    DrawBigSprite(x, y, sprite, 1, 1);
+}
+
+void DrawBigSprite(int x, int y, int sprite, int w, int h)
+{
+    w *= SPRITE_WIDTH;
+    h *= SPRITE_HEIGHT;
+
     int hSize = SCREEN_WIDTH - x;
     int vSize = SCREEN_HEIGHT - y;
     int hOff = (x < 0) ? -x : 0;
@@ -319,12 +327,12 @@ void DrawSprite(int x, int y, int sprite)
         return;
     }
 
-    if (hSize > SPRITE_WIDTH) {
-        hSize = SPRITE_WIDTH;
+    if (hSize > w) {
+        hSize = w;
     }
 
-    if (vSize > SPRITE_HEIGHT) {
-        vSize = SPRITE_HEIGHT;
+    if (vSize > h) {
+        vSize = h;
     }
 
     uint8_t *sprPtr = &currentSpriteSheet[
