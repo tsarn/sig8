@@ -22,6 +22,8 @@ void mainLoop(void)
             DrawSprite(13 + i * 8, y, 10 + i,SPRITE_MASK_COLOR(BLACK));
         }
 
+        ResetColors();
+
         if (KeyJustPressed("Z")) {
             PlayNote(0, A4);
         }

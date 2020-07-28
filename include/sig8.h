@@ -193,10 +193,6 @@ typedef struct {
     int speed; // how many frames per one envelope tick
 } Instrument;
 
-/*
- * System functions.
- * Some macro magic is in place.
- */
 void sig8_Initialize(const char *windowName);
 void sig8_InitializeEx(Configuration configuration);
 
@@ -234,6 +230,7 @@ int GetScreenWidth(void);
 int GetScreenHeight(void);
 Palette GetPalette(void);
 void RunMainLoop(void (*function)(void));
+void SetVSyncEnabled(bool enabled);
 
 /*
  * Resource / filesystem functions.
