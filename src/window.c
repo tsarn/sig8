@@ -249,6 +249,8 @@ void sig8_InitWindow(const char *name)
     for (int i = 0; i < SDL_NUM_SYSTEM_CURSORS; ++i) {
         cachedCursors[i] = SDL_CreateSystemCursor(i);
     }
+
+    SetVSyncEnabled(true);
 }
 
 static void UpdateBufferData(void)
@@ -467,6 +469,11 @@ void RunMainLoop(void (*function)(void))
     }
     Finalize();
 #endif
+}
+
+void SetVSyncEnabled(bool enabled)
+{
+    SDL_GL_SetSwapInterval((int)enabled);
 }
 
 void Quit(void)
