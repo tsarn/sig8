@@ -339,6 +339,7 @@ void DrawSprite(int x, int y, int sprite)
 
         sprPtr += SPR_X * SPRITE_WIDTH - hSize;
         scrPtr += width - hSize;
+
     }
 }
 
