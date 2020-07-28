@@ -23,26 +23,6 @@ extern "C" {
 #define SPRITE_HEIGHT 8
 #define SPRITE_SHEET_BYTE_SIZE (SPRITE_SHEET_SIZE * SPRITE_WIDTH * SPRITE_HEIGHT)
 
-/*
- * Sprite flags
- *
- * When drawing a sprite it is possible to specify
- * the following flags. Most of them are self-explanatory.
- * Flips are done before the rotations.
- *
- * A color specified in the lower four bits
- * can be replaced with transparency like so:
- * SPRITE_MASK_COLOR(<color goes here>)
- */
-
-#define SPRITE_HFLIP 0x01
-#define SPRITE_VFLIP 0x02
-#define SPRITE_ROTATE_CW 0x04
-#define SPRITE_ROTATE_180 (SPRITE_HFLIP | SPRITE_VFLIP)
-#define SPRITE_ROTATE_CCW (ROTATE_CW | ROTATE_180)
-#define SPRITE_ENABLE_MASK 0x08
-#define SPRITE_MASK_COLOR(color) (SPRITE_ENABLE_MASK | ((color) << 4))
-
 #define TILEMAP_WIDTH 256
 #define TILEMAP_HEIGHT 256
 
@@ -294,7 +274,7 @@ void FreeSpriteSheet(SpriteSheet spriteSheet);
 SpriteSheet GetCurrentSpriteSheet(void);
 void DrawSprite(int x, int y, int sprite);
 void DrawBigSprite(int x, int y, int sprite, int w, int h);
-void DrawSubSprite(int x, int y, int sprite, int sx, int sy, int w, int h, int flags);
+void DrawSubSprite(int x, int y, int sprite, int sx, int sy, int w, int h, int mask);
 int GetSpritePixel(int x, int y, int sprite);
 void SetSpritePixel(int x, int y, int sprite, int color);
 SpriteSheet LoadSpriteSheet(const char *path);
@@ -310,9 +290,9 @@ TileMap GetCurrentTileMap(void);
 void SetTile(int x, int y, int tile);
 int GetTile(int x, int y);
 
-typedef void (*TileMapDrawCallback)(int x, int y, int *sprite, int *flags);
+typedef void (*TileMapDrawCallback)(int x, int y, int *sprite, int *mask);
 void DrawTileMap(int x, int y, int width, int height, int offsetX, int offsetY);
-void DrawTileMapEx(int x, int y, int width, int height, int offsetX, int offsetY, int flags, TileMapDrawCallback callback);
+void DrawTileMapEx(int x, int y, int width, int height, int offsetX, int offsetY, int mask, TileMapDrawCallback callback);
 
 /*
  * Audio functions
