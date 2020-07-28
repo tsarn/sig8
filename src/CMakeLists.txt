@@ -37,7 +37,7 @@ else()
     find_package(OpenGL REQUIRED)
 
     target_include_directories(sig8 PRIVATE SDL2 OpenGL::GL)
-    target_link_libraries(sig8 PRIVATE SDL2 OpenGL::GL)
+    target_link_libraries(sig8 PRIVATE SDL2 OpenGL::GL glad)
 endif()
 
 if (CMAKE_BUILD_TYPE MATCHES "Debug")

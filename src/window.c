@@ -211,7 +211,7 @@ bool AnyEventsHappened(void)
 
 static void ReportSDLError(void)
 {
-    printf("SDL Error: %s\n", SDL_GetError());
+    printf("ERROR: %s\n", SDL_GetError());
     Finalize();
     exit(EXIT_FAILURE);
 }
@@ -274,6 +274,13 @@ void sig8_InitGLESPixelBuffer(void)
 
 void sig8_InitGLES(void)
 {
+#ifndef __EMSCRIPTEN__
+    if (!gladLoadGLES2Loader((GLADloadproc)SDL_GL_GetProcAddress)) {
+        printf("ERROR: Failed to load GLES3 loader\n");
+        Finalize();
+        exit(EXIT_FAILURE);
+    }
+#endif
     glGenBuffers(1, &screenVBO);
     glGenBuffers(1, &screenPBO);
     glGenTextures(1, &screenTexture);
