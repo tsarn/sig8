@@ -305,16 +305,8 @@ void SetSpritePixel(int x, int y, int sprite, int color)
     }
 }
 
-void DrawSprite(int x, int y, int sprite)
+static inline void DrawSpriteImpl(int x, int y, int sx, int sy, int w, int h, int mask)
 {
-    DrawBigSprite(x, y, sprite, 1, 1);
-}
-
-void DrawBigSprite(int x, int y, int sprite, int w, int h)
-{
-    w *= SPRITE_WIDTH;
-    h *= SPRITE_HEIGHT;
-
     int hSize = SCREEN_WIDTH - x;
     int vSize = SCREEN_HEIGHT - y;
     int hOff = (x < 0) ? -x : 0;
@@ -336,8 +328,8 @@ void DrawBigSprite(int x, int y, int sprite, int w, int h)
     }
 
     uint8_t *sprPtr = &currentSpriteSheet[
-            sprite % SPR_X * SPRITE_WIDTH +
-            sprite / SPR_X * SPR_X * SPRITE_HEIGHT * SPRITE_WIDTH +
+            sx +
+            sy * SPR_X * SPRITE_WIDTH +
             hOff + vOff * (SPR_X * SPRITE_WIDTH)
     ];
 
@@ -345,58 +337,36 @@ void DrawBigSprite(int x, int y, int sprite, int w, int h)
 
     for (int j = vOff; j < vSize; ++j) {
         for (int i = hOff; i < hSize; ++i, ++sprPtr, ++scrPtr) {
-            if (*sprPtr) {
+            if (*sprPtr != mask) {
                 *scrPtr = paletteMap[*sprPtr];
             }
         }
 
         sprPtr += SPR_X * SPRITE_WIDTH - hSize + hOff;
         scrPtr += width - hSize + hOff;
-
     }
 }
 
-void DrawSubSprite(int x, int y, int sprite, int sx, int sy, int w, int h, int flags)
+void DrawSprite(int x, int y, int sprite)
+{
+    DrawSubSprite(x, y, sprite, 0, 0, SPRITE_WIDTH, SPRITE_HEIGHT, 0);
+}
+
+void DrawBigSprite(int x, int y, int sprite, int w, int h)
+{
+    DrawSubSprite(x, y, sprite, 0, 0, w * SPRITE_WIDTH, h * SPRITE_HEIGHT, 0);
+}
+
+void DrawSubSprite(int x, int y, int sprite, int sx, int sy, int w, int h, int mask)
 {
     if (sprite < 0 || sprite >= SPRITE_SHEET_SIZE || !currentSpriteSheet) {
         return;
     }
 
-    for (int i = 0; i < w; ++i) {
-        for (int j = 0; j < h; ++j) {
-            // coordinates inside of sprite
-            int tx = i + sx;
-            int ty = j + sy;
+    sx += sprite % SPR_X * SPRITE_WIDTH;
+    sy += sprite / SPR_X * SPRITE_HEIGHT;
 
-            // coordinates on screen relative to (x, y)
-            int px = i;
-            int py = j;
-
-            if (flags & SPRITE_HFLIP) {
-                px = w - 1 - i;
-            }
-
-            if (flags & SPRITE_VFLIP) {
-                py = h - 1 - i;
-            }
-
-            if (flags & SPRITE_ROTATE_CW) {
-                int t = px;
-                px = py;
-                py = w - 1 - t;
-            }
-
-            int color = GetSpritePixel(tx, ty, sprite);
-
-            if (flags & SPRITE_ENABLE_MASK) {
-                if (color == (flags >> 4)) {
-                    continue;
-                }
-            }
-
-            DrawPixel(px + x, py + y, color);
-        }
-    }
+    DrawSpriteImpl(x, y, sx, sy, w, h, mask);
 }
 
 SpriteSheet LoadSpriteSheet(const char *path)
