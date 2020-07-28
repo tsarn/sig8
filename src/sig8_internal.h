@@ -8,7 +8,13 @@
 #include <stddef.h>
 #include <time.h>
 #include <SDL2/SDL.h>
+
+#ifdef __EMSCRIPTEN__
 #include <GLES3/gl3.h>
+#else
+#include <glad.h>
+#endif
+
 
 #define KEYBOARD_STATE_SIZE 512
 #define MOUSE_STATE_SIZE 16
