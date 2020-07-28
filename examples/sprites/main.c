@@ -4,8 +4,7 @@
 
 SpriteSheet spriteSheet;
 
-#define NUMBER_OF_SPRITES 200000
-#define SCREEN_OFFSET 10
+#define NUMBER_OF_SPRITES 500
 #define SPEED_RANGE 50
 
 typedef struct {
@@ -22,12 +21,15 @@ void mainLoop(void)
     ClearScreen(BLACK);
 
     for (int i = 0; i < NUMBER_OF_SPRITES; ++i) {
-        DrawSprite(objects[i].x, objects[i].y, objects[i].sprite);
-        objects[i].x = fmod((t * objects[i].vx + objects[i].x + SCREEN_OFFSET), (SCREEN_WIDTH + 2 * SCREEN_OFFSET)) - SCREEN_OFFSET;
-        objects[i].y = fmod((t * objects[i].vy + objects[i].y + SCREEN_OFFSET), (SCREEN_HEIGHT + 2 * SCREEN_OFFSET)) - SCREEN_OFFSET;
+        DrawSprite(objects[i].x - 10, objects[i].y - 10, objects[i].sprite);
+
+        objects[i].x += objects[i].vx * t;
+        objects[i].y += objects[i].vy * t;
+
+        objects[i].x = fmodf(objects[i].x + 148, 148);
+        objects[i].y = fmodf(objects[i].y + 148, 148);
     }
 
-    FillRect(0, 0, 128, 10, BLACK);
     DrawString(2, 9, WHITE, Format("FPS: %.1f", 1.0f / t));
 }
 
@@ -38,8 +40,8 @@ int main()
     UseSpriteSheet(spriteSheet);
 
     for (int i = 0; i < NUMBER_OF_SPRITES; ++i) {
-        objects[i].x = rand() % (SCREEN_WIDTH + 2 * SCREEN_OFFSET) - SCREEN_OFFSET;
-        objects[i].y = rand() % (SCREEN_HEIGHT + 2 * SCREEN_OFFSET) - SCREEN_OFFSET;
+        objects[i].x = rand() % 148;
+        objects[i].y = rand() % 148;
         objects[i].sprite = rand() % 4;
 
         objects[i].vx = rand() % (2 * SPEED_RANGE + 1) - SPEED_RANGE;

@@ -309,6 +309,10 @@ void DrawSprite(int x, int y, int sprite)
 {
     int hSize = SCREEN_WIDTH - x;
     int vSize = SCREEN_HEIGHT - y;
+    int hOff = (x < 0) ? -x : 0;
+    x += hOff;
+    int vOff = (y < 0) ? -y : 0;
+    y += vOff;
     int width = SCREEN_WIDTH;
 
     if (hSize <= 0 || vSize <= 0) {
@@ -325,20 +329,21 @@ void DrawSprite(int x, int y, int sprite)
 
     uint8_t *sprPtr = &currentSpriteSheet[
             sprite % SPR_X * SPRITE_WIDTH +
-            sprite / SPR_X * SPR_X * SPRITE_HEIGHT * SPRITE_WIDTH
+            sprite / SPR_X * SPR_X * SPRITE_HEIGHT * SPRITE_WIDTH +
+            hOff + vOff * (SPR_X * SPRITE_WIDTH)
     ];
 
     uint8_t *scrPtr = &colorBuffer[x + y * width];
 
-    for (int j = 0; j < vSize; ++j) {
-        for (int i = 0; i < hSize; ++i, ++sprPtr, ++scrPtr) {
+    for (int j = vOff; j < vSize; ++j) {
+        for (int i = hOff; i < hSize; ++i, ++sprPtr, ++scrPtr) {
             if (*sprPtr) {
                 *scrPtr = paletteMap[*sprPtr];
             }
         }
 
-        sprPtr += SPR_X * SPRITE_WIDTH - hSize;
-        scrPtr += width - hSize;
+        sprPtr += SPR_X * SPRITE_WIDTH - hSize + hOff;
+        scrPtr += width - hSize + hOff;
 
     }
 }
