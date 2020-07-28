@@ -19,7 +19,7 @@ void mainLoop(void)
             int t1 = t + i * 4 - j * 4;
             int y = 45 - j + cosf(t1 / 10.0f) * 10.0f;
             RemapColor(WHITE, j == 7 ? WHITE : j);
-            DrawSprite(13 + i * 8, y, 10 + i,SPRITE_MASK_COLOR(BLACK));
+            DrawSprite(13 + i * 8, y, 10 + i);
         }
 
         ResetColors();
@@ -38,7 +38,7 @@ void mainLoop(void)
     }
 
     DrawString(23, 80, PEACH, message);
-    DrawSprite(60, 90, 0, 0);
+    DrawSprite(60, 90, 0);
 
     ++t;
 }

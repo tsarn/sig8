@@ -318,7 +318,7 @@ static void DrawPalette(void)
             RemapColor(WHITE, BLACK);
         }
 
-        DrawSprite(r.x, r.y, 4, SPRITE_MASK_COLOR(BLACK));
+        DrawSprite(r.x, r.y, 4);
         ResetColors();
     }
 }

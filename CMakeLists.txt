@@ -9,6 +9,7 @@ if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
 endif()
 
 option(SIG8_COMPILE_EDITORS "Compile library with editor support" ON)
+option(SIG8_ENABLE_ASAN "Enable address sanitizer" OFF)
 
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
     option(SIG8_USE_GLAD "Use GLAD to load OpenGL ES" OFF)

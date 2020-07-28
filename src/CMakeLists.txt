@@ -37,6 +37,11 @@ else()
     target_link_libraries(sig8 PRIVATE SDL2 OpenGL::GL glad)
 endif()
 
+if (SIG8_ENABLE_ASAN)
+    target_compile_options(sig8 PUBLIC -fsanitize=address)
+    target_link_options(sig8 PUBLIC -fsanitize=address)
+endif()
+
 if (SIG8_COMPILE_EDITORS)
     sig8_bundle(sig8
         FORCE

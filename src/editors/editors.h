@@ -3,9 +3,6 @@
 #include "sig8_internal.h"
 #include "stb_image_write.h"
 
-#define SPR_X 16
-#define SPR_Y 16
-
 typedef struct {
     int x, y;
     int width, height;
