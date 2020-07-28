@@ -85,7 +85,7 @@ void sig8_DrawSlider(int x, int y, int *value)
 void sig8_DrawIcon(int x, int y, int sprite, int color)
 {
     RemapColor(WHITE, color);
-    DrawSprite(x, y, sprite, SPRITE_MASK_COLOR(BLACK));
+    DrawSprite(x, y, sprite);
     ResetColors();
 }
 
@@ -118,6 +118,7 @@ void sig8_DrawSpriteSheet(int x, int y, SpriteSheet spriteSheet, int region, int
             .height = SPR_Y * SPRITE_HEIGHT,
     };
 
+    sig8_FillRectR(rect, BLACK);
     UseSpriteSheet(spriteSheet);
 
     for (int j = 0; j < SPR_Y; ++j) {
@@ -129,7 +130,7 @@ void sig8_DrawSpriteSheet(int x, int y, SpriteSheet spriteSheet, int region, int
                     .width = SPRITE_WIDTH,
                     .height = SPRITE_HEIGHT
             };
-            DrawSprite(r.x, r.y, idx, 0);
+            DrawSprite(r.x, r.y, idx);
 
             if (sig8_IsMouseOver(r)) {
                 SetCursorShape(CURSOR_HAND);

@@ -255,16 +255,15 @@ void sig8_InitWindow(const char *name)
 
 static void UpdateBufferData(void)
 {
-    glBindTexture(GL_TEXTURE_2D, screenTexture);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
-            SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, screenPBO);
     glBufferData(GL_PIXEL_UNPACK_BUFFER, screenBufferSize, NULL, GL_DYNAMIC_DRAW);
     uint8_t *ptr = glMapBufferRange(GL_PIXEL_UNPACK_BUFFER, 0, screenBufferSize,
             GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
     memcpy(ptr, screenBuffer, screenBufferSize);
     glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+    glBindTexture(GL_TEXTURE_2D, screenTexture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
+                    SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 }
 
 void sig8_InitGLESPixelBuffer(void)
@@ -385,6 +384,7 @@ static void HandleEvents(void)
 
 static void RedrawScreen(void)
 {
+    sig8_UpdateScreen();
     UpdateBufferData();
     glViewport(0, 0, windowWidth, windowHeight);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);

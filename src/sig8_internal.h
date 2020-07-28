@@ -16,6 +16,8 @@
 #include <GLES3/gl3.h>
 #endif
 
+#define SPR_X 16
+#define SPR_Y 16
 
 #define KEYBOARD_STATE_SIZE 512
 #define MOUSE_STATE_SIZE 16
@@ -65,6 +67,7 @@ void sig8_InitMusic(void);
 void sig8_InitInput(void);
 void sig8_InitAlloc(void);
 void sig8_ResizeScreen(int newWidth, int newHeight);
+void sig8_UpdateScreen(void);
 void sig8_LeaveEditor(void);
 
 void sig8_RegisterCallback(int type, Callback callback);

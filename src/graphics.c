@@ -5,11 +5,11 @@ static int *paletteMap;
 static Font currentFont;
 static SpriteSheet currentSpriteSheet;
 
+static uint8_t *colorBuffer;
 static Color *screenBuffer;
 static Color *colorMap;
 
 #ifdef SIG8_COMPILE_EDITORS
-static Color *savedScreenBuffer;
 static Font savedFont;
 static SpriteSheet savedSpriteSheet;
 #endif
@@ -40,8 +40,6 @@ Palette PALETTE_DEFAULT = {
 static void OnEditorEnter(void)
 {
     ResetColors();
-    savedScreenBuffer = malloc(sizeof(Color) * SCREEN_WIDTH * SCREEN_HEIGHT);
-    memcpy(savedScreenBuffer, screenBuffer, sizeof(Color) * SCREEN_WIDTH * SCREEN_HEIGHT);
     savedFont = currentFont;
     savedSpriteSheet = currentSpriteSheet;
 }
@@ -49,8 +47,6 @@ static void OnEditorEnter(void)
 static void OnEditorLeave(void)
 {
     ResetColors();
-    memcpy(screenBuffer, savedScreenBuffer, sizeof(Color) * SCREEN_WIDTH * SCREEN_HEIGHT);
-    free(savedScreenBuffer);
     currentFont = savedFont;
     currentSpriteSheet = savedSpriteSheet;
 }
@@ -59,6 +55,12 @@ static void OnEditorLeave(void)
 void sig8_InitScreen(Color *screen)
 {
     Palette palette = GetPalette();
+
+    if (colorBuffer) {
+        free(colorBuffer);
+    }
+
+    colorBuffer = calloc(1, SCREEN_WIDTH * SCREEN_HEIGHT);
 
     if (!colorMap) {
         colorMap = malloc(sizeof(Color) * palette.size);
@@ -80,11 +82,19 @@ void sig8_InitScreen(Color *screen)
     ClearScreen(0);
 }
 
+void sig8_UpdateScreen(void)
+{
+    int size = SCREEN_WIDTH * SCREEN_HEIGHT;
+    uint8_t *ptr = colorBuffer;
+    for (int i = 0; i < size; ++i) {
+        screenBuffer[i] = colorMap[*ptr++];
+    }
+}
+
 void ClearScreen(int color)
 {
-    for (int i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT; ++i) {
-        screenBuffer[i] = colorMap[color];
-    }
+    int size = SCREEN_WIDTH * SCREEN_HEIGHT;
+    memset(colorBuffer, color, size);
 }
 
 void UseFont(Font font)
@@ -116,11 +126,12 @@ void DrawPixel(int x, int y, int color) {
     if (color == TRANSPARENT) {
         return;
     }
+
     color = paletteMap[color];
 
     if (color != TRANSPARENT && x >= 0 && y >= 0 &&
         x < SCREEN_WIDTH && y < SCREEN_HEIGHT) {
-        screenBuffer[x + SCREEN_WIDTH * y] = colorMap[color];
+        colorBuffer[x + SCREEN_WIDTH * y] = color;
     }
 }
 
@@ -268,9 +279,9 @@ SpriteSheet GetCurrentSpriteSheet(void)
 
 static inline int GetSpritePixelIndex(int x, int y, int sprite)
 {
-    x += sprite % 16 * SPRITE_WIDTH;
-    y += sprite / 16 * SPRITE_HEIGHT;
-    int idx = x + y * 16 * SPRITE_WIDTH;
+    x += sprite % SPR_X * SPRITE_WIDTH;
+    y += sprite / SPR_X * SPRITE_HEIGHT;
+    int idx = x + y * SPR_X * SPRITE_WIDTH;
     if (idx < 0 || idx >= SPRITE_SHEET_BYTE_SIZE) {
         return -1;
     }
@@ -294,12 +305,44 @@ void SetSpritePixel(int x, int y, int sprite, int color)
     }
 }
 
-void DrawSprite(int x, int y, int sprite, int flags)
+void DrawSprite(int x, int y, int sprite)
 {
-    DrawSubSprite(x, y, sprite, flags, 0, 0, SPRITE_WIDTH, SPRITE_HEIGHT);
+    int hSize = SCREEN_WIDTH - x;
+    int vSize = SCREEN_HEIGHT - y;
+    int width = SCREEN_WIDTH;
+
+    if (hSize <= 0 || vSize <= 0) {
+        return;
+    }
+
+    if (hSize > SPRITE_WIDTH) {
+        hSize = SPRITE_WIDTH;
+    }
+
+    if (vSize > SPRITE_HEIGHT) {
+        vSize = SPRITE_HEIGHT;
+    }
+
+    uint8_t *sprPtr = &currentSpriteSheet[
+            sprite % SPR_X * SPRITE_WIDTH +
+            sprite / SPR_X * SPR_X * SPRITE_HEIGHT * SPRITE_WIDTH
+    ];
+
+    uint8_t *scrPtr = &colorBuffer[x + y * width];
+
+    for (int j = 0; j < vSize; ++j) {
+        for (int i = 0; i < hSize; ++i, ++sprPtr, ++scrPtr) {
+            if (*sprPtr) {
+                *scrPtr = paletteMap[*sprPtr];
+            }
+        }
+
+        sprPtr += SPR_X * SPRITE_WIDTH - hSize;
+        scrPtr += width - hSize;
+    }
 }
 
-void DrawSubSprite(int x, int y, int sprite, int flags, int sx, int sy, int w, int h)
+void DrawSubSprite(int x, int y, int sprite, int sx, int sy, int w, int h, int flags)
 {
     if (sprite < 0 || sprite >= SPRITE_SHEET_SIZE || !currentSpriteSheet) {
         return;
