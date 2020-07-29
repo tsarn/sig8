@@ -263,6 +263,7 @@ void ClearScreen(int color);
 void RemapColor(int oldColor, int newColor);
 void ResetColors(void);
 void DrawPixel(int x, int y, int color);
+int GetPixel(int x, int y);
 void UseFont(Font font);
 void DrawString(int x, int y, int color, const char *string);
 int MeasureString(const char *string);

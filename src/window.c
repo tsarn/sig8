@@ -509,9 +509,23 @@ void EditResource(uint8_t *resource)
     }
 
     sig8_ManagedResource *res = sig8_GetManagedResource(resource);
-    editorLoop = sig8_SpriteEditorTick;
+
+    switch (res->type) {
+    case RESOURCE_SPRITESHEET:
+        editorLoop = sig8_SpriteEditorTick;
+        sig8_SpriteEditorInit(res);
+        break;
+
+    case RESOURCE_TILEMAP:
+        editorLoop = sig8_TileEditorTick;
+        sig8_TileEditorInit(res);
+        break;
+
+    default:
+        return;
+    }
+
     pendingEditorEnter = true;
-    sig8_SpriteEditorInit(res);
 #else
     (void)resource;
 #endif

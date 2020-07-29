@@ -28,9 +28,9 @@ static void HandleEvent(SDL_Event *event)
     case SDL_MOUSEMOTION: {
         float x = *(float*)event->user.data1;
         float y = *(float*)event->user.data2;
+        mousePosition.x = (int)(x * SCREEN_WIDTH);
+        mousePosition.y = (int)(y * SCREEN_HEIGHT);
         if (x >= 0 && x < 1 && y >= 0 && y < 1) {
-            mousePosition.x = (int)(x * SCREEN_WIDTH);
-            mousePosition.y = (int)(y * SCREEN_HEIGHT);
             isMouseInsideWindow = true;
         } else {
             isMouseInsideWindow = false;
@@ -175,7 +175,7 @@ Position GetMousePosition(void)
 
 bool TestMouseState(MouseButton button, int state)
 {
-    return isMouseInsideWindow && (bool)(mouseState[button] & state);
+    return (bool)(mouseState[button] & state);
 }
 
 bool MousePressed(MouseButton button)

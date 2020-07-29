@@ -2,6 +2,7 @@
 #include "sig8.h"
 
 SpriteSheet spriteSheet;
+TileMap tileMap;
 
 void mainLoop(void)
 {
@@ -16,8 +17,11 @@ void mainLoop(void)
     if (KeyJustPressed("Up")) offsetY -= 5;
     if (KeyJustPressed("Down")) offsetY += 5;
     if (KeyJustPressed("Left")) offsetX -= 5;
-    if (KeyJustPressed("E")) {
+    if (KeyJustPressed("Ctrl+E")) {
         EditResource(spriteSheet);
+    }
+    if (KeyJustPressed("E")) {
+        EditResource(tileMap);
     }
 }
 
@@ -25,13 +29,14 @@ int main()
 {
     Initialize("sig8 example: tiles");
 
-    UseTileMap(NewTileMap());
+    tileMap = NewTileMap();
+    UseTileMap(tileMap);
     spriteSheet = LoadSpriteSheet("res://spritesheet.png");
     UseSpriteSheet(spriteSheet);
 
     for (int i = 0; i < TILEMAP_WIDTH; ++i) {
         for (int j = 0; j < TILEMAP_HEIGHT; ++j) {
-            SetTile(i, j, rand() % 16);
+            SetTile(i, j, (rand() % 4 != 0) ? 0 : rand() % 16);
         }
     }
 

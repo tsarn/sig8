@@ -12,6 +12,7 @@ static Color *colorMap;
 #ifdef SIG8_COMPILE_EDITORS
 static Font savedFont;
 static SpriteSheet savedSpriteSheet;
+static TileMap savedTileMap;
 #endif
 
 Palette PALETTE_DEFAULT = {
@@ -42,6 +43,7 @@ static void OnEditorEnter(void)
     ResetColors();
     savedFont = currentFont;
     savedSpriteSheet = currentSpriteSheet;
+    savedTileMap = GetCurrentTileMap();
 }
 
 static void OnEditorLeave(void)
@@ -49,6 +51,7 @@ static void OnEditorLeave(void)
     ResetColors();
     currentFont = savedFont;
     currentSpriteSheet = savedSpriteSheet;
+    UseTileMap(savedTileMap);
 }
 #endif
 
@@ -132,6 +135,15 @@ void DrawPixel(int x, int y, int color) {
     if (color != TRANSPARENT && x >= 0 && y >= 0 &&
         x < SCREEN_WIDTH && y < SCREEN_HEIGHT) {
         colorBuffer[x + SCREEN_WIDTH * y] = color;
+    }
+}
+
+int GetPixel(int x, int y)
+{
+    if (x >= 0 && y >= 0 && x < SCREEN_WIDTH && y < SCREEN_HEIGHT) {
+        return colorBuffer[x + SCREEN_WIDTH * y];
+    } else {
+        return 0;
     }
 }
 
