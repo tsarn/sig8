@@ -5,7 +5,7 @@
 #define PALETTE_STRIDE 7
 #define ROW_COLORS 8
 
-#define TOOLBAR_SIZE 10
+#define TOOLBAR_SIZE 9
 
 static sig8_ManagedResource *editing;
 static int selected;
@@ -416,7 +416,7 @@ static void DrawEditedSprite(void)
 static void DrawSpriteSheet(void)
 {
     sig8_DrawSpriteSheet(
-            SCREEN_WIDTH - SPR_X * SPRITE_WIDTH, TOOLBAR_SIZE,
+            SCREEN_WIDTH - SPR_X * SPRITE_WIDTH - 1, TOOLBAR_SIZE + 1,
             editing->resource, spriteRegion, &selected
     );
 }
@@ -457,8 +457,8 @@ static void DrawStatusBar(void)
 
     char *string = Format("#%03d", selected);
     UseFont(FONT_SMALL);
-    DrawString(SCREEN_WIDTH - 23, SCREEN_HEIGHT - 3, RED, string);
-    DrawString(2, SCREEN_HEIGHT - 3, GRAY, sig8_StatusLine);
+    DrawString(SCREEN_WIDTH - 23, SCREEN_HEIGHT - 2, RED, string);
+    DrawString(2, SCREEN_HEIGHT - 2, GRAY, sig8_StatusLine);
     UseFont(FONT_MEDIUM);
     if (editing->path) {
         DrawString(2, 8, GRAY, editing->path);

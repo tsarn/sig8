@@ -118,7 +118,7 @@ void sig8_DrawSpriteSheet(int x, int y, SpriteSheet spriteSheet, int region, int
             .height = SPR_Y * SPRITE_HEIGHT,
     };
 
-    sig8_FillRectR(rect, BLACK);
+    sig8_FillRectR(sig8_AddBorder(rect, 1), BLACK);
     UseSpriteSheet(spriteSheet);
 
     for (int j = 0; j < SPR_Y; ++j) {
