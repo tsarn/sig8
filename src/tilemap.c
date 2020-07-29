@@ -30,11 +30,7 @@ void SetTile(int x, int y, int tile)
 
 int GetTile(int x, int y)
 {
-    if (x < 0 || y < 0 || x >= TILEMAP_WIDTH || y >= TILEMAP_HEIGHT) {
-        return -1;
-    }
-
-    return currentTileMap[x + y * TILEMAP_WIDTH];
+    return currentTileMap[Modulo(x, TILEMAP_WIDTH) + Modulo(y, TILEMAP_HEIGHT) * TILEMAP_WIDTH];
 }
 
 void DrawTileMap(int x, int y, int width, int height, int offsetX, int offsetY)
