@@ -215,4 +215,4 @@ static const FontDefinition def = {
         .data = data
 };
 
-const Font FONT_ASEPRITE = &def;
+const Font FONT_MEDIUM = &def;

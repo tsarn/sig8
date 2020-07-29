@@ -456,10 +456,10 @@ static void DrawStatusBar(void)
     FillRect(0, SCREEN_HEIGHT - TOOLBAR_SIZE, SCREEN_WIDTH, TOOLBAR_SIZE, DARK_BLUE);
 
     char *string = Format("#%03d", selected);
-    DrawString(SCREEN_WIDTH - 23, SCREEN_HEIGHT - 1, RED, string);
-    UseFont(FONT_3X5);
-    DrawString(2, SCREEN_HEIGHT - 2, GRAY, sig8_StatusLine);
-    UseFont(FONT_ASEPRITE);
+    UseFont(FONT_SMALL);
+    DrawString(SCREEN_WIDTH - 23, SCREEN_HEIGHT - 3, RED, string);
+    DrawString(2, SCREEN_HEIGHT - 3, GRAY, sig8_StatusLine);
+    UseFont(FONT_MEDIUM);
     if (editing->path) {
         DrawString(2, 8, GRAY, editing->path);
     }
@@ -468,7 +468,7 @@ static void DrawStatusBar(void)
         sig8_DrawSlider(4, 116, &brushSize);
     }
 
-    sig8_DrawSlider(SCREEN_WIDTH - 60, SCREEN_HEIGHT - 7, &spriteRegionLog);
+    sig8_DrawSlider(SCREEN_WIDTH - 60, SCREEN_HEIGHT - 8, &spriteRegionLog);
     spriteRegion = 1 << spriteRegionLog;
     zoom = 8 / spriteRegion;
     width = SPRITE_WIDTH * spriteRegion;
@@ -510,6 +510,7 @@ void sig8_SpriteEditorTick(void)
 {
     UseSpriteSheet(sig8_EDITORS_SPRITESHEET);
     SetCursorShape(CURSOR_ARROW);
+    UseFont(FONT_MEDIUM);
 
     ClearScreen(INDIGO);
     sig8_StatusLine = "";

@@ -37,7 +37,7 @@ void mainLoop(void)
         }
     }
 
-    DrawString(23, 80, PEACH, message);
+    DrawString(24, 80, PEACH, message);
     DrawSprite(60, 90, 0);
 
     ++t;

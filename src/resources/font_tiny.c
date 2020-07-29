@@ -207,4 +207,4 @@ static const FontDefinition def = {
         .data = data
 };
 
-const Font FONT_3X5 = &def;
+const Font FONT_TINY = &def;

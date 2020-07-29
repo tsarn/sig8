@@ -107,9 +107,10 @@ typedef struct {
 
 typedef const FontDefinition *Font;
 
-extern const Font FONT_5X7;
-extern const Font FONT_3X5;
-extern const Font FONT_ASEPRITE;
+extern const Font FONT_TINY;
+extern const Font FONT_SMALL;
+extern const Font FONT_MEDIUM;
+extern const Font FONT_LARGE;
 
 // Just for semantics
 typedef uint8_t *SpriteSheet;
