@@ -20,13 +20,13 @@ typedef struct {
 } History;
 
 typedef struct {
-    void (*handler)();
     const char *hint;
     const char *shortcut;
     int sprite;
 } Button;
 
 extern const char *sig8_StatusLine;
+extern const ManagedResource *sig8_Editing;
 
 void sig8_FillRectR(Rect rect, int color);
 Rect sig8_AddBorder(Rect rect, int border);
@@ -39,9 +39,8 @@ void sig8_DrawIcon(int x, int y, int sprite, int color);
 void sig8_DrawSpriteSheet(int x, int y, SpriteSheet spriteSheet, int region, int *selected);
 bool sig8_DrawButton(int x, int y, Button button, bool pressed);
 
-void sig8_HistoryClear(History *history);
-void sig8_HistoryPush(History *history, HistoryItem item);
-bool sig8_HistoryCanUndo(History *history);
-bool sig8_HistoryCanRedo(History *history);
-HistoryItem sig8_HistoryUndo(History *history);
-HistoryItem sig8_HistoryRedo(History *history);
+void sig8_HistoryClear(void);
+void sig8_Undo(void);
+void sig8_Redo(void);
+void sig8_BeginUndoableAction(void);
+void sig8_EndUndoableAction(void);

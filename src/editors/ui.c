@@ -170,8 +170,6 @@ bool sig8_DrawButton(int x, int y, Button button, bool pressed)
             .height = SPRITE_HEIGHT - 1
     };
 
-    bool active = false;
-
     if (!pressed) {
         sig8_DrawIcon(r.x, r.y + 1, button.sprite, BLACK);
         sig8_DrawIcon(r.x, r.y, button.sprite, GRAY);
@@ -184,21 +182,15 @@ bool sig8_DrawButton(int x, int y, Button button, bool pressed)
         sig8_StatusLine = button.hint;
 
         if (MouseJustPressed(MOUSE_LEFT)) {
-            if (button.handler) {
-                button.handler();
-            }
-            active = true;
+            return true;
         }
     }
 
     if (button.shortcut) {
         if (KeyJustPressed(button.shortcut)) {
-            if (button.handler) {
-                button.handler();
-            }
-            active = true;
+            return true;
         }
     }
 
-    return active;
+    return false;
 }

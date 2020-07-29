@@ -1,47 +1,150 @@
 #include "editors.h"
 
-void sig8_HistoryClear(History *history)
+static HistoryItem curAction;
+static History history;
+const ManagedResource *sig8_Editing;
+
+static int GetSize(void)
 {
-    for (int i = 0; i < history->size; ++i) {
-        free(history->data[i].data);
+    switch (sig8_Editing->type) {
+    case RESOURCE_SPRITESHEET:
+        return SPRITE_SHEET_BYTE_SIZE;
+
+    case RESOURCE_TILEMAP:
+        return TILEMAP_WIDTH * TILEMAP_HEIGHT;
+
+    default:
+        return 0;
     }
-    free(history->data);
 }
 
-void sig8_HistoryPush(History *history, HistoryItem item)
+void sig8_HistoryClear(void)
 {
-    for (int i = history->cur; i < history->size; ++i) {
-        free(history->data[i].data);
+    for (int i = 0; i < history.size; ++i) {
+        free(history.data[i].data);
     }
 
-    history->size = history->cur;
-
-    if (history->size + 1 > history->capacity) {
-        int newCap = 2 * (history->size + 1);
-        history->data = realloc(history->data, newCap * sizeof(HistoryItem));
-        history->capacity = newCap;
+    if (history.data) {
+        free(history.data);
     }
 
-    history->data[history->size++] = item;
-    ++history->cur;
+    history.data = NULL;
+    history.size = 0;
+    history.cur = 0;
+    history.capacity = 0;
 }
 
-bool sig8_HistoryCanUndo(History *history)
+static void HistoryPush(HistoryItem item)
 {
-    return history->cur > 0;
+    for (int i = history.cur; i < history.size; ++i) {
+        free(history.data[i].data);
+    }
+
+    history.size = history.cur;
+
+    if (history.size + 1 > history.capacity) {
+        int newCap = 2 * (history.size + 1);
+        history.data = realloc(history.data, newCap * sizeof(HistoryItem));
+        history.capacity = newCap;
+    }
+
+    history.data[history.size++] = item;
+    ++history.cur;
 }
 
-bool sig8_HistoryCanRedo(History *history)
+static bool HistoryCanUndo(void)
 {
-    return history->cur < history->size;
+    return history.cur > 0;
 }
 
-HistoryItem sig8_HistoryUndo(History *history)
+static bool HistoryCanRedo(void)
 {
-    return history->data[--history->cur];
+    return history.cur < history.size;
 }
 
-HistoryItem sig8_HistoryRedo(History *history)
+static HistoryItem HistoryUndo(void)
 {
-    return history->data[history->cur++];
+    return history.data[--history.cur];
+}
+
+static HistoryItem HistoryRedo(void)
+{
+    return history.data[history.cur++];
+}
+
+void sig8_BeginUndoableAction(void)
+{
+    int size = GetSize();
+    curAction.data = TempAlloc(2 * size);
+    memcpy(curAction.data, sig8_Editing->resource, size);
+}
+
+void sig8_EndUndoableAction(void)
+{
+    int size = GetSize();
+    bool anythingChanged = false;
+    for (int i = 0; i < size; ++i) {
+        curAction.data[i] ^= sig8_Editing->resource[i];
+        if (curAction.data[i]) {
+            anythingChanged = true;
+        }
+    }
+
+    if (!anythingChanged) {
+        return;
+    }
+
+    // very simple compression
+    int last = curAction.data[0], len = 1, j = 0;
+    for (int i = 1; i <= size; ++i) {
+        if (i < size) {
+            if (curAction.data[i] == last) {
+                if (len < 255) {
+                    ++len;
+                    continue;
+                }
+            }
+        }
+
+        curAction.data[j++] = len;
+        curAction.data[j++] = last;
+
+        last = curAction.data[i];
+        len = 1;
+    }
+
+    uint8_t *oldData = curAction.data;
+
+    curAction.data = malloc(j);
+    memcpy(curAction.data, oldData, j);
+    HistoryPush(curAction);
+    curAction.data = NULL;
+}
+
+
+static void ApplyUndo(HistoryItem historyItem)
+{
+    int size = GetSize();
+    int i = 0, j = 0;
+    while (j < size) {
+        int end = historyItem.data[i++] + j;
+        uint8_t t = historyItem.data[i++];
+        for (; j < end; ++j) {
+            sig8_Editing->resource[j] ^= t;
+        }
+    }
+}
+
+void sig8_Undo(void)
+{
+    if (HistoryCanUndo()) {
+        ApplyUndo(HistoryUndo());
+    }
+}
+
+void sig8_Redo(void)
+{
+    if (HistoryCanRedo()) {
+        ApplyUndo(HistoryRedo());
+    }
 }
