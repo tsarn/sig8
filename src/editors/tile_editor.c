@@ -2,7 +2,6 @@
 
 #define TOOLBAR_SIZE 10
 
-static sig8_ManagedResource *editing;
 static SpriteSheet spriteSheet;
 
 static int cameraX = -10;
@@ -26,8 +25,8 @@ static void DrawStatusBar(void)
     }
 
     UseFont(FONT_MEDIUM);
-    if (editing->path) {
-        DrawString(2, 8, GRAY, editing->path);
+    if (sig8_Editing->path) {
+        DrawString(2, 8, GRAY, sig8_Editing->path);
     }
 }
 
@@ -87,10 +86,10 @@ static void DrawTiles(void)
     }
 }
 
-void sig8_TileEditorInit(sig8_ManagedResource *what)
+void sig8_TileEditorInit(ManagedResource *what)
 {
-    editing = what;
-    UseTileMap(editing->resource);
+    sig8_Editing = what;
+    UseTileMap(sig8_Editing->resource);
     spriteSheet = GetCurrentSpriteSheet();
     selectedX = selectedY = -1;
 }

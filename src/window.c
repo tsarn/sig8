@@ -508,7 +508,7 @@ void EditResource(uint8_t *resource)
         return;
     }
 
-    sig8_ManagedResource *res = sig8_GetManagedResource(resource);
+    ManagedResource *res = sig8_GetManagedResource(resource);
 
     switch (res->type) {
     case RESOURCE_SPRITESHEET:

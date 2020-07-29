@@ -7,7 +7,6 @@
 
 #define TOOLBAR_SIZE 9
 
-static sig8_ManagedResource *editing;
 static int selected;
 static int fgColor = WHITE;
 static int bgColor = BLACK;
@@ -15,8 +14,6 @@ static int zoom = 8;
 static int spriteRegion = 1, spriteRegionLog;
 static int width = SPRITE_WIDTH, height = SPRITE_HEIGHT;
 static int brushSize;
-static HistoryItem curAction;
-static History history;
 
 typedef enum {
     BRUSH,
@@ -32,98 +29,25 @@ typedef enum {
 } Tool;
 
 static const Button toolButtons[] = {
-    { NULL, "BRUSH [B]", "B", 5 },
-    { NULL, "FILL [F]", "F", 6 },
-    { NULL, "SELECT [S]", "S", 7 },
-    { NULL, "COLOR PICKER [P]", "P", 8 },
-    { NULL, "FLIP HORIZONTALLY [H]", "H", 9 },
-    { NULL, "FLIP VERTICALLY [V]", "V", 10 },
-    { NULL, "ROTATE [R]", "R", 11 },
-    { NULL, "CLEAR SPRITE [DEL]", "Delete", 12 }
+        {"BRUSH [B]",             "B",      5},
+        {"FILL [F]",              "F",      6},
+        {"SELECT [S]",            "S",      7},
+        {"COLOR PICKER [P]",      "P",      8},
+        {"FLIP HORIZONTALLY [H]", "H",      9},
+        {"FLIP VERTICALLY [V]",   "V",      10},
+        {"ROTATE [R]",            "R",      11},
+        {"CLEAR SPRITE [DEL]",    "Delete", 12}
 };
 
 static Tool activeTool = BRUSH;
 
-static void BeginUndoableAction(void)
-{
-    curAction.data = TempAlloc(SPRITE_SHEET_BYTE_SIZE);
-    memcpy(curAction.data, editing->resource, SPRITE_SHEET_BYTE_SIZE);
-}
-
-static void EndUndoableAction(void)
-{
-    bool anythingChanged = false;
-    for (int i = 0; i < SPRITE_SHEET_BYTE_SIZE; ++i) {
-        curAction.data[i] ^= editing->resource[i];
-        if (curAction.data[i]) {
-            anythingChanged = true;
-        }
-    }
-
-    if (!anythingChanged) {
-        return;
-    }
-
-    // very simple compression
-    int last = curAction.data[0], len = 1, j = 0;
-    for (int i = 1; i <= SPRITE_SHEET_BYTE_SIZE; ++i) {
-        if (i < SPRITE_SHEET_BYTE_SIZE) {
-            if (curAction.data[i] == last) {
-                if (len < 255) {
-                    ++len;
-                    continue;
-                }
-            }
-        }
-
-        curAction.data[j++] = len;
-        curAction.data[j++] = last;
-
-        last = curAction.data[i];
-        len = 1;
-    }
-
-    uint8_t *oldData = curAction.data;
-
-    curAction.data = malloc(j);
-    memcpy(curAction.data, oldData, j);
-    sig8_HistoryPush(&history, curAction);
-    curAction.data = NULL;
-}
-
-static void ApplyUndo(HistoryItem historyItem)
-{
-    int i = 0, j = 0;
-    while (j < SPRITE_SHEET_BYTE_SIZE) {
-        int end = historyItem.data[i++] + j;
-        uint8_t t = historyItem.data[i++];
-        for (; j < end; ++j) {
-            editing->resource[j] ^= t;
-        }
-    }
-}
-
-static void Undo(void)
-{
-    if (sig8_HistoryCanUndo(&history)) {
-        ApplyUndo(sig8_HistoryUndo(&history));
-    }
-}
-
-static void Redo(void)
-{
-    if (sig8_HistoryCanRedo(&history)) {
-        ApplyUndo(sig8_HistoryRedo(&history));
-    }
-}
-
 static void Save(void)
 {
-    if (!editing->path) {
+    if (!sig8_Editing->path) {
         return;
     }
 
-    char *path = ResolvePath(editing->path);
+    char *path = ResolvePath(sig8_Editing->path);
 
     if (!path) {
         return;
@@ -131,7 +55,7 @@ static void Save(void)
 
     uint8_t data[3 * SPRITE_WIDTH * SPRITE_HEIGHT * SPRITE_SHEET_SIZE];
     for (int i = 0; i < SPRITE_WIDTH * SPRITE_HEIGHT * SPRITE_SHEET_SIZE; ++i) {
-        Color color = ColorFromIndex(editing->resource[i]);
+        Color color = ColorFromIndex(sig8_Editing->resource[i]);
         data[3 * i] = color.r;
         data[3 * i + 1] = color.g;
         data[3 * i + 2] = color.b;
@@ -147,10 +71,10 @@ static void Fill(int x, int y, int color)
     // simple breadth-first search
 
     static const Position neighbors[4] = {
-            { .x = 1, .y = 0 },
-            { .x = -1, .y = 0 },
-            { .x = 0, .y = 1 },
-            { .x = 0, .y = -1 },
+            {.x = 1, .y = 0},
+            {.x = -1, .y = 0},
+            {.x = 0, .y = 1},
+            {.x = 0, .y = -1},
     };
 
     Position *queue = TempAlloc(width * height * sizeof(Position));
@@ -159,9 +83,9 @@ static void Fill(int x, int y, int color)
     int front = 0;
     int back = 0;
 
-    queue[front++] = (Position){
-        .x = x,
-        .y = y,
+    queue[front++] = (Position) {
+            .x = x,
+            .y = y,
     };
     used[x + y * width] = 1;
 
@@ -202,18 +126,20 @@ static void Fill(int x, int y, int color)
 
 static void UseTool(Tool tool)
 {
-    UseSpriteSheet(editing->resource);
+    UseSpriteSheet(sig8_Editing->resource);
 
     if (tool == ERASE) {
-        BeginUndoableAction();
+        sig8_BeginUndoableAction();
+
         for (int j = 0; j < height; ++j) {
             for (int i = 0; i < width; ++i) {
                 SetSpritePixel(i, j, selected, bgColor);
             }
         }
-        EndUndoableAction();
+
+        sig8_EndUndoableAction();
     } else if (tool == FLIP_H || tool == FLIP_V || tool == ROTATE) {
-        BeginUndoableAction();
+        sig8_BeginUndoableAction();
         uint8_t *data = TempAlloc(width * height);
         uint8_t *ptr = data;
 
@@ -242,7 +168,8 @@ static void UseTool(Tool tool)
                 }
             }
         }
-        EndUndoableAction();
+
+        sig8_EndUndoableAction();
     } else {
         activeTool = tool;
     }
@@ -334,7 +261,7 @@ static void DrawEditedSprite(void)
 
     sig8_StrokeRectR(sig8_AddBorder(rect, 1), WHITE);
 
-    UseSpriteSheet(editing->resource);
+    UseSpriteSheet(sig8_Editing->resource);
 
     int selX = -1;
     int selY = -1;
@@ -372,7 +299,8 @@ static void DrawEditedSprite(void)
                         col = &bgColor;
                     }
 
-                    BeginUndoableAction();
+                    sig8_BeginUndoableAction();
+
                     if (activeTool == BRUSH) {
                         for (int x = selX; (x < selX + br) && (x < width); ++x) {
                             for (int y = selY; (y < selY + br) && (y < height); ++y) {
@@ -388,7 +316,8 @@ static void DrawEditedSprite(void)
                     if (activeTool == COLOR_PICKER) {
                         *col = GetSpritePixel(i, j, selected);
                     }
-                    EndUndoableAction();
+
+                    sig8_EndUndoableAction();
                 }
             }
         }
@@ -417,36 +346,35 @@ static void DrawSpriteSheet(void)
 {
     sig8_DrawSpriteSheet(
             SCREEN_WIDTH - SPR_X * SPRITE_WIDTH - 1, TOOLBAR_SIZE + 1,
-            editing->resource, spriteRegion, &selected
+            sig8_Editing->resource, spriteRegion, &selected
     );
 }
 
 static void DrawTopButtons(void)
 {
-    static const Button UndoButton = {
+    if (sig8_DrawButton(SCREEN_WIDTH - 25, 1, (Button) {
             .sprite = 13,
             .shortcut = "Ctrl+Z",
-            .hint = "UNDO [CTRL-Z]",
-            .handler = Undo
-    };
+            .hint = "UNDO [CTRL-Z]"
+    }, false)) {
+        sig8_Undo();
+    }
 
-    static const Button RedoButton = {
+    if (sig8_DrawButton(SCREEN_WIDTH - 17, 1, (Button) {
             .sprite = 14,
             .shortcut = "Ctrl+Y",
-            .hint = "REDO [CTRL-Y]",
-            .handler = Redo
-    };
+            .hint = "REDO [CTRL-Y]"
+    }, false)) {
+        sig8_Redo();
+    }
 
-    static const Button SaveButton = {
+    if (sig8_DrawButton(SCREEN_WIDTH - 9, 1, (Button) {
             .sprite = 15,
             .shortcut = "Ctrl+S",
-            .hint = "SAVE [CTRL-S]",
-            .handler = Save
-    };
-
-    sig8_DrawButton(SCREEN_WIDTH - 25, 1, UndoButton, false);
-    sig8_DrawButton(SCREEN_WIDTH - 17, 1, RedoButton, false);
-    sig8_DrawButton(SCREEN_WIDTH - 9, 1, SaveButton, false);
+            .hint = "SAVE [CTRL-S]"
+    }, false)) {
+        Save();
+    }
 }
 
 static void DrawStatusBar(void)
@@ -460,8 +388,8 @@ static void DrawStatusBar(void)
     DrawString(SCREEN_WIDTH - 23, SCREEN_HEIGHT - 2, RED, string);
     DrawString(2, SCREEN_HEIGHT - 2, GRAY, sig8_StatusLine);
     UseFont(FONT_MEDIUM);
-    if (editing->path) {
-        DrawString(2, 8, GRAY, editing->path);
+    if (sig8_Editing->path) {
+        DrawString(2, 8, GRAY, sig8_Editing->path);
     }
 
     if (activeTool == BRUSH) {
@@ -479,7 +407,7 @@ static void DrawTools(void)
 {
     for (int tool = 0; tool < NUMBER_OF_TOOLS; ++tool) {
         if (sig8_DrawButton(4 + SPRITE_WIDTH * tool, TOOLBAR_SIZE + 95,
-                toolButtons[tool], (Tool)tool == activeTool)) {
+                            toolButtons[tool], (Tool) tool == activeTool)) {
             UseTool(tool);
         }
     }
@@ -489,21 +417,16 @@ static void HandleInput(void)
 {
     if (KeyJustPressed("Escape")) {
         SetCursorShape(CURSOR_ARROW);
-        sig8_HistoryClear(&history);
+        sig8_HistoryClear();
         sig8_LeaveEditor();
         return;
     }
 }
 
-void sig8_SpriteEditorInit(sig8_ManagedResource *what)
+void sig8_SpriteEditorInit(ManagedResource *what)
 {
-    editing = what;
-    history = (History) {
-        .size = 0,
-        .capacity = 0,
-        .cur = 0,
-        .data = NULL
-    };
+    sig8_Editing = what;
+    sig8_HistoryClear();
 }
 
 void sig8_SpriteEditorTick(void)

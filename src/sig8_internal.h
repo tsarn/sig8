@@ -90,14 +90,14 @@ typedef struct {
     ResourceType type;
     char *path;
     uint8_t *resource;
-} sig8_ManagedResource;
+} ManagedResource;
 
-sig8_ManagedResource *sig8_GetManagedResource(uint8_t *resource);
+ManagedResource *sig8_GetManagedResource(uint8_t *resource);
 
-void sig8_SpriteEditorInit(sig8_ManagedResource *what);
+void sig8_SpriteEditorInit(ManagedResource *what);
 void sig8_SpriteEditorTick(void);
 
-void sig8_TileEditorInit(sig8_ManagedResource *what);
+void sig8_TileEditorInit(ManagedResource *what);
 void sig8_TileEditorTick(void);
 
 #endif
