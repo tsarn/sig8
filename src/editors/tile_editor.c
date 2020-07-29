@@ -13,12 +13,46 @@ static bool isDragging;
 static int dragOriginX;
 static int dragOriginY;
 
+static void Save(void)
+{
+}
+
+static void DrawTopButtons(void)
+{
+    if (sig8_DrawButton(SCREEN_WIDTH - 25, 1, (Button) {
+            .sprite = 13,
+            .shortcut = "Ctrl+Z",
+            .hint = "UNDO [CTRL-Z]"
+    }, false)) {
+        sig8_Undo();
+    }
+
+    if (sig8_DrawButton(SCREEN_WIDTH - 17, 1, (Button) {
+            .sprite = 14,
+            .shortcut = "Ctrl+Y",
+            .hint = "REDO [CTRL-Y]"
+    }, false)) {
+        sig8_Redo();
+    }
+
+    if (sig8_DrawButton(SCREEN_WIDTH - 9, 1, (Button) {
+            .sprite = 15,
+            .shortcut = "Ctrl+S",
+            .hint = "SAVE [CTRL-S]"
+    }, false)) {
+        Save();
+    }
+}
+
 static void DrawStatusBar(void)
 {
     FillRect(0, 0, SCREEN_WIDTH, TOOLBAR_SIZE, DARK_BLUE);
     FillRect(0, SCREEN_HEIGHT - TOOLBAR_SIZE, SCREEN_WIDTH, TOOLBAR_SIZE, DARK_BLUE);
+    DrawTopButtons();
 
     UseFont(FONT_SMALL);
+
+    DrawString(2, SCREEN_HEIGHT - 2, GRAY, sig8_StatusLine);
 
     if (selectedX != -1) {
         DrawString(SCREEN_WIDTH - 32, SCREEN_HEIGHT - 2, RED, Format("%03d:%03d", selectedX, selectedY));
@@ -92,12 +126,15 @@ void sig8_TileEditorInit(ManagedResource *what)
     UseTileMap(sig8_Editing->resource);
     spriteSheet = GetCurrentSpriteSheet();
     selectedX = selectedY = -1;
+    sig8_HistoryClear();
 }
 
 void sig8_TileEditorTick(void)
 {
     UseSpriteSheet(sig8_EDITORS_SPRITESHEET);
     SetCursorShape(CURSOR_ARROW);
+    sig8_StatusLine = "";
+
     ClearScreen(BLACK);
     DrawTiles();
     DrawStatusBar();
