@@ -3,11 +3,12 @@ add_library(sig8 STATIC
         util.c
         sig8_internal.h
         graphics.c
-        resources/font5x7.c
-        resources/font3x5.c
+        resources/font_tiny.c
+        resources/font_small.c
+        resources/font_medium.c
+        resources/font_large.c
         window.c
         input.c
-        resources/font_aseprite.c
         audio.c
         music.c
         alloc.c

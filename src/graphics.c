@@ -72,7 +72,7 @@ void sig8_InitScreen(Color *screen)
     }
 
     screenBuffer = screen;
-    currentFont = FONT_ASEPRITE;
+    currentFont = FONT_SMALL;
 
     for (int i = 0; i < palette.size; ++i) {
         colorMap[i] = ColorFromHex(palette.colors[i]);
