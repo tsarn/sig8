@@ -1,6 +1,6 @@
 #include "editors.h"
 
-#define TOOLBAR_SIZE 9
+#define TOOLBAR_SIZE 10
 
 static SpriteSheet spriteSheet;
 
@@ -183,7 +183,7 @@ static void Clear(void)
 
 static void DrawTopButtons(void)
 {
-    if (sig8_DrawButton(SCREEN_WIDTH - 78, 0, (Button) {
+    if (sig8_DrawButton(2, 1, (Button) {
             .sprite = 5,
             .shortcut = "T",
             .hint = "PLACE TILES [T]"
@@ -191,7 +191,7 @@ static void DrawTopButtons(void)
         tool = TOOL_DRAW;
     }
 
-    if (sig8_DrawButton(SCREEN_WIDTH - 69, 0, (Button) {
+    if (sig8_DrawButton(11, 1, (Button) {
             .sprite = 6,
             .shortcut = "F",
             .hint = "FILL [F]"
@@ -199,7 +199,7 @@ static void DrawTopButtons(void)
         tool = TOOL_FILL;
     }
 
-    if (sig8_DrawButton(SCREEN_WIDTH - 60, 0, (Button) {
+    if (sig8_DrawButton(20, 1, (Button) {
             .sprite = 7,
             .shortcut = "S",
             .hint = "SELECT [S]"
@@ -207,7 +207,7 @@ static void DrawTopButtons(void)
         tool = TOOL_SELECT;
     }
 
-    if (sig8_DrawButton(SCREEN_WIDTH - 51, 0, (Button) {
+    if (sig8_DrawButton(35, 1, (Button) {
             .sprite = 12,
             .shortcut = "Delete",
             .hint = "CLEAR [DEL]"
@@ -215,7 +215,23 @@ static void DrawTopButtons(void)
         Clear();
     }
 
-    if (sig8_DrawButton(SCREEN_WIDTH - 42, 0, (Button) {
+    if (sig8_DrawButton(44, 1, (Button) {
+            .sprite = 17,
+            .shortcut = "Ctrl+C",
+            .hint = "COPY [CTRL+C]"
+    }, false)) {
+
+    }
+
+    if (sig8_DrawButton(53, 1, (Button) {
+            .sprite = 18,
+            .shortcut = "Ctrl+V",
+            .hint = "PASTE [CTRL-V]"
+    }, false)) {
+
+    }
+
+    if (sig8_DrawButton(SCREEN_WIDTH - 42, 1, (Button) {
             .sprite = 16,
             .shortcut = "G",
             .hint = "SHOW GRID [G]"
@@ -223,7 +239,7 @@ static void DrawTopButtons(void)
         showGrid = !showGrid;
     }
 
-    if (sig8_DrawButton(SCREEN_WIDTH - 34, 0, (Button) {
+    if (sig8_DrawButton(SCREEN_WIDTH - 34, 1, (Button) {
             .sprite = 1,
             .shortcut = "Tab",
             .hint = "SELECT TILE [TAB]"
@@ -231,7 +247,7 @@ static void DrawTopButtons(void)
         spriteTabOpen = !spriteTabOpen;
     }
 
-    if (sig8_DrawButton(SCREEN_WIDTH - 25, 0, (Button) {
+    if (sig8_DrawButton(SCREEN_WIDTH - 25, 1, (Button) {
             .sprite = 13,
             .shortcut = "Ctrl+Z",
             .hint = "UNDO [CTRL-Z]"
@@ -239,7 +255,7 @@ static void DrawTopButtons(void)
         sig8_Undo();
     }
 
-    if (sig8_DrawButton(SCREEN_WIDTH - 17, 0, (Button) {
+    if (sig8_DrawButton(SCREEN_WIDTH - 17, 1, (Button) {
             .sprite = 14,
             .shortcut = "Ctrl+Y",
             .hint = "REDO [CTRL-Y]"
@@ -247,7 +263,7 @@ static void DrawTopButtons(void)
         sig8_Redo();
     }
 
-    if (sig8_DrawButton(SCREEN_WIDTH - 9, 0, (Button) {
+    if (sig8_DrawButton(SCREEN_WIDTH - 9, 1, (Button) {
             .sprite = 15,
             .shortcut = "Ctrl+S",
             .hint = "SAVE [CTRL-S]"
@@ -259,7 +275,7 @@ static void DrawTopButtons(void)
 static void DrawStatusBar(void)
 {
     FillRect(0, 0, SCREEN_WIDTH, TOOLBAR_SIZE, DARK_BLUE);
-    FillRect(0, SCREEN_HEIGHT - TOOLBAR_SIZE, SCREEN_WIDTH, TOOLBAR_SIZE, DARK_BLUE);
+    FillRect(0, SCREEN_HEIGHT - TOOLBAR_SIZE + 1, SCREEN_WIDTH, TOOLBAR_SIZE - 1, DARK_BLUE);
     DrawTopButtons();
 
     UseFont(FONT_SMALL);
@@ -290,14 +306,14 @@ static void DrawTileSelector(void)
     sig8_StrokeRectR(sig8_AddBorder(rect, 1), WHITE);
 }
 
-static void DrawGrid(Rect rect)
+static void DrawGrid(Rect rect, int freq, int color)
 {
-    for (int j = rect.y + Modulo(-cameraY, SPRITE_HEIGHT); j < rect.y + rect.height; j += SPRITE_HEIGHT) {
-        DrawLine(rect.x, j, rect.x + rect.width, j, DARK_RED);
+    for (int j = rect.y + Modulo(-cameraY, freq * SPRITE_HEIGHT); j < rect.y + rect.height; j += freq * SPRITE_HEIGHT) {
+        DrawLine(rect.x, j, rect.x + rect.width, j, color);
     }
 
-    for (int i = rect.x + Modulo(-cameraX, SPRITE_WIDTH); i < rect.x + rect.width; i += SPRITE_WIDTH) {
-        DrawLine(i, rect.y, i, rect.y + rect.height, DARK_RED);
+    for (int i = rect.x + Modulo(-cameraX, freq * SPRITE_WIDTH); i < rect.x + rect.width; i += freq * SPRITE_WIDTH) {
+        DrawLine(i, rect.y, i, rect.y + rect.height, color);
     }
 }
 
@@ -308,7 +324,7 @@ static void DrawSelection(void)
     int width = (diff(selection.x1, selection.x2) + 1) * SPRITE_WIDTH;
     int height = (diff(selection.y1, selection.y2) + 1) * SPRITE_HEIGHT;
 
-    int anim = ticks / 30 % 4;
+    int anim = ticks / 15 % 4;
 
     for (int i = 0; i < width; ++i) {
         int c1 = (i % 4 != anim) * WHITE;
@@ -332,7 +348,7 @@ static void DrawTiles(void)
             .x = 0,
             .y = TOOLBAR_SIZE,
             .width = spriteTabOpen ? (SCREEN_WIDTH - SPRITESHEET_WIDTH * SPRITE_WIDTH) : SCREEN_WIDTH,
-            .height = SCREEN_HEIGHT - 2 * TOOLBAR_SIZE
+            .height = SCREEN_HEIGHT - 2 * TOOLBAR_SIZE + 1
     };
 
     if (MouseJustReleased(MOUSE_RIGHT)) {
@@ -358,8 +374,10 @@ static void DrawTiles(void)
     DrawTileMap(rect.x, rect.y, rect.width, rect.height, cameraX, cameraY);
 
     if (showGrid) {
-        DrawGrid(rect);
+        DrawGrid(rect, 1, DARK_RED);
     }
+
+    DrawGrid(rect, 16, GRAY);
 
     if (sig8_IsMouseOver(rect)) {
         selectedX = Divide(position.x + cameraX - rect.x, SPRITE_WIDTH);
