@@ -364,6 +364,11 @@ void DrawSprite(int x, int y, int sprite)
     DrawSubSprite(x, y, sprite, 0, 0, SPRITE_WIDTH, SPRITE_HEIGHT, 0);
 }
 
+void DrawSpriteMask(int x, int y, int sprite, int mask)
+{
+    DrawSubSprite(x, y, sprite, 0, 0, SPRITE_WIDTH, SPRITE_HEIGHT, mask);
+}
+
 void DrawBigSprite(int x, int y, int sprite, int w, int h)
 {
     DrawSubSprite(x, y, sprite, 0, 0, w * SPRITE_WIDTH, h * SPRITE_HEIGHT, 0);

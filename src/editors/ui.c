@@ -194,3 +194,37 @@ bool sig8_DrawButton(int x, int y, Button button, bool pressed)
 
     return false;
 }
+
+void sig8_Selection(Selection *selection, int x, int y)
+{
+    if (MouseJustPressed(MOUSE_LEFT)) {
+        selection->active = true;
+        selection->resizing = true;
+        selection->x1 = x;
+        selection->y1 = y;
+    }
+
+    if (selection->resizing) {
+        selection->x2 = x;
+        selection->y2 = y;
+    }
+
+    if (MouseJustReleased(MOUSE_LEFT)) {
+        if (selection->x1 > selection->x2) {
+            swap(selection->x1, selection->x2);
+        }
+
+        if (selection->y1 > selection->y2) {
+            swap(selection->y1, selection->y2);
+        }
+
+        int width = selection->x2 - selection->x1;
+        int height = selection->y2 - selection->y1;
+
+        if (width == 0 && height == 0) {
+            selection->active = false;
+        }
+
+        selection->resizing = false;
+    }
+}
