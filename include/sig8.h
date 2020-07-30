@@ -279,6 +279,7 @@ void UseSpriteSheet(SpriteSheet spriteSheet);
 void FreeSpriteSheet(SpriteSheet spriteSheet);
 SpriteSheet GetCurrentSpriteSheet(void);
 void DrawSprite(int x, int y, int sprite);
+void DrawSpriteMask(int x, int y, int sprite, int mask);
 void DrawBigSprite(int x, int y, int sprite, int w, int h);
 void DrawSubSprite(int x, int y, int sprite, int sx, int sy, int w, int h, int mask);
 int GetSpritePixel(int x, int y, int sprite);

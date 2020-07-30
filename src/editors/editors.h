@@ -3,10 +3,22 @@
 #include "sig8_internal.h"
 #include "stb_image_write.h"
 
+#define swap(x, y) ((x) ^= (y), (y) ^= (x), (x) ^= (y))
+#define min(x, y) (((x) < (y)) ? (x) : (y))
+#define max(x, y) (((x) > (y)) ? (x) : (y))
+#define diff(x, y) (max(x, y) - min(x, y))
+
 typedef struct {
     int x, y;
     int width, height;
 } Rect;
+
+typedef struct {
+    bool active;
+    bool resizing;
+    int x1, y1;
+    int x2, y2;
+} Selection;
 
 typedef struct {
     uint8_t *data;
@@ -38,6 +50,7 @@ void sig8_DrawSlider(int x, int y, int *value);
 void sig8_DrawIcon(int x, int y, int sprite, int color);
 void sig8_DrawSpriteSheet(int x, int y, SpriteSheet spriteSheet, int region, int *selected);
 bool sig8_DrawButton(int x, int y, Button button, bool pressed);
+void sig8_Selection(Selection *selection, int x, int y);
 
 void sig8_HistoryClear(void);
 void sig8_Undo(void);

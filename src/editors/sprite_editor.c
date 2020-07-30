@@ -387,10 +387,6 @@ static void DrawStatusBar(void)
     UseFont(FONT_SMALL);
     DrawString(SCREEN_WIDTH - 23, SCREEN_HEIGHT - 2, RED, string);
     DrawString(2, SCREEN_HEIGHT - 2, GRAY, sig8_StatusLine);
-    UseFont(FONT_MEDIUM);
-    if (sig8_Editing->path) {
-        DrawString(2, 8, GRAY, sig8_Editing->path);
-    }
 
     if (activeTool == BRUSH) {
         sig8_DrawSlider(4, 116, &brushSize);
