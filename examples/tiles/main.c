@@ -29,16 +29,10 @@ int main()
 {
     Initialize("sig8 example: tiles");
 
-    tileMap = NewTileMap();
+    tileMap = LoadTileMap("res://tilemap.dat");
     UseTileMap(tileMap);
     spriteSheet = LoadSpriteSheet("res://spritesheet.png");
     UseSpriteSheet(spriteSheet);
-
-    for (int i = 0; i < TILEMAP_WIDTH; ++i) {
-        for (int j = 0; j < TILEMAP_HEIGHT; ++j) {
-            SetTile(i, j, (rand() % 4 != 0) ? 0 : rand() % 16);
-        }
-    }
 
     RunMainLoop(mainLoop);
     return 0;
