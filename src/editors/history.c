@@ -4,20 +4,6 @@ static HistoryItem curAction;
 static History history;
 const ManagedResource *sig8_Editing;
 
-static int GetSize(void)
-{
-    switch (sig8_Editing->type) {
-    case RESOURCE_SPRITESHEET:
-        return SPRITE_SHEET_BYTE_SIZE;
-
-    case RESOURCE_TILEMAP:
-        return TILEMAP_WIDTH * TILEMAP_HEIGHT;
-
-    default:
-        return 0;
-    }
-}
-
 void sig8_HistoryClear(void)
 {
     for (int i = 0; i < history.size; ++i) {
@@ -74,14 +60,14 @@ static HistoryItem HistoryRedo(void)
 
 void sig8_BeginUndoableAction(void)
 {
-    int size = GetSize();
+    int size = sig8_Editing->size;
     curAction.data = TempAlloc(2 * size);
     memcpy(curAction.data, sig8_Editing->resource, size);
 }
 
 void sig8_EndUndoableAction(void)
 {
-    int size = GetSize();
+    int size = sig8_Editing->size;
     bool anythingChanged = false;
     for (int i = 0; i < size; ++i) {
         curAction.data[i] ^= sig8_Editing->resource[i];
@@ -124,7 +110,7 @@ void sig8_EndUndoableAction(void)
 
 static void ApplyUndo(HistoryItem historyItem)
 {
-    int size = GetSize();
+    int size = sig8_Editing->size;
     int i = 0, j = 0;
     while (j < size) {
         int end = historyItem.data[i++] + j;

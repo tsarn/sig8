@@ -106,24 +106,24 @@ bool sig8_IsMouseOver(Rect rect)
 
 void sig8_DrawSpriteSheet(int x, int y, SpriteSheet spriteSheet, int region, int *selected)
 {
-    int selectedX = *selected % SPR_X;
-    int selectedY = *selected / SPR_X;
+    int selectedX = *selected % SPRITESHEET_WIDTH;
+    int selectedY = *selected / SPRITESHEET_WIDTH;
     int width = region * SPRITE_WIDTH;
     int height = region * SPRITE_HEIGHT;
 
     Rect rect = {
             .x = x,
             .y = y,
-            .width = SPR_X * SPRITE_WIDTH,
-            .height = SPR_Y * SPRITE_HEIGHT,
+            .width = SPRITESHEET_WIDTH * SPRITE_WIDTH,
+            .height = SPRITESHEET_HEIGHT * SPRITE_HEIGHT,
     };
 
     sig8_FillRectR(sig8_AddBorder(rect, 1), BLACK);
     UseSpriteSheet(spriteSheet);
 
-    for (int j = 0; j < SPR_Y; ++j) {
-        for (int i = 0; i < SPR_X; ++i) {
-            int idx = i + j * SPR_X;
+    for (int j = 0; j < SPRITESHEET_HEIGHT; ++j) {
+        for (int i = 0; i < SPRITESHEET_WIDTH; ++i) {
+            int idx = i + j * SPRITESHEET_WIDTH;
             Rect r = {
                     .x = rect.x + i * SPRITE_WIDTH,
                     .y = rect.y + j * SPRITE_HEIGHT,
@@ -146,10 +146,10 @@ void sig8_DrawSpriteSheet(int x, int y, SpriteSheet spriteSheet, int region, int
 
     if (selectedX < 0) selectedX = 0;
     if (selectedY < 0) selectedY = 0;
-    if (selectedX + region > SPR_X) selectedX = SPR_X - region;
-    if (selectedY + region > SPR_Y) selectedY = SPR_Y - region;
+    if (selectedX + region > SPRITESHEET_WIDTH) selectedX = SPRITESHEET_WIDTH - region;
+    if (selectedY + region > SPRITESHEET_HEIGHT) selectedY = SPRITESHEET_HEIGHT - region;
 
-    *selected = selectedX + selectedY * SPR_X;
+    *selected = selectedX + selectedY * SPRITESHEET_WIDTH;
 
     Rect r = {
             .x = rect.x + selectedX * SPRITE_WIDTH,

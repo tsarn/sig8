@@ -5,6 +5,7 @@ uint8_t *sig8_AllocateResource(ResourceType type, const char *path, int size)
 #ifdef SIG8_COMPILE_EDITORS
     ManagedResource *res = calloc(1, size + sizeof(ManagedResource));
     res->type = type;
+    res->size = size;
     if (!path) {
         res->path = NULL;
     } else {
@@ -38,5 +39,4 @@ ManagedResource *sig8_GetManagedResource(uint8_t *resource)
 {
     return (ManagedResource*)(resource - sizeof(ManagedResource));
 }
-
 #endif

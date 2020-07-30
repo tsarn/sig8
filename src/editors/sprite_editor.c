@@ -53,15 +53,15 @@ static void Save(void)
         return;
     }
 
-    uint8_t data[3 * SPRITE_WIDTH * SPRITE_HEIGHT * SPRITE_SHEET_SIZE];
-    for (int i = 0; i < SPRITE_WIDTH * SPRITE_HEIGHT * SPRITE_SHEET_SIZE; ++i) {
+    uint8_t data[3 * SPRITE_WIDTH * SPRITE_HEIGHT * SPRITESHEET_SIZE];
+    for (int i = 0; i < SPRITE_WIDTH * SPRITE_HEIGHT * SPRITESHEET_SIZE; ++i) {
         Color color = ColorFromIndex(sig8_Editing->resource[i]);
         data[3 * i] = color.r;
         data[3 * i + 1] = color.g;
         data[3 * i + 2] = color.b;
     }
 
-    stbi_write_png(path, SPR_X * SPRITE_WIDTH, SPR_Y * SPRITE_HEIGHT, 3, data, 0);
+    stbi_write_png(path, SPRITESHEET_WIDTH * SPRITE_WIDTH, SPRITESHEET_HEIGHT * SPRITE_HEIGHT, 3, data, 0);
 
     free(path);
 }
@@ -345,7 +345,7 @@ static void DrawEditedSprite(void)
 static void DrawSpriteSheet(void)
 {
     sig8_DrawSpriteSheet(
-            SCREEN_WIDTH - SPR_X * SPRITE_WIDTH - 1, TOOLBAR_SIZE + 1,
+            SCREEN_WIDTH - SPRITESHEET_WIDTH * SPRITE_WIDTH - 1, TOOLBAR_SIZE + 1,
             sig8_Editing->resource, spriteRegion, &selected
     );
 }
