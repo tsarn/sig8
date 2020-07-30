@@ -291,10 +291,10 @@ SpriteSheet GetCurrentSpriteSheet(void)
 
 static inline int GetSpritePixelIndex(int x, int y, int sprite)
 {
-    x += sprite % SPR_X * SPRITE_WIDTH;
-    y += sprite / SPR_X * SPRITE_HEIGHT;
-    int idx = x + y * SPR_X * SPRITE_WIDTH;
-    if (idx < 0 || idx >= SPRITE_SHEET_BYTE_SIZE) {
+    x += sprite % SPRITESHEET_WIDTH * SPRITE_WIDTH;
+    y += sprite / SPRITESHEET_WIDTH * SPRITE_HEIGHT;
+    int idx = x + y * SPRITESHEET_WIDTH * SPRITE_WIDTH;
+    if (idx < 0 || idx >= SPRITESHEET_BYTE_SIZE) {
         return -1;
     }
     return idx;
@@ -341,8 +341,8 @@ static inline void DrawSpriteImpl(int x, int y, int sx, int sy, int w, int h, in
 
     uint8_t *sprPtr = &currentSpriteSheet[
             sx +
-            sy * SPR_X * SPRITE_WIDTH +
-            hOff + vOff * (SPR_X * SPRITE_WIDTH)
+            sy * SPRITESHEET_WIDTH * SPRITE_WIDTH +
+            hOff + vOff * (SPRITESHEET_WIDTH * SPRITE_WIDTH)
     ];
 
     uint8_t *scrPtr = &colorBuffer[x + y * width];
@@ -354,7 +354,7 @@ static inline void DrawSpriteImpl(int x, int y, int sx, int sy, int w, int h, in
             }
         }
 
-        sprPtr += SPR_X * SPRITE_WIDTH - hSize + hOff;
+        sprPtr += SPRITESHEET_WIDTH * SPRITE_WIDTH - hSize + hOff;
         scrPtr += width - hSize + hOff;
     }
 }
@@ -371,19 +371,19 @@ void DrawBigSprite(int x, int y, int sprite, int w, int h)
 
 void DrawSubSprite(int x, int y, int sprite, int sx, int sy, int w, int h, int mask)
 {
-    if (sprite < 0 || sprite >= SPRITE_SHEET_SIZE || !currentSpriteSheet) {
+    if (sprite < 0 || sprite >= SPRITESHEET_SIZE || !currentSpriteSheet) {
         return;
     }
 
-    sx += sprite % SPR_X * SPRITE_WIDTH;
-    sy += sprite / SPR_X * SPRITE_HEIGHT;
+    sx += sprite % SPRITESHEET_WIDTH * SPRITE_WIDTH;
+    sy += sprite / SPRITESHEET_WIDTH * SPRITE_HEIGHT;
 
     DrawSpriteImpl(x, y, sx, sy, w, h, mask);
 }
 
 SpriteSheet LoadSpriteSheet(const char *path)
 {
-    uint8_t *result = sig8_AllocateResource(RESOURCE_SPRITESHEET, path, SPRITE_SHEET_BYTE_SIZE);
+    uint8_t *result = sig8_AllocateResource(RESOURCE_SPRITESHEET, path, SPRITESHEET_BYTE_SIZE);
 
     int width, height, channels, fileSize;
     uint8_t *contents = ReadFileContents(path, &fileSize);

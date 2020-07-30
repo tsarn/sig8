@@ -16,9 +16,6 @@
 #include <GLES3/gl3.h>
 #endif
 
-#define SPR_X 16
-#define SPR_Y 16
-
 #define KEYBOARD_STATE_SIZE 512
 #define MOUSE_STATE_SIZE 16
 #define KEY_PRESSED 0x01
@@ -88,6 +85,7 @@ extern SpriteSheet sig8_EDITORS_SPRITESHEET;
 
 typedef struct {
     ResourceType type;
+    int size;
     char *path;
     uint8_t *resource;
 } ManagedResource;

@@ -1,4 +1,5 @@
 #include "sig8_internal.h"
+#include "stb_image.h"
 
 static TileMap currentTileMap;
 
@@ -6,6 +7,24 @@ TileMap NewTileMap(void)
 {
     return sig8_AllocateResource(RESOURCE_TILEMAP, NULL,
             TILEMAP_WIDTH * TILEMAP_HEIGHT * sizeof(*currentTileMap));
+}
+
+TileMap LoadTileMap(const char *path)
+{
+    uint8_t *result = sig8_AllocateResource(RESOURCE_TILEMAP, path, TILEMAP_BYTE_SIZE);
+
+    int compressedSize;
+    char *compressed = (char *)ReadFileContents(path, &compressedSize);
+
+    if (!compressed) {
+        printf("WARNING: Failed to load tile map '%s'\n", path);
+        return result;
+    }
+
+    stbi_zlib_decode_buffer((char *)result, TILEMAP_BYTE_SIZE, compressed, compressedSize);
+    free(compressed);
+
+    return result;
 }
 
 void FreeTileMap(TileMap tileMap)
