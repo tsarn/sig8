@@ -6,6 +6,10 @@ const ManagedResource *sig8_Editing;
 
 void sig8_HistoryClear(void)
 {
+    if (curAction.data) {
+        free(curAction.data);
+    }
+    
     for (int i = 0; i < history.size; ++i) {
         free(history.data[i].data);
     }
