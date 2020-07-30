@@ -57,6 +57,97 @@ static void Save(void)
     free(path);
 }
 
+static void Fill(int x, int y, int tile)
+{
+    x = Modulo(x, TILEMAP_WIDTH);
+    y = Modulo(y, TILEMAP_HEIGHT);
+
+    static const Position neighbors[4] = {
+            {.x = 1, .y = 0},
+            {.x = -1, .y = 0},
+            {.x = 0, .y = 1},
+            {.x = 0, .y = -1},
+    };
+
+    int x1, y1, x2, y2;
+    bool xInv = false;
+    bool yInv = false;
+
+    if (selection.active) {
+        x1 = Modulo(selection.x1, TILEMAP_WIDTH);
+        y1 = Modulo(selection.y1, TILEMAP_HEIGHT);
+        x2 = Modulo(selection.x2, TILEMAP_WIDTH);
+        y2 = Modulo(selection.y2, TILEMAP_HEIGHT);
+
+        if (x1 > x2) {
+            xInv = true;
+            swap(x1, x2);
+            ++x1;
+            --x2;
+        }
+
+        if (y1 > y2) {
+            yInv = true;
+            swap(y1, y2);
+            ++y1;
+            --y2;
+        }
+    } else {
+        x1 = y1 = 0;
+        x2 = TILEMAP_WIDTH;
+        y2 = TILEMAP_HEIGHT;
+    }
+
+    Position *queue = TempAlloc(TILEMAP_BYTE_SIZE * sizeof(Position));
+    uint8_t *used = TempAlloc(TILEMAP_BYTE_SIZE);
+    memset(used, 0, TILEMAP_BYTE_SIZE);
+    int front = 0;
+    int back = 0;
+
+    queue[front++] = (Position) {
+            .x = x,
+            .y = y,
+    };
+    used[x + y * TILEMAP_WIDTH] = 1;
+
+    while (front > back) {
+        Position pos = queue[back++];
+        for (int i = 0; i < 4; ++i) {
+            Position next = {
+                    .x = Modulo(pos.x + neighbors[i].x, TILEMAP_WIDTH),
+                    .y = Modulo(pos.y + neighbors[i].y, TILEMAP_HEIGHT)
+            };
+
+            if ((next.x < x1 || next.x > x2) ^ xInv) {
+                continue;
+            }
+
+            if ((next.y < y1 || next.y > y2) ^ yInv) {
+                continue;
+            }
+
+            if (used[next.x + next.y * TILEMAP_WIDTH]) {
+                continue;
+            }
+
+            if (GetTile(next.x, next.y) != GetTile(pos.x, pos.y)) {
+                continue;
+            }
+
+            queue[front++] = next;
+            used[next.x + next.y * TILEMAP_WIDTH] = 1;
+        }
+    }
+
+    for (int j = 0; j < TILEMAP_HEIGHT; ++j) {
+        for (int i = 0; i < TILEMAP_WIDTH; ++i) {
+            if (used[i + j * TILEMAP_WIDTH]) {
+                SetTile(i, j, tile);
+            }
+        }
+    }
+}
+
 static void Clear(void)
 {
     if (selection.resizing) {
@@ -283,6 +374,14 @@ static void DrawTiles(void)
                 SetTile(selectedX, selectedY, selectedSprite);
                 sig8_EndUndoableAction();
             }
+        } else if (tool == TOOL_FILL) {
+            DrawSpriteMask(r.x, r.y, selectedSprite, -1);
+
+            if (MousePressed(MOUSE_LEFT)) {
+                sig8_BeginUndoableAction();
+                Fill(selectedX, selectedY, selectedSprite);
+                sig8_EndUndoableAction();
+            }
         } else if (tool == TOOL_SELECT) {
             sig8_Selection(&selection, selectedX, selectedY);
         }
@@ -315,10 +414,10 @@ void sig8_TileEditorInit(ManagedResource *what)
 static void HandleInput(void)
 {
     if (KeyJustPressed("Escape")) {
-        if (selection.active) {
-            selection.active = false;
-        } else if (spriteTabOpen) {
+        if (spriteTabOpen) {
             spriteTabOpen = false;
+        } else if (selection.active) {
+            selection.active = false;
         } else {
             SetCursorShape(CURSOR_ARROW);
             sig8_HistoryClear();

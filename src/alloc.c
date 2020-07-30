@@ -1,35 +1,62 @@
 #include "sig8_internal.h"
 
 static char *scratchMemory = NULL;
-static size_t scratchMemorySize = 0;
-static size_t scratchMemoryCapacity = 0;
+static int scratchMemorySize = 0;
+static int scratchMemoryCapacity = 0;
+static int scratchMemoryNeeds = 0;
 
-void* TempAlloc(size_t n)
+static void** pointersToFree = NULL;
+static int pointersToFreeSize = 0;
+static int pointersToFreeCapacity = 0;
+
+static void *TempMalloc(int n)
+{
+    void *ptr = malloc(n);
+
+    ++pointersToFreeSize;
+    if (pointersToFreeSize > pointersToFreeCapacity) {
+        pointersToFreeCapacity = 2 * pointersToFreeSize;
+        pointersToFree = realloc(pointersToFree, pointersToFreeCapacity * sizeof(void*));
+    }
+    pointersToFree[pointersToFreeSize - 1] = ptr;
+
+    return ptr;
+}
+
+void* TempAlloc(int n)
 {
     // round up for alignment
     n = (n + sizeof(size_t) - 1) / sizeof(size_t) * sizeof(size_t);
 
     size_t oldSize = scratchMemorySize;
-    scratchMemorySize += n;
 
-    if (scratchMemorySize > scratchMemoryCapacity)
+    if (scratchMemorySize + n > scratchMemoryCapacity)
     {
-        size_t allocSize = scratchMemorySize * 2;
-        void *newPtr = realloc(scratchMemory, allocSize);
-        if (!newPtr) {
-            puts("TempAlloc: reallocation failed");
-            Finalize();
-            exit(EXIT_FAILURE);
-        }
-        scratchMemory = (char*)newPtr;
-        scratchMemoryCapacity = allocSize;
+        // out of memory
+        scratchMemoryNeeds += n;
+        return TempMalloc(n);
     }
+
+    scratchMemorySize += n;
 
     return (void*)(scratchMemory + oldSize);
 }
 
 static void ResetScratchMemory(void)
 {
+    if (scratchMemoryNeeds > scratchMemoryCapacity) {
+        scratchMemoryCapacity = 2 * scratchMemoryNeeds;
+        if (scratchMemory) {
+            free(scratchMemory);
+        }
+        scratchMemory = malloc(scratchMemoryCapacity);
+    }
+
+    for (int i = 0; i < pointersToFreeSize; ++i) {
+        free(pointersToFree[i]);
+    }
+
+    pointersToFreeSize = 0;
     scratchMemorySize = 0;
 }
 
