@@ -5,7 +5,7 @@
 #define PALETTE_STRIDE 7
 #define ROW_COLORS 8
 
-#define TOOLBAR_SIZE 9
+#define TOOLBAR_SIZE 10
 
 static int selected;
 static int fgColor = WHITE;
@@ -180,7 +180,7 @@ static void UseTool(Tool tool)
 static void DrawPalette(void)
 {
     Rect rect = {
-            .x = 4,
+            .x = 3,
             .y = TOOLBAR_SIZE + 75,
             .width = ROW_COLORS * (PALETTE_STRIDE + 1) + 1,
             .height = (PALETTE_SIZE / ROW_COLORS) * (PALETTE_STRIDE + 1) + 1
@@ -253,7 +253,7 @@ static void DrawPalette(void)
 static void DrawEditedSprite(void)
 {
     Rect rect = {
-            .x = 4,
+            .x = 3,
             .y = TOOLBAR_SIZE + 4,
             .width = EDIT_X,
             .height = EDIT_Y
@@ -406,7 +406,7 @@ static void DrawStatusBar(void)
 static void DrawTools(void)
 {
     for (int tool = 0; tool < NUMBER_OF_TOOLS; ++tool) {
-        if (sig8_DrawButton(4 + SPRITE_WIDTH * tool, TOOLBAR_SIZE + 95,
+        if (sig8_DrawButton(3 + SPRITE_WIDTH * tool, TOOLBAR_SIZE + 95,
                             toolButtons[tool], (Tool) tool == activeTool)) {
             UseTool(tool);
         }
