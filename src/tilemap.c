@@ -59,8 +59,8 @@ void DrawTileMap(int x, int y, int width, int height, int offsetX, int offsetY)
 
 void DrawTileMapEx(int x, int y, int width, int height, int offsetX, int offsetY, int mask, TileMapDrawCallback callback)
 {
-    for (int i = Divide(offsetX, SPRITE_WIDTH); SPRITE_WIDTH * i < width + offsetX; ++i) {
-        for (int j = Divide(offsetY, SPRITE_HEIGHT); SPRITE_HEIGHT * j < height + offsetY; ++j) {
+    for (int j = Divide(offsetY, SPRITE_HEIGHT); SPRITE_HEIGHT * j < height + offsetY; ++j) {
+        for (int i = Divide(offsetX, SPRITE_WIDTH); SPRITE_WIDTH * i < width + offsetX; ++i) {
             int sprite = GetTile(i, j);
             if (sprite == -1) {
                 continue;

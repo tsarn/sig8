@@ -34,7 +34,7 @@ static const uint8_t data[] = {
 // char code 47
         5, 6, 16, 8, 4, 2, 1,
 // char code 48
-        3, 6, 31, 17, 31, 0, 0,
+        4, 6, 14, 17, 17, 14, 0,
 // char code 49
         3, 6, 18, 31, 16, 0, 0,
 // char code 50
