@@ -54,7 +54,7 @@ int GetTile(int x, int y)
 
 void DrawTileMap(int x, int y, int width, int height, int offsetX, int offsetY)
 {
-    DrawTileMapEx(x, y, width, height, offsetX, offsetY, -1, NULL);
+    DrawTileMapEx(x, y, width, height, offsetX, offsetY, 0, NULL);
 }
 
 void DrawTileMapEx(int x, int y, int width, int height, int offsetX, int offsetY, int mask, TileMapDrawCallback callback)
