@@ -8,6 +8,7 @@ void sig8_HistoryClear(void)
 {
     if (curAction.data) {
         free(curAction.data);
+        curAction.data = NULL;
     }
     
     for (int i = 0; i < history.size; ++i) {
