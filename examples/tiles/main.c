@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include "sig8.h"
 
 SpriteSheet spriteSheet;
@@ -9,9 +8,9 @@ void mainLoop(void)
     static int offsetX = 0;
     static int offsetY = 0;
 
-    ClearScreen(BLACK);
+    ClearScreen(DARK_BLUE);
 
-    DrawTileMap(16, 16, 96, 96, offsetX, offsetY);
+    DrawTileMap(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, offsetX, offsetY);
 
     if (KeyJustPressed("Right")) offsetX += 5;
     if (KeyJustPressed("Up")) offsetY -= 5;
