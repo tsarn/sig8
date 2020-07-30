@@ -5,8 +5,7 @@ static TileMap currentTileMap;
 
 TileMap NewTileMap(void)
 {
-    return sig8_AllocateResource(RESOURCE_TILEMAP, NULL,
-            TILEMAP_WIDTH * TILEMAP_HEIGHT * sizeof(*currentTileMap));
+    return sig8_AllocateResource(RESOURCE_TILEMAP, NULL, TILEMAP_BYTE_SIZE);
 }
 
 TileMap LoadTileMap(const char *path)
@@ -44,7 +43,7 @@ TileMap GetCurrentTileMap(void)
 
 void SetTile(int x, int y, int tile)
 {
-    currentTileMap[x + y * TILEMAP_WIDTH] = tile;
+    currentTileMap[Modulo(x, TILEMAP_WIDTH) + Modulo(y, TILEMAP_HEIGHT) * TILEMAP_WIDTH] = tile;
 }
 
 int GetTile(int x, int y)

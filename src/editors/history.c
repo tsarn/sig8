@@ -61,7 +61,7 @@ static HistoryItem HistoryRedo(void)
 void sig8_BeginUndoableAction(void)
 {
     int size = sig8_Editing->size;
-    curAction.data = TempAlloc(2 * size);
+    curAction.data = malloc(2 * size);
     memcpy(curAction.data, sig8_Editing->resource, size);
 }
 
@@ -105,6 +105,7 @@ void sig8_EndUndoableAction(void)
     memcpy(curAction.data, oldData, j);
     HistoryPush(curAction);
     curAction.data = NULL;
+    free(oldData);
 }
 
 

@@ -68,8 +68,6 @@ static void Save(void)
 
 static void Fill(int x, int y, int color)
 {
-    // simple breadth-first search
-
     static const Position neighbors[4] = {
             {.x = 1, .y = 0},
             {.x = -1, .y = 0},

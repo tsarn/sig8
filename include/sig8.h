@@ -241,7 +241,7 @@ void EditResource(uint8_t *resource);
  */
 Color ColorFromHex(const char *hex);
 Color ColorFromIndex(int color);
-void* TempAlloc(size_t n);
+void* TempAlloc(int n);
 char *Format(const char *fmt, ...);
 float GetDelta(void);
 int Modulo(int a, int b);
