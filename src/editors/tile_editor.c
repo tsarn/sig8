@@ -98,6 +98,14 @@ static void Fill(int x, int y, int tile)
         y2 = TILEMAP_HEIGHT;
     }
 
+    if ((x < x1 || x > x2) ^ xInv) {
+        return;
+    }
+
+    if ((y < y1 || y > y2) ^ yInv) {
+        return;
+    }
+
     Position *queue = TempAlloc(TILEMAP_BYTE_SIZE * sizeof(Position));
     uint8_t *used = TempAlloc(TILEMAP_BYTE_SIZE);
     memset(used, 0, TILEMAP_BYTE_SIZE);
