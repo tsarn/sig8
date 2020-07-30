@@ -32,11 +32,59 @@ static Tool tool = TOOL_DRAW;
 
 static void Save(void)
 {
+    if (!sig8_Editing->path) {
+        return;
+    }
+
+    char *path = ResolvePath(sig8_Editing->path);
+
+    if (!path) {
+        return;
+    }
+
+    FILE *file = fopen(path, "w");
+
+    if (!file) {
+        return;
+    }
+
+    int size;
+    uint8_t *data = stbi_zlib_compress(sig8_Editing->resource, sig8_Editing->size, &size, 8);
+    fwrite(data, size, 1, file);
+
+    fclose(file);
+    free(data);
+    free(path);
+}
+
+static void Clear(void)
+{
+    if (selection.resizing) {
+        return;
+    }
+
+    sig8_BeginUndoableAction();
+
+    if (selection.active) {
+        for (int j = selection.y1; j <= selection.y2; ++j) {
+            for (int i = selection.x1; i <= selection.x2; ++i) {
+                SetTile(i, j, 0);
+            }
+        }
+    } else {
+        for (int j = 0; j < TILEMAP_HEIGHT; ++j) {
+            for (int i = 0; i < TILEMAP_WIDTH; ++i) {
+                SetTile(i, j, 0);
+            }
+        }
+    }
+
+    sig8_EndUndoableAction();
 }
 
 static void DrawTopButtons(void)
 {
-    if (sig8_DrawButton(SCREEN_WIDTH - 69, 0, (Button) {
+    if (sig8_DrawButton(SCREEN_WIDTH - 78, 0, (Button) {
             .sprite = 5,
             .shortcut = "T",
             .hint = "PLACE TILES [T]"
@@ -44,7 +92,7 @@ static void DrawTopButtons(void)
         tool = TOOL_DRAW;
     }
 
-    if (sig8_DrawButton(SCREEN_WIDTH - 60, 0, (Button) {
+    if (sig8_DrawButton(SCREEN_WIDTH - 69, 0, (Button) {
             .sprite = 6,
             .shortcut = "F",
             .hint = "FILL [F]"
@@ -52,12 +100,20 @@ static void DrawTopButtons(void)
         tool = TOOL_FILL;
     }
 
-    if (sig8_DrawButton(SCREEN_WIDTH - 51, 0, (Button) {
+    if (sig8_DrawButton(SCREEN_WIDTH - 60, 0, (Button) {
             .sprite = 7,
             .shortcut = "S",
             .hint = "SELECT [S]"
     }, tool == TOOL_SELECT)) {
         tool = TOOL_SELECT;
+    }
+
+    if (sig8_DrawButton(SCREEN_WIDTH - 51, 0, (Button) {
+            .sprite = 12,
+            .shortcut = "Delete",
+            .hint = "CLEAR [DEL]"
+    }, false)) {
+        Clear();
     }
 
     if (sig8_DrawButton(SCREEN_WIDTH - 42, 0, (Button) {
@@ -259,10 +315,16 @@ void sig8_TileEditorInit(ManagedResource *what)
 static void HandleInput(void)
 {
     if (KeyJustPressed("Escape")) {
-        SetCursorShape(CURSOR_ARROW);
-        sig8_HistoryClear();
-        sig8_LeaveEditor();
-        return;
+        if (selection.active) {
+            selection.active = false;
+        } else if (spriteTabOpen) {
+            spriteTabOpen = false;
+        } else {
+            SetCursorShape(CURSOR_ARROW);
+            sig8_HistoryClear();
+            sig8_LeaveEditor();
+            return;
+        }
     }
 }
 

@@ -3,6 +3,8 @@
 #include "sig8_internal.h"
 #include "stb_image_write.h"
 
+unsigned char *stbi_zlib_compress(unsigned char *data, int data_len, int *out_len, int quality);
+
 #define swap(x, y) ((x) ^= (y), (y) ^= (x), (x) ^= (y))
 #define min(x, y) (((x) < (y)) ? (x) : (y))
 #define max(x, y) (((x) > (y)) ? (x) : (y))
