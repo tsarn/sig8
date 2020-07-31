@@ -234,7 +234,7 @@ char *ResolvePath(const char *path);
  * support for editors is disabled.
  */
 void EnableEditors(void);
-void EditResource(uint8_t *resource);
+void EditResource(void *resource);
 
 /*
  * Utility functions
