@@ -2,6 +2,14 @@
 
 SpriteSheet spriteSheet;
 TileMap tileMap;
+int t;
+
+void tileCallback(int x, int y, int *sprite, int *mask)
+{
+    if (*sprite >= 16) {
+        *sprite += 2 * (t / 20 % 3);
+    }
+}
 
 void mainLoop(void)
 {
@@ -10,18 +18,22 @@ void mainLoop(void)
 
     ClearScreen(BLUE);
 
-    DrawTileMap(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, offsetX, offsetY);
+    DrawTileMapEx(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, offsetX, offsetY, 0, tileCallback);
 
     if (KeyJustPressed("Right")) offsetX += 5;
     if (KeyJustPressed("Up")) offsetY -= 5;
     if (KeyJustPressed("Down")) offsetY += 5;
     if (KeyJustPressed("Left")) offsetX -= 5;
+
     if (KeyJustPressed("Ctrl+E")) {
         EditResource(spriteSheet);
     }
+
     if (KeyJustPressed("E")) {
         EditResource(tileMap);
     }
+
+    ++t;
 }
 
 int main()
