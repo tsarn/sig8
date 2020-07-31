@@ -192,7 +192,7 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
                 break;
             }
 
-            value *= ch.instrument.volume;
+            value *= (int)ch.instrument.volume / 255.0f;
             value *= ch.volume;
 
             value *= (float)curEnvelope[channel][ENVELOPE_VOLUME] / ENVELOPE_VOLUME_MAX;
@@ -303,7 +303,7 @@ Instrument NewInstrument(void)
     memset(&res, 0, sizeof res);
 
     res.speed = 1;
-    res.volume = 1.0f;
+    res.volume = 255;
     res.wave = SQUARE_WAVE;
     res.envelopes[ENVELOPE_VOLUME].loopEnd = 1;
     res.envelopes[ENVELOPE_DUTY_CYCLE].loopEnd = 1;
@@ -331,7 +331,7 @@ void SetChannelVolume(int channel, float volume)
     channels[channel].volume = volume;
 }
 
-void PlayNote(int channel, Note note)
+void PlayNote(Note note, int channel)
 {
     if (note == STOP_NOTE) {
         StopNote(channel);

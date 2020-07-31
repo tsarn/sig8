@@ -33,6 +33,10 @@
 #define PRELOAD_SOUNDS 4
 #define SAMPLES_PER_FRAME (SAMPLE_RATE / FRAME_RATE)
 
+#define SPRITESHEET_BYTE_SIZE (SPRITESHEET_SIZE * SPRITE_WIDTH * SPRITE_HEIGHT)
+#define TILEMAP_BYTE_SIZE (TILEMAP_WIDTH * TILEMAP_HEIGHT)
+#define SOUNDLIB_BYTE_SIZE (SOUNDLIB_SIZE * sizeof(Sound))
+
 #ifdef SIG8_COMPILE_EDITORS
 #define MAX_EVENT_HANDLERS 32
 #else
@@ -48,7 +52,7 @@
 typedef enum {
     RESOURCE_SPRITESHEET,
     RESOURCE_TILEMAP,
-    RESOURCE_SOUND,
+    RESOURCE_SOUNDLIB,
     RESOURCE_MUSIC,
 } ResourceType;
 
@@ -60,7 +64,6 @@ void sig8_InitGLES(void);
 void sig8_InitGLESPixelBuffer(void);
 void sig8_InitScreen(Color *screen);
 void sig8_InitAudio(void);
-void sig8_InitMusic(void);
 void sig8_InitInput(void);
 void sig8_InitAlloc(void);
 void sig8_UpdateScreen(void);
@@ -70,8 +73,8 @@ void sig8_RegisterCallback(int type, Callback callback);
 void sig8_RegisterEventCallback(int type, EventCallback callback);
 bool sig8_EmitEvent(int type, SDL_Event *event);
 
-uint8_t *sig8_AllocateResource(ResourceType type, const char *path, int size);
-void sig8_FreeResource(uint8_t *resource);
+void *sig8_AllocateResource(ResourceType type, const char *path, int size);
+void sig8_FreeResource(void *resource);
 
 #ifdef SIG8_COMPILE_EDITORS
 
@@ -96,5 +99,8 @@ void sig8_SpriteEditorTick(void);
 
 void sig8_TileEditorInit(ManagedResource *what);
 void sig8_TileEditorTick(void);
+
+void sig8_SoundEditorInit(ManagedResource *what);
+void sig8_SoundEditorTick(void);
 
 #endif
