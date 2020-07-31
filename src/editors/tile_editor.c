@@ -21,7 +21,8 @@ static int selectedSprite;
 static bool showGrid;
 
 static Selection selection;
-static Selection spriteSelection;
+
+static Palette palette;
 
 typedef enum {
     TOOL_DRAW,
@@ -299,10 +300,12 @@ static void DrawTileSelector(void)
             .height = SPRITESHEET_HEIGHT * SPRITE_HEIGHT + 2
     };
 
+    UsePalette(palette);
     sig8_DrawSpriteSheet(
             rect.x + 1, rect.y + 1,
             spriteSheet, 1, &selectedSprite
     );
+    UsePalette(PALETTE_DEFAULT);
 
     sig8_StrokeRectR(sig8_AddBorder(rect, 1), WHITE);
 }
@@ -372,7 +375,9 @@ static void DrawTiles(void)
     }
 
     UseSpriteSheet(spriteSheet);
+    UsePalette(palette);
     DrawTileMap(rect.x, rect.y, rect.width, rect.height, cameraX, cameraY);
+    UsePalette(PALETTE_DEFAULT);
 
     if (showGrid) {
         DrawGrid(rect, 1, DARK_RED);
@@ -392,7 +397,9 @@ static void DrawTiles(void)
         };
 
         if (tool == TOOL_DRAW) {
+            UsePalette(palette);
             DrawSpriteMask(r.x, r.y, selectedSprite, -1);
+            UsePalette(PALETTE_DEFAULT);
 
             sig8_StrokeRectR(r, WHITE);
 
@@ -406,7 +413,9 @@ static void DrawTiles(void)
                 sig8_EndUndoableAction();
             }
         } else if (tool == TOOL_FILL) {
+            UsePalette(palette);
             DrawSpriteMask(r.x, r.y, selectedSprite, -1);
+            UsePalette(PALETTE_DEFAULT);
 
             if (MousePressed(MOUSE_LEFT)) {
                 sig8_BeginUndoableAction();
@@ -431,17 +440,6 @@ static void DrawTiles(void)
     }
 }
 
-void sig8_TileEditorInit(ManagedResource *what)
-{
-    sig8_Editing = what;
-    UseTileMap(sig8_Editing->resource);
-    spriteSheet = GetCurrentSpriteSheet();
-    selectedX = selectedY = -1;
-    spriteTabOpen = false;
-    selection.active = false;
-    sig8_HistoryClear();
-}
-
 static void HandleInput(void)
 {
     if (KeyJustPressed("Escape")) {
@@ -453,9 +451,22 @@ static void HandleInput(void)
             SetCursorShape(CURSOR_ARROW);
             sig8_HistoryClear();
             sig8_LeaveEditor();
+            UsePalette(palette);
             return;
         }
     }
+}
+
+void sig8_TileEditorInit(ManagedResource *what)
+{
+    sig8_Editing = what;
+    UseTileMap(sig8_Editing->resource);
+    spriteSheet = GetCurrentSpriteSheet();
+    selectedX = selectedY = -1;
+    spriteTabOpen = false;
+    selection.active = false;
+    palette = GetPalette();
+    sig8_HistoryClear();
 }
 
 void sig8_TileEditorTick(void)

@@ -8,12 +8,15 @@
 #define TOOLBAR_SIZE 10
 
 static int selected;
-static int fgColor = WHITE;
-static int bgColor = BLACK;
+static int fgColor;
+static int bgColor;
 static int zoom = 8;
 static int spriteRegion = 1, spriteRegionLog;
 static int width = SPRITE_WIDTH, height = SPRITE_HEIGHT;
 static int brushSize;
+
+static Palette palette;
+static int black, white;
 
 typedef enum {
     BRUSH,
@@ -53,6 +56,8 @@ static void Save(void)
         return;
     }
 
+    UsePalette(palette);
+
     uint8_t data[3 * SPRITE_WIDTH * SPRITE_HEIGHT * SPRITESHEET_SIZE];
     for (int i = 0; i < SPRITE_WIDTH * SPRITE_HEIGHT * SPRITESHEET_SIZE; ++i) {
         Color color = ColorFromIndex(sig8_Editing->resource[i]);
@@ -60,6 +65,8 @@ static void Save(void)
         data[3 * i + 1] = color.g;
         data[3 * i + 2] = color.b;
     }
+    
+    UsePalette(PALETTE_DEFAULT);
 
     stbi_write_png(path, SPRITESHEET_WIDTH * SPRITE_WIDTH, SPRITESHEET_HEIGHT * SPRITE_HEIGHT, 3, data, 0);
 
@@ -177,6 +184,8 @@ static void UseTool(Tool tool)
 
 static void DrawPalette(void)
 {
+    UsePalette(palette);
+
     Rect rect = {
             .x = 3,
             .y = TOOLBAR_SIZE + 75,
@@ -196,7 +205,7 @@ static void DrawPalette(void)
         };
 
         sig8_FillRectR(r, color);
-        sig8_StrokeRectR(sig8_AddBorder(r, 1), WHITE);
+        sig8_StrokeRectR(sig8_AddBorder(r, 1), white);
 
         if (sig8_IsMouseOver(r)) {
             SetCursorShape(CURSOR_HAND);
@@ -224,7 +233,7 @@ static void DrawPalette(void)
         };
 
         sig8_FillRectR(sig8_AddBorder(r, 1), fgColor);
-        sig8_StrokeRectR(sig8_AddBorder(r, 2), WHITE);
+        sig8_StrokeRectR(sig8_AddBorder(r, 2), white);
     }
 
     {
@@ -239,13 +248,17 @@ static void DrawPalette(void)
                 .height = PALETTE_STRIDE
         };
 
-        if (bgColor == WHITE) {
-            RemapColor(WHITE, BLACK);
+        if (bgColor == white) {
+            RemapColor(WHITE, black);
+        } else {
+            RemapColor(WHITE, white);
         }
 
         DrawSprite(r.x, r.y, 4);
         ResetColors();
     }
+
+    UsePalette(PALETTE_DEFAULT);
 }
 
 static void DrawEditedSprite(void)
@@ -257,7 +270,9 @@ static void DrawEditedSprite(void)
             .height = EDIT_Y
     };
 
-    sig8_StrokeRectR(sig8_AddBorder(rect, 1), WHITE);
+
+    UsePalette(palette);
+    sig8_StrokeRectR(sig8_AddBorder(rect, 1), white);
 
     UseSpriteSheet(sig8_Editing->resource);
 
@@ -321,6 +336,8 @@ static void DrawEditedSprite(void)
         }
     }
 
+    UseSpriteSheet(sig8_EDITORS_SPRITESHEET);
+
     if (selX != -1) {
         int br = 1;
         if (activeTool == BRUSH) {
@@ -333,19 +350,21 @@ static void DrawEditedSprite(void)
                 .width = zoom * br,
                 .height = zoom * br
         };
-        sig8_StrokeRectR(sig8_AddBorder(r, 1), BLACK);
-        sig8_StrokeRectR(sig8_AddBorder(r, 2), WHITE);
+        sig8_StrokeRectR(sig8_AddBorder(r, 1), black);
+        sig8_StrokeRectR(sig8_AddBorder(r, 2), white);
     }
 
-    UseSpriteSheet(sig8_EDITORS_SPRITESHEET);
+    UsePalette(PALETTE_DEFAULT);
 }
 
 static void DrawSpriteSheet(void)
 {
+    UsePalette(palette);
     sig8_DrawSpriteSheet(
             SCREEN_WIDTH - SPRITESHEET_WIDTH * SPRITE_WIDTH - 1, TOOLBAR_SIZE + 1,
             sig8_Editing->resource, spriteRegion, &selected
     );
+    UsePalette(PALETTE_DEFAULT);
 }
 
 static void DrawTopButtons(void)
@@ -387,7 +406,7 @@ static void DrawStatusBar(void)
     DrawString(2, SCREEN_HEIGHT - 2, GRAY, sig8_StatusLine);
 
     if (activeTool == BRUSH) {
-        sig8_DrawSlider(4, 116, &brushSize);
+        sig8_DrawSlider(4, SCREEN_HEIGHT - 32, &brushSize);
     }
 
     sig8_DrawSlider(SCREEN_WIDTH - 60, SCREEN_HEIGHT - 8, &spriteRegionLog);
@@ -400,7 +419,7 @@ static void DrawStatusBar(void)
 static void DrawTools(void)
 {
     for (int tool = 0; tool < NUMBER_OF_TOOLS; ++tool) {
-        if (sig8_DrawButton(3 + SPRITE_WIDTH * tool, TOOLBAR_SIZE + 95,
+        if (sig8_DrawButton(3 + SPRITE_WIDTH * tool, TOOLBAR_SIZE + 120,
                             toolButtons[tool], (Tool) tool == activeTool)) {
             UseTool(tool);
         }
@@ -413,6 +432,7 @@ static void HandleInput(void)
         SetCursorShape(CURSOR_ARROW);
         sig8_HistoryClear();
         sig8_LeaveEditor();
+        UsePalette(palette);
         return;
     }
 }
@@ -420,6 +440,13 @@ static void HandleInput(void)
 void sig8_SpriteEditorInit(ManagedResource *what)
 {
     sig8_Editing = what;
+    palette = GetPalette();
+
+    black = GetBestColor(0, 0, 0);
+    white = GetBestColor(255, 255, 255);
+
+    fgColor = white;
+    bgColor = black;
     sig8_HistoryClear();
 }
 
@@ -428,6 +455,7 @@ void sig8_SpriteEditorTick(void)
     UseSpriteSheet(sig8_EDITORS_SPRITESHEET);
     SetCursorShape(CURSOR_ARROW);
     UseFont(FONT_MEDIUM);
+    UsePalette(PALETTE_DEFAULT);
 
     ClearScreen(INDIGO);
     sig8_StatusLine = "";

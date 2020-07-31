@@ -106,6 +106,9 @@ bool sig8_IsMouseOver(Rect rect)
 
 void sig8_DrawSpriteSheet(int x, int y, SpriteSheet spriteSheet, int region, int *selected)
 {
+    int black = GetBestColor(0, 0, 0);
+    int white = GetBestColor(255, 255, 255);
+
     int selectedX = *selected % SPRITESHEET_WIDTH;
     int selectedY = *selected / SPRITESHEET_WIDTH;
     int width = region * SPRITE_WIDTH;
@@ -118,7 +121,7 @@ void sig8_DrawSpriteSheet(int x, int y, SpriteSheet spriteSheet, int region, int
             .height = SPRITESHEET_HEIGHT * SPRITE_HEIGHT,
     };
 
-    sig8_FillRectR(sig8_AddBorder(rect, 1), BLACK);
+    sig8_FillRectR(sig8_AddBorder(rect, 1), black);
     UseSpriteSheet(spriteSheet);
 
     for (int j = 0; j < SPRITESHEET_HEIGHT; ++j) {
@@ -157,8 +160,8 @@ void sig8_DrawSpriteSheet(int x, int y, SpriteSheet spriteSheet, int region, int
             .width = width,
             .height = height
     };
-    sig8_StrokeRectR(sig8_AddBorder(r, 2), WHITE);
-    sig8_StrokeRectR(sig8_AddBorder(r, 1), BLACK);
+    sig8_StrokeRectR(sig8_AddBorder(r, 2), white);
+    sig8_StrokeRectR(sig8_AddBorder(r, 1), black);
 }
 
 bool sig8_DrawButton(int x, int y, Button button, bool pressed)

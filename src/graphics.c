@@ -1,13 +1,15 @@
 #include "sig8_internal.h"
 #include "stb_image.h"
 
-static int *paletteMap;
 static Font currentFont;
 static SpriteSheet currentSpriteSheet;
 
 static uint8_t *colorBuffer;
 static Color *screenBuffer;
-static Color *colorMap;
+static Palette palette;
+
+static int paletteMap[MAX_PALETTE_SIZE];
+static Color colorMap[MAX_PALETTE_SIZE];
 
 #ifdef SIG8_COMPILE_EDITORS
 static Font savedFont;
@@ -57,30 +59,25 @@ static void OnEditorLeave(void)
 
 void sig8_InitScreen(Color *screen)
 {
-    Palette palette = GetPalette();
-
     if (colorBuffer) {
         free(colorBuffer);
     }
 
     colorBuffer = calloc(1, SCREEN_WIDTH * SCREEN_HEIGHT);
 
-    if (!colorMap) {
-        colorMap = malloc(sizeof(Color) * palette.size);
-        paletteMap = malloc(sizeof(int) * palette.size);
+    static bool initialized = false;
+
+    if (!initialized) {
 #ifdef SIG8_COMPILE_EDITORS
         sig8_RegisterCallback(EDITOR_ENTER_EVENT, OnEditorEnter);
         sig8_RegisterCallback(EDITOR_LEAVE_EVENT, OnEditorLeave);
 #endif
+        UsePalette(PALETTE_DEFAULT);
+        initialized = true;
     }
 
     screenBuffer = screen;
     currentFont = FONT_SMALL;
-
-    for (int i = 0; i < palette.size; ++i) {
-        colorMap[i] = ColorFromHex(palette.colors[i]);
-        paletteMap[i] = i;
-    }
 
     ClearScreen(0);
 }
@@ -90,8 +87,32 @@ void sig8_UpdateScreen(void)
     int size = SCREEN_WIDTH * SCREEN_HEIGHT;
     uint8_t *ptr = colorBuffer;
     for (int i = 0; i < size; ++i) {
-        screenBuffer[i] = colorMap[*ptr++];
+        int color = *ptr++;
+        if (color < MAX_PALETTE_SIZE) {
+            screenBuffer[i] = colorMap[color];
+        }
     }
+}
+
+void UsePalette(Palette newPalette)
+{
+    if (screenBuffer) {
+        sig8_UpdateScreen();
+        ClearScreen(0xff);
+    }
+
+    palette = newPalette;
+
+    for (int i = 0; i < palette.size; ++i) {
+        colorMap[i] = ColorFromHex(palette.colors[i]);
+        paletteMap[i] = i;
+    }
+
+}
+
+Palette GetPalette(void)
+{
+    return palette;
 }
 
 void ClearScreen(int color)
@@ -386,6 +407,23 @@ void DrawSubSprite(int x, int y, int sprite, int sx, int sy, int w, int h, int m
     DrawSpriteImpl(x, y, sx, sy, w, h, mask);
 }
 
+int GetBestColor(int r, int g, int b)
+{
+    int bestColor = 0;
+    int err = INT32_MAX;
+    for (int i = 0; i < PALETTE_SIZE; ++i) {
+        int dr = colorMap[i].r - r;
+        int dg = colorMap[i].g - g;
+        int db = colorMap[i].b - b;
+        int curErr = dr * dr + dg * dg + db * db;
+        if (curErr < err) {
+            bestColor = i;
+            err = curErr;
+        }
+    }
+    return bestColor;
+}
+
 SpriteSheet LoadSpriteSheet(const char *path)
 {
     uint8_t *result = sig8_AllocateResource(RESOURCE_SPRITESHEET, path, SPRITESHEET_BYTE_SIZE);
@@ -423,20 +461,7 @@ SpriteSheet LoadSpriteSheet(const char *path)
                     int g = pixel[1];
                     int b = pixel[2];
 
-                    int bestColor = 0;
-                    int err = INT32_MAX;
-                    for (int color = 0; color < PALETTE_SIZE; ++color) {
-                        int dr = colorMap[color].r - r;
-                        int dg = colorMap[color].g - g;
-                        int db = colorMap[color].b - b;
-                        int curErr = dr * dr + dg * dg + db * db;
-                        if (curErr < err) {
-                            bestColor = color;
-                            err = curErr;
-                        }
-                    }
-
-                    result[GetSpritePixelIndex(x, y, sprite)] = bestColor;
+                    result[GetSpritePixelIndex(x, y, sprite)] = GetBestColor(r, g, b);
                 }
             }
 

@@ -63,7 +63,6 @@ void sig8_InitAudio(void);
 void sig8_InitMusic(void);
 void sig8_InitInput(void);
 void sig8_InitAlloc(void);
-void sig8_ResizeScreen(int newWidth, int newHeight);
 void sig8_UpdateScreen(void);
 void sig8_LeaveEditor(void);
 
