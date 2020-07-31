@@ -6,24 +6,21 @@ static SpriteSheet spriteSheet;
 
 static int ticks = 0;
 
-static int cameraX = 0;
-static int cameraY = 0;
-static int selectedX;
-static int selectedY;
+static Position camera;
+static Position selected;
 
 static bool isDragging;
-static int dragOriginX;
-static int dragOriginY;
+static Position dragOrigin;
 
 static bool spriteTabOpen;
 static int selectedSprite;
 static int selectedSpriteRegion = 1;
-
 static bool showGrid;
-
 static Selection selection;
-
 static Palette palette;
+static uint8_t *clipboard;
+static Position clipboardSize;
+static bool isPasting;
 
 typedef enum {
     TOOL_DRAW,
@@ -58,6 +55,41 @@ static void Save(void)
     fclose(file);
     free(data);
     free(path);
+}
+
+static void Copy(void)
+{
+    if (!selection.active || selection.resizing) {
+        return;
+    }
+
+    if (clipboard) {
+        free(clipboard);
+    }
+
+    int width = selection.x2 - selection.x1 + 1;
+    int height = selection.y2 - selection.y1 + 1;
+
+    clipboard = malloc(width * height);
+
+    for (int j = 0; j < height; ++j) {
+        for (int i = 0; i < width; ++i) {
+            clipboard[i + j * width] = GetTile(i + selection.x1, j + selection.y1);
+        }
+    }
+
+    clipboardSize.x = width;
+    clipboardSize.y = height;
+}
+
+static void Paste()
+{
+    if (!clipboard) {
+        return;
+    }
+
+    isPasting = true;
+    selection.active = false;
 }
 
 static void Fill(int x, int y, int tile)
@@ -223,7 +255,7 @@ static void DrawTopButtons(void)
             .shortcut = "Ctrl+C",
             .hint = "COPY [CTRL+C]"
     }, false)) {
-
+        Copy();
     }
 
     if (sig8_DrawButton(53, 1, (Button) {
@@ -231,7 +263,7 @@ static void DrawTopButtons(void)
             .shortcut = "Ctrl+V",
             .hint = "PASTE [CTRL-V]"
     }, false)) {
-
+        Paste();
     }
 
     if (sig8_DrawButton(SCREEN_WIDTH - 42, 1, (Button) {
@@ -248,6 +280,7 @@ static void DrawTopButtons(void)
             .hint = "SELECT TILE [TAB]"
     }, spriteTabOpen)) {
         spriteTabOpen = !spriteTabOpen;
+        isPasting = false;
     }
 
     if (sig8_DrawButton(SCREEN_WIDTH - 25, 1, (Button) {
@@ -290,8 +323,8 @@ static void DrawStatusBar(void)
         --selectedSpriteRegion;
         sig8_DrawSlider(SCREEN_WIDTH - 60, SCREEN_HEIGHT - 8, &selectedSpriteRegion);
         ++selectedSpriteRegion;
-    } else if (selectedX != -1) {
-        DrawString(SCREEN_WIDTH - 32, SCREEN_HEIGHT - 2, RED, Format("%03d:%03d", selectedX, selectedY));
+    } else if (selected.x != -1) {
+        DrawString(SCREEN_WIDTH - 32, SCREEN_HEIGHT - 2, RED, Format("%03d:%03d", selected.x, selected.y));
     }
 }
 
@@ -316,19 +349,20 @@ static void DrawTileSelector(void)
 
 static void DrawGrid(Rect rect, int freq, int color)
 {
-    for (int j = rect.y + Modulo(-cameraY, freq * SPRITE_HEIGHT); j < rect.y + rect.height; j += freq * SPRITE_HEIGHT) {
+    for (int j = rect.y + Modulo(-camera.y, freq * SPRITE_HEIGHT);
+         j < rect.y + rect.height; j += freq * SPRITE_HEIGHT) {
         DrawLine(rect.x, j, rect.x + rect.width, j, color);
     }
 
-    for (int i = rect.x + Modulo(-cameraX, freq * SPRITE_WIDTH); i < rect.x + rect.width; i += freq * SPRITE_WIDTH) {
+    for (int i = rect.x + Modulo(-camera.x, freq * SPRITE_WIDTH); i < rect.x + rect.width; i += freq * SPRITE_WIDTH) {
         DrawLine(i, rect.y, i, rect.y + rect.height, color);
     }
 }
 
 static void DrawSelection(void)
 {
-    int x = min(selection.x1, selection.x2) * SPRITE_WIDTH - cameraX;
-    int y = min(selection.y1, selection.y2) * SPRITE_HEIGHT - cameraY + TOOLBAR_SIZE;
+    int x = min(selection.x1, selection.x2) * SPRITE_WIDTH - camera.x;
+    int y = min(selection.y1, selection.y2) * SPRITE_HEIGHT - camera.y + TOOLBAR_SIZE;
     int width = (diff(selection.x1, selection.x2) + 1) * SPRITE_WIDTH;
     int height = (diff(selection.y1, selection.y2) + 1) * SPRITE_HEIGHT;
 
@@ -368,19 +402,19 @@ static void DrawTiles(void)
         if (MouseJustPressed(MOUSE_RIGHT)) {
             // Begin drag
             isDragging = true;
-            dragOriginX = cameraX + position.x;
-            dragOriginY = cameraY + position.y;
+            dragOrigin.x = camera.x + position.x;
+            dragOrigin.y = camera.y + position.y;
         }
 
         if (isDragging) {
-            cameraX = dragOriginX - position.x;
-            cameraY = dragOriginY - position.y;
+            camera.x = dragOrigin.x - position.x;
+            camera.y = dragOrigin.y - position.y;
         }
     }
 
     UseSpriteSheet(spriteSheet);
     UsePalette(palette);
-    DrawTileMap(rect.x, rect.y, rect.width, rect.height, cameraX, cameraY);
+    DrawTileMap(rect.x, rect.y, rect.width, rect.height, camera.x, camera.y);
     UsePalette(PALETTE_DEFAULT);
 
     if (showGrid) {
@@ -390,12 +424,12 @@ static void DrawTiles(void)
     DrawGrid(rect, 16, GRAY);
 
     if (sig8_IsMouseOver(rect)) {
-        selectedX = Divide(position.x + cameraX - rect.x, SPRITE_WIDTH);
-        selectedY = Divide(position.y + cameraY - rect.y, SPRITE_HEIGHT);
+        selected.x = Divide(position.x + camera.x - rect.x, SPRITE_WIDTH);
+        selected.y = Divide(position.y + camera.y - rect.y, SPRITE_HEIGHT);
 
         Rect r = {
-                .x = rect.x + selectedX * SPRITE_WIDTH - cameraX,
-                .y = rect.y + selectedY * SPRITE_HEIGHT - cameraY,
+                .x = rect.x + selected.x * SPRITE_WIDTH - camera.x,
+                .y = rect.y + selected.y * SPRITE_HEIGHT - camera.y,
                 .width = selectedSpriteRegion * SPRITE_WIDTH + 1,
                 .height = selectedSpriteRegion * SPRITE_HEIGHT + 1
         };
@@ -413,12 +447,12 @@ static void DrawTiles(void)
                     for (int j = 0; j < selectedSpriteRegion; ++j) {
                         for (int i = 0; i < selectedSpriteRegion; ++i) {
                             if (KeyPressed("Shift")) {
-                                SetTile(selectedX + i, selectedY + j, 0);
+                                SetTile(selected.x + i, selected.y + j, 0);
                             } else {
                                 int tx = selectedSprite % SPRITESHEET_WIDTH + i;
                                 int ty = selectedSprite / SPRITESHEET_WIDTH + j;
                                 int idx = tx + ty * SPRITESHEET_WIDTH;
-                                SetTile(selectedX + i, selectedY + j, idx);
+                                SetTile(selected.x + i, selected.y + j, idx);
                             }
                         }
                     }
@@ -431,19 +465,48 @@ static void DrawTiles(void)
 
                 if (MousePressed(MOUSE_LEFT)) {
                     sig8_BeginUndoableAction();
-                    Fill(selectedX, selectedY, selectedSprite);
+                    Fill(selected.x, selected.y, selectedSprite);
                     sig8_EndUndoableAction();
                 }
             } else if (tool == TOOL_SELECT) {
-                sig8_Selection(&selection, selectedX, selectedY);
+                sig8_Selection(&selection, selected.x, selected.y);
+            }
+
+            if (isPasting) {
+                for (int j = 0; j < clipboardSize.y; ++j) {
+                    for (int i = 0; i < clipboardSize.x; ++i) {
+                        DrawSpriteMask(
+                                r.x + (i - clipboardSize.x / 2) * SPRITE_WIDTH,
+                                r.y + (j - clipboardSize.y / 2) * SPRITE_HEIGHT,
+                                clipboard[i + j * clipboardSize.x],-1
+                        );
+                    }
+                }
+                selection.active = false;
+                selection.x1 = selected.x - clipboardSize.x / 2;
+                selection.y1 = selected.y - clipboardSize.y / 2;
+                selection.x2 = selection.x1 + clipboardSize.x - 1;
+                selection.y2 = selection.y1 + clipboardSize.y - 1;
+                DrawSelection();
+
+                if (MouseJustPressed(MOUSE_LEFT)) {
+                    sig8_BeginUndoableAction();
+                    for (int j = 0; j < clipboardSize.y; ++j) {
+                        for (int i = 0; i < clipboardSize.x; ++i) {
+                            SetTile(selection.x1 + i, selection.y1 + j, clipboard[i + j * clipboardSize.x]);
+                        }
+                    }
+                    sig8_EndUndoableAction();
+                    isPasting = false;
+                }
             }
         }
 
-        selectedX = Modulo(selectedX, TILEMAP_WIDTH);
-        selectedY = Modulo(selectedY, TILEMAP_HEIGHT);
+        selected.x = Modulo(selected.x, TILEMAP_WIDTH);
+        selected.y = Modulo(selected.y, TILEMAP_HEIGHT);
     } else {
-        selectedX = -1;
-        selectedY = -1;
+        selected.x = -1;
+        selected.y = -1;
     }
 
     UseSpriteSheet(sig8_EDITORS_SPRITESHEET);
@@ -465,6 +528,10 @@ static void HandleInput(void)
             sig8_HistoryClear();
             sig8_LeaveEditor();
             UsePalette(palette);
+            if (clipboard) {
+                free(clipboard);
+                clipboard = NULL;
+            }
             return;
         }
     }
@@ -475,7 +542,7 @@ void sig8_TileEditorInit(ManagedResource *what)
     sig8_Editing = what;
     UseTileMap(sig8_Editing->resource);
     spriteSheet = GetCurrentSpriteSheet();
-    selectedX = selectedY = -1;
+    selected.x = selected.y = -1;
     spriteTabOpen = false;
     selection.active = false;
     palette = GetPalette();
