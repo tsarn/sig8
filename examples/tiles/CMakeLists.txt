@@ -4,7 +4,9 @@ target_link_libraries(${EXAMPLE_NAME} m)
 
 sig8_bundle(
     ${EXAMPLE_NAME}
-    RESOURCES spritesheet.png
+    RESOURCES
+        spritesheet.png
+        tilemap.dat
 )
 
 sig8_platform(${EXAMPLE_NAME})
