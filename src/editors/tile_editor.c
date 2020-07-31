@@ -21,6 +21,7 @@ static int selectedSprite;
 static bool showGrid;
 
 static Selection selection;
+static Selection spriteSelection;
 
 typedef enum {
     TOOL_DRAW,
@@ -397,7 +398,11 @@ static void DrawTiles(void)
 
             if (MousePressed(MOUSE_LEFT)) {
                 sig8_BeginUndoableAction();
-                SetTile(selectedX, selectedY, selectedSprite);
+                if (KeyPressed("Shift")) {
+                    SetTile(selectedX, selectedY, 0);
+                } else {
+                    SetTile(selectedX, selectedY, selectedSprite);
+                }
                 sig8_EndUndoableAction();
             }
         } else if (tool == TOOL_FILL) {
