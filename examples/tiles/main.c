@@ -1,6 +1,6 @@
 #include "sig8.h"
 
-int t;
+static int t;
 
 void tileCallback(int x, int y, int *sprite, int *mask)
 {
