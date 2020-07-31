@@ -95,7 +95,6 @@ void sig8_Initialize(const char *windowName)
     sig8_InitWindow(windowName);
     sig8_InitGLES();
     sig8_InitAudio();
-    sig8_InitMusic();
     sig8_InitInput();
 #ifdef SIG8_COMPILE_EDITORS
     const uint8_t *old = GetResourceBundle();
@@ -504,6 +503,11 @@ void EditResource(uint8_t *resource)
     case RESOURCE_TILEMAP:
         editorLoop = sig8_TileEditorTick;
         sig8_TileEditorInit(res);
+        break;
+
+    case RESOURCE_SOUNDLIB:
+        editorLoop = sig8_SoundEditorTick;
+        sig8_SoundEditorInit(res);
         break;
 
     default:

@@ -1,6 +1,6 @@
 #include "sig8_internal.h"
 
-uint8_t *sig8_AllocateResource(ResourceType type, const char *path, int size)
+void *sig8_AllocateResource(ResourceType type, const char *path, int size)
 {
 #ifdef SIG8_COMPILE_EDITORS
     ManagedResource *res = calloc(1, size + sizeof(ManagedResource));
@@ -21,10 +21,10 @@ uint8_t *sig8_AllocateResource(ResourceType type, const char *path, int size)
 #endif
 }
 
-void sig8_FreeResource(uint8_t *resource)
+void sig8_FreeResource(void *resource)
 {
 #ifdef SIG8_COMPILE_EDITORS
-    ManagedResource *res = sig8_GetManagedResource(resource);
+    ManagedResource *res = sig8_GetManagedResource((uint8_t*)resource);
     if (res->path) {
         free(res->path);
     }

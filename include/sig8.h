@@ -25,11 +25,11 @@ extern "C" {
 #define SPRITESHEET_WIDTH 16
 #define SPRITESHEET_HEIGHT 16
 #define SPRITESHEET_SIZE (SPRITESHEET_WIDTH * SPRITESHEET_HEIGHT)
-#define SPRITESHEET_BYTE_SIZE (SPRITESHEET_SIZE * SPRITE_WIDTH * SPRITE_HEIGHT)
 
 #define TILEMAP_WIDTH 256
 #define TILEMAP_HEIGHT 256
-#define TILEMAP_BYTE_SIZE (TILEMAP_WIDTH * TILEMAP_HEIGHT)
+
+#define SOUNDLIB_SIZE 64
 
 #define SOUND_CHANNELS 8
 #define ENVELOPE_LENGTH 32
@@ -101,20 +101,6 @@ typedef struct {
     Color *colors;
 } Palette;
 
-extern Palette PALETTE_DEFAULT;
-
-typedef const FontDefinition *Font;
-
-extern const Font FONT_TINY;
-extern const Font FONT_SMALL;
-extern const Font FONT_MEDIUM;
-extern const Font FONT_LARGE;
-
-// Just for semantics
-typedef uint8_t *SpriteSheet;
-typedef uint8_t *TileMap;
-typedef uint8_t *Music;
-
 typedef enum {
     STOP_NOTE = 0,
     A0, AS0, B0,
@@ -141,36 +127,55 @@ typedef enum {
 
 typedef enum {
     // Volume (0..15), any wave
-    ENVELOPE_VOLUME,
+            ENVELOPE_VOLUME,
 
     // Duty cycle (0..15), square wave
     // 0 is 1/32 duty cycle, 15 is 1/2 duty cycle
-    ENVELOPE_DUTY_CYCLE,
+            ENVELOPE_DUTY_CYCLE,
 
     // Pitch, any wave except noise
     // Adds pitch, 1/16th of a semi tone per unit
-    ENVELOPE_PITCH,
+            ENVELOPE_PITCH,
 
     // Arpeggio, any wave except noise
     // Shifts note in increments of semi tones
-    ENVELOPE_ARPEGGIO,
+            ENVELOPE_ARPEGGIO,
 
     NUMBER_OF_ENVELOPES
 
 } EnvelopeType;
 
 typedef struct {
-    int loopBegin;
-    int loopEnd;
-    int value[ENVELOPE_LENGTH];
+    int8_t loopBegin;
+    int8_t loopEnd;
+    int8_t value[ENVELOPE_LENGTH];
 } Envelope;
 
 typedef struct {
     Wave wave;
     Envelope envelopes[NUMBER_OF_ENVELOPES];
-    float volume; // volume in range [0..1]
-    int speed; // how many frames per one envelope tick
+    uint8_t volume; // volume in range [0..255]
+    uint8_t speed; // how many frames per one envelope tick
 } Instrument;
+
+typedef struct {
+    Instrument instrument;
+    Note note;
+} Sound;
+
+extern Palette PALETTE_DEFAULT;
+
+typedef const FontDefinition *Font;
+
+extern const Font FONT_TINY;
+extern const Font FONT_SMALL;
+extern const Font FONT_MEDIUM;
+extern const Font FONT_LARGE;
+
+typedef uint8_t *SpriteSheet;
+typedef uint8_t *TileMap;
+typedef Sound *SoundLib;
+
 
 void sig8_Initialize(const char *windowName);
 
@@ -304,12 +309,16 @@ void DrawTileMapEx(int x, int y, int width, int height, int offsetX, int offsetY
 
 Instrument NewInstrument(void);
 void SetInstrument(int channel, Instrument instrument);
-void PlayNote(int channel, Note note);
+void PlayNote(Note note, int channel);
 void StopNote(int channel);
 void SetMasterVolume(float volume);
 void SetChannelVolume(int channel, float volume);
-void PlayMusic(Music music);
-void StopMusic(void);
+
+SoundLib LoadSoundLib(const char *path);
+SoundLib GetCurrentSoundLib(void);
+void FreeSoundLib(SoundLib soundLib);
+void UseSoundLib(SoundLib soundLib);
+void PlaySound(int sound, int channel);
 
 #ifdef  __cplusplus
 };

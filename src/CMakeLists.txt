@@ -10,12 +10,11 @@ add_library(sig8 STATIC
         window.c
         input.c
         audio.c
-        music.c
         alloc.c
         events.c
         tilemap.c
         fs.c
-        resource.c)
+        resource.c sound.c)
 
 add_library(sig8::sig8 ALIAS sig8)
 
@@ -57,7 +56,8 @@ if (SIG8_COMPILE_EDITORS)
             editors/history.c
             editors/sprite_editor.c
             editors/ui.c
-            editors/tile_editor.c)
+            editors/tile_editor.c
+            editors/sound_editor.c)
 endif()
 
 set_target_properties(sig8 PROPERTIES VERSION ${SIG8_VERSION})
