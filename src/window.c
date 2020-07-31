@@ -485,7 +485,7 @@ void sig8_LeaveEditor(void)
 }
 #endif
 
-void EditResource(uint8_t *resource)
+void EditResource(void *resource)
 {
 #ifdef SIG8_COMPILE_EDITORS
     if (!editorsEnabled) {
