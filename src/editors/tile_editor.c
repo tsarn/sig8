@@ -521,6 +521,8 @@ static void HandleInput(void)
     if (KeyJustPressed("Escape")) {
         if (spriteTabOpen) {
             spriteTabOpen = false;
+        } else if (isPasting) {
+            isPasting = false;
         } else if (selection.active) {
             selection.active = false;
         } else {
@@ -545,6 +547,7 @@ void sig8_TileEditorInit(ManagedResource *what)
     selected.x = selected.y = -1;
     spriteTabOpen = false;
     selection.active = false;
+    isPasting = false;
     palette = GetPalette();
     sig8_HistoryClear();
 }
