@@ -65,7 +65,7 @@ static void Save(void)
         data[3 * i + 1] = color.g;
         data[3 * i + 2] = color.b;
     }
-    
+
     UsePalette(PALETTE_DEFAULT);
 
     stbi_write_png(path, SPRITESHEET_WIDTH * SPRITE_WIDTH, SPRITESHEET_HEIGHT * SPRITE_HEIGHT, 3, data, 0);
