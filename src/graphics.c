@@ -19,23 +19,23 @@ static TileMap savedTileMap;
 
 Palette PALETTE_DEFAULT = {
         .size = 16,
-        .colors = (const char *[]){
-            "#000000",
-            "#eb2167",
-            "#eb7a23",
-            "#ebe723",
-            "#26eb50",
-            "#28bdeb",
-            "#f57aab",
-            "#f2c78f",
-            "#722ca3",
-            "#961743",
-            "#734521",
-            "#208061",
-            "#194b63",
-            "#465663",
-            "#999999",
-            "#f2f7f7",
+        .colors = (Color[]){
+            { 0, 0, 0 },
+            { 235, 33, 103 },
+            { 235, 122, 35 },
+            { 235, 231, 35 },
+            { 38, 235, 80 },
+            { 40, 189, 235 },
+            { 245, 122, 171 },
+            { 242, 199, 143 },
+            { 114, 44, 163 },
+            { 150, 23, 67 },
+            { 115, 69, 33 },
+            { 32, 128, 97 },
+            { 25, 75, 99 },
+            { 70, 86, 99 },
+            { 153, 153, 153 },
+            { 242, 247, 247 },
         }
 };
 
@@ -104,7 +104,7 @@ void UsePalette(Palette newPalette)
     palette = newPalette;
 
     for (int i = 0; i < palette.size; ++i) {
-        colorMap[i] = ColorFromHex(palette.colors[i]);
+        colorMap[i] = palette.colors[i];
         paletteMap[i] = i;
     }
 

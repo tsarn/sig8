@@ -98,7 +98,7 @@ typedef struct {
 
 typedef struct {
     int size;
-    const char **colors;
+    Color *colors;
 } Palette;
 
 extern Palette PALETTE_DEFAULT;
