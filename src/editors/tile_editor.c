@@ -17,6 +17,7 @@ static int dragOriginY;
 
 static bool spriteTabOpen;
 static int selectedSprite;
+static int selectedSpriteRegion = 1;
 
 static bool showGrid;
 
@@ -286,6 +287,9 @@ static void DrawStatusBar(void)
 
     if (spriteTabOpen) {
         DrawString(SCREEN_WIDTH - 23, SCREEN_HEIGHT - 2, RED, Format("#%03d", selectedSprite));
+        --selectedSpriteRegion;
+        sig8_DrawSlider(SCREEN_WIDTH - 60, SCREEN_HEIGHT - 8, &selectedSpriteRegion);
+        ++selectedSpriteRegion;
     } else if (selectedX != -1) {
         DrawString(SCREEN_WIDTH - 32, SCREEN_HEIGHT - 2, RED, Format("%03d:%03d", selectedX, selectedY));
     }
@@ -303,7 +307,7 @@ static void DrawTileSelector(void)
     UsePalette(palette);
     sig8_DrawSpriteSheet(
             rect.x + 1, rect.y + 1,
-            spriteSheet, 1, &selectedSprite
+            spriteSheet, selectedSpriteRegion, &selectedSprite
     );
     UsePalette(PALETTE_DEFAULT);
 
@@ -392,38 +396,47 @@ static void DrawTiles(void)
         Rect r = {
                 .x = rect.x + selectedX * SPRITE_WIDTH - cameraX,
                 .y = rect.y + selectedY * SPRITE_HEIGHT - cameraY,
-                .width = SPRITE_WIDTH + 1,
-                .height = SPRITE_HEIGHT + 1
+                .width = selectedSpriteRegion * SPRITE_WIDTH + 1,
+                .height = selectedSpriteRegion * SPRITE_HEIGHT + 1
         };
 
-        if (tool == TOOL_DRAW) {
-            UsePalette(palette);
-            DrawSpriteMask(r.x, r.y, selectedSprite, -1);
-            UsePalette(PALETTE_DEFAULT);
+        if (!spriteTabOpen) {
+            if (tool == TOOL_DRAW) {
+                UsePalette(palette);
+                DrawBigSpriteMask(r.x, r.y, selectedSprite, selectedSpriteRegion, selectedSpriteRegion, -1);
+                UsePalette(PALETTE_DEFAULT);
 
-            sig8_StrokeRectR(r, WHITE);
+                sig8_StrokeRectR(r, WHITE);
 
-            if (MousePressed(MOUSE_LEFT)) {
-                sig8_BeginUndoableAction();
-                if (KeyPressed("Shift")) {
-                    SetTile(selectedX, selectedY, 0);
-                } else {
-                    SetTile(selectedX, selectedY, selectedSprite);
+                if (MousePressed(MOUSE_LEFT)) {
+                    sig8_BeginUndoableAction();
+                    for (int j = 0; j < selectedSpriteRegion; ++j) {
+                        for (int i = 0; i < selectedSpriteRegion; ++i) {
+                            if (KeyPressed("Shift")) {
+                                SetTile(selectedX + i, selectedY + j, 0);
+                            } else {
+                                int tx = selectedSprite % SPRITESHEET_WIDTH + i;
+                                int ty = selectedSprite / SPRITESHEET_WIDTH + j;
+                                int idx = tx + ty * SPRITESHEET_WIDTH;
+                                SetTile(selectedX + i, selectedY + j, idx);
+                            }
+                        }
+                    }
+                    sig8_EndUndoableAction();
                 }
-                sig8_EndUndoableAction();
-            }
-        } else if (tool == TOOL_FILL) {
-            UsePalette(palette);
-            DrawSpriteMask(r.x, r.y, selectedSprite, -1);
-            UsePalette(PALETTE_DEFAULT);
+            } else if (tool == TOOL_FILL) {
+                UsePalette(palette);
+                DrawSpriteMask(r.x, r.y, selectedSprite, -1);
+                UsePalette(PALETTE_DEFAULT);
 
-            if (MousePressed(MOUSE_LEFT)) {
-                sig8_BeginUndoableAction();
-                Fill(selectedX, selectedY, selectedSprite);
-                sig8_EndUndoableAction();
+                if (MousePressed(MOUSE_LEFT)) {
+                    sig8_BeginUndoableAction();
+                    Fill(selectedX, selectedY, selectedSprite);
+                    sig8_EndUndoableAction();
+                }
+            } else if (tool == TOOL_SELECT) {
+                sig8_Selection(&selection, selectedX, selectedY);
             }
-        } else if (tool == TOOL_SELECT) {
-            sig8_Selection(&selection, selectedX, selectedY);
         }
 
         selectedX = Modulo(selectedX, TILEMAP_WIDTH);

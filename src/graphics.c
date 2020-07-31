@@ -395,6 +395,11 @@ void DrawBigSprite(int x, int y, int sprite, int w, int h)
     DrawSubSprite(x, y, sprite, 0, 0, w * SPRITE_WIDTH, h * SPRITE_HEIGHT, 0);
 }
 
+void DrawBigSpriteMask(int x, int y, int sprite, int w, int h, int mask)
+{
+    DrawSubSprite(x, y, sprite, 0, 0, w * SPRITE_WIDTH, h * SPRITE_HEIGHT, mask);
+}
+
 void DrawSubSprite(int x, int y, int sprite, int sx, int sy, int w, int h, int mask)
 {
     if (sprite < 0 || sprite >= SPRITESHEET_SIZE || !currentSpriteSheet) {
