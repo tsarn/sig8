@@ -216,6 +216,14 @@ static void Clear(void)
     sig8_EndUndoableAction();
 }
 
+static void Cut(void)
+{
+    if (selection.active && !selection.resizing) {
+        Copy();
+        Clear();
+    }
+}
+
 static void DrawTopButtons(void)
 {
     if (sig8_DrawButton(2, 1, (Button) {
@@ -253,12 +261,20 @@ static void DrawTopButtons(void)
     if (sig8_DrawButton(44, 1, (Button) {
             .sprite = 17,
             .shortcut = "Ctrl+C",
-            .hint = "COPY [CTRL+C]"
+            .hint = "COPY [CTRL-C]"
     }, false)) {
         Copy();
     }
 
     if (sig8_DrawButton(53, 1, (Button) {
+            .sprite = 19,
+            .shortcut = "Ctrl+X",
+            .hint = "CUT [CTRL-X]"
+    }, false)) {
+        Cut();
+    }
+
+    if (sig8_DrawButton(62, 1, (Button) {
             .sprite = 18,
             .shortcut = "Ctrl+V",
             .hint = "PASTE [CTRL-V]"
