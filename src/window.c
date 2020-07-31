@@ -132,6 +132,8 @@ static void OnResize(void)
         pixelScale = pixelScaleY;
     }
 
+    pixelScale = floorf(pixelScale);
+
     offsetX = (1.0f - (float)screenWidth * pixelScale / (float)windowWidth) / 2.0f;
     offsetY = (1.0f - (float)screenHeight * pixelScale  / (float)windowHeight) / 2.0f;
 }

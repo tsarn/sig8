@@ -119,7 +119,9 @@ typedef enum {
     SAWTOOTH_WAVE,
     SINE_WAVE,
     TRIANGLE_WAVE,
-    NOISE
+    NOISE,
+
+    NUMBER_OF_WAVES
 } Wave;
 
 #define ENVELOPE_VOLUME_MAX 15
@@ -128,11 +130,6 @@ typedef enum {
 typedef enum {
     // Volume (0..15), any wave
             ENVELOPE_VOLUME,
-
-    // Duty cycle (0..15), square wave
-    // 0 is 1/32 duty cycle, 15 is 1/2 duty cycle
-            ENVELOPE_DUTY_CYCLE,
-
     // Pitch, any wave except noise
     // Adds pitch, 1/16th of a semi tone per unit
             ENVELOPE_PITCH,
@@ -140,6 +137,10 @@ typedef enum {
     // Arpeggio, any wave except noise
     // Shifts note in increments of semi tones
             ENVELOPE_ARPEGGIO,
+
+    // Duty cycle (0..15), square wave
+    // 0 is 1/32 duty cycle, 15 is 1/2 duty cycle
+            ENVELOPE_DUTY_CYCLE,
 
     NUMBER_OF_ENVELOPES
 

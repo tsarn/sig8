@@ -11,7 +11,7 @@ static void mainLoop(void)
 
 int main()
 {
-    Initialize("sig8 example: lines");
+    Initialize("sig8 example: sound");
     UseSoundLib(LoadSoundLib("res://sounds.dat"));
     RunMainLoop(mainLoop);
     return 0;
