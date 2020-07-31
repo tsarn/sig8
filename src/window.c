@@ -23,7 +23,7 @@ static const char *fragmentShaderSource =
         "uniform sampler2D tex;\n"
         "void main()\n"
         "{\n"
-        "  fragColor = texture(tex, uv);\n"
+        "  fragColor = texture(tex, uv); fragColor.a = 1.0;\n"
         "}\n";
 
 static const float screenRect[] = {
@@ -49,9 +49,8 @@ static int offLoc;
 static int windowWidth, windowHeight;
 
 // screen size in virtual pixels (e.g. 128x128)
-static int screenWidth, screenHeight;
-
-static Palette palette;
+static int screenWidth = 128;
+static int screenHeight = 128;
 
 static float offsetX, offsetY;
 static float pixelScale;
@@ -65,7 +64,6 @@ static bool shouldQuit = false;
 static bool initialized = false;
 static bool anyEventsHappened = false;
 static void (*mainLoop)(void);
-static Configuration configuration;
 
 static SDL_Cursor *cachedCursors[SDL_NUM_SYSTEM_CURSORS];
 
@@ -74,9 +72,13 @@ static bool pendingEditorEnter = false;
 static bool pendingEditorLeave = false;
 static bool editorsEnabled = false;
 static void (*editorLoop)(void);
+
+// saved user screen size, so that we can restore it when we leave an editor
+static int userScreenWidth;
+static int userScreenHeight;
 #endif
 
-void sig8_InitializeEx(Configuration cfg)
+void sig8_Initialize(const char *windowName)
 {
     if (initialized) {
         puts("Repeat initialization is not supported.");
@@ -85,18 +87,12 @@ void sig8_InitializeEx(Configuration cfg)
         exit(EXIT_FAILURE);
     }
 
-    screenWidth = cfg.width = cfg.width ? cfg.width : 128;
-    screenHeight = cfg.height =  cfg.height ? cfg.height : 128;
-    palette = cfg.palette.size ? cfg.palette : PALETTE_DEFAULT;
-
-    configuration = cfg;
-
     screenBufferSize = screenWidth * screenHeight * sizeof(Color);
     screenBuffer = malloc(screenBufferSize);
 
     sig8_InitAlloc();
     sig8_InitScreen(screenBuffer);
-    sig8_InitWindow(configuration.windowName);
+    sig8_InitWindow(windowName);
     sig8_InitGLES();
     sig8_InitAudio();
     sig8_InitMusic();
@@ -109,13 +105,6 @@ void sig8_InitializeEx(Configuration cfg)
     UseResourceBundle(old);
 #endif
     initialized = true;
-}
-
-void sig8_Initialize(const char *windowName)
-{
-    sig8_InitializeEx((Configuration){
-        .windowName = windowName
-    });
 }
 
 void Finalize(void)
@@ -148,20 +137,19 @@ static void OnResize(void)
     offsetY = (1.0f - (float)screenHeight * pixelScale  / (float)windowHeight) / 2.0f;
 }
 
-void sig8_ResizeScreen(int newWidth, int newHeight)
+void ResizeScreen(int newWidth, int newHeight)
 {
-    // This function is only called AFTER everything has been initialized.
-    // That means, that the screen of default size has already been allocated
-    // and all the GLES buffers are already allocated as well.
-
-    free(screenBuffer);
     screenWidth = newWidth;
     screenHeight = newHeight;
-    screenBufferSize = screenWidth * screenHeight * sizeof(Color);
-    screenBuffer = malloc(screenBufferSize);
-    sig8_InitScreen(screenBuffer);
-    sig8_InitGLESPixelBuffer();
-    OnResize();
+
+    if (initialized) {
+        free(screenBuffer);
+        screenBufferSize = screenWidth * screenHeight * sizeof(Color);
+        screenBuffer = malloc(screenBufferSize);
+        sig8_InitScreen(screenBuffer);
+        sig8_InitGLESPixelBuffer();
+        OnResize();
+    }
 }
 
 int GetScreenWidth(void)
@@ -172,11 +160,6 @@ int GetScreenWidth(void)
 int GetScreenHeight(void)
 {
     return screenHeight;
-}
-
-Palette GetPalette(void)
-{
-    return palette;
 }
 
 static void UpdateDelta(void)
@@ -258,14 +241,14 @@ static void UpdateBufferData(void)
     glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
     glBindTexture(GL_TEXTURE_2D, screenTexture);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
-                    SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+                    SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, 0);
 }
 
 void sig8_InitGLESPixelBuffer(void)
 {
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, screenPBO);
     glBufferData(GL_PIXEL_UNPACK_BUFFER, screenBufferSize, screenBuffer, GL_DYNAMIC_DRAW);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
 }
 
 void sig8_InitGLES(void)
@@ -407,13 +390,15 @@ static bool Tick(void)
 
 #ifdef SIG8_COMPILE_EDITORS
     if (pendingEditorEnter) {
+        userScreenWidth = screenWidth;
+        userScreenHeight = screenHeight;
         sig8_EmitEvent(EDITOR_ENTER_EVENT, NULL);
-        sig8_ResizeScreen(EDITOR_WIDTH, EDITOR_HEIGHT);
+        ResizeScreen(EDITOR_WIDTH, EDITOR_HEIGHT);
         pendingEditorEnter = false;
     }
 
     if (pendingEditorLeave) {
-        sig8_ResizeScreen(configuration.width, configuration.height);
+        ResizeScreen(userScreenWidth, userScreenHeight);
         sig8_EmitEvent(EDITOR_LEAVE_EVENT, NULL);
         pendingEditorLeave = false;
     }

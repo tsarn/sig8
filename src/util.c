@@ -2,7 +2,7 @@
 
 Color ColorFromHex(const char *hex)
 {
-    Color res = {.a = 255};
+    Color res;
     assert(hex[0] == '#');
     int len = strlen(hex);
 
@@ -15,11 +15,7 @@ Color ColorFromHex(const char *hex)
         res.g = (res.g << 4) | res.g;
         res.b = value & 0xf;
         res.b = (res.b << 4) | res.b;
-    } else if (len == 7 || len == 9) {
-        if (len == 9) {
-            res.a = value & 0xff;
-            value >>= 8;
-        }
+    } else if (len == 7) {
         res.r = (value >> 16);
         res.g = (value >> 8) & 0xff;
         res.b = value & 0xff;

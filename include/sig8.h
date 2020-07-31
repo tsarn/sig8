@@ -9,9 +9,10 @@ extern "C" {
 #endif
 
 // For most intents and purposes these are constants
-#define SCREEN_WIDTH GetScreenWidth()
-#define SCREEN_HEIGHT GetScreenHeight()
+#define SCREEN_WIDTH (GetScreenWidth())
+#define SCREEN_HEIGHT (GetScreenHeight())
 #define PALETTE_SIZE (GetPalette().size)
+#define MAX_PALETTE_SIZE 32
 
 // Size of the game window at startup
 #define DEFAULT_PIXEL_SIZE 4
@@ -65,7 +66,7 @@ typedef struct {
 } Position;
 
 typedef struct {
-    uint8_t r, g, b, a;
+    uint8_t r, g, b;
 } Color;
 
 typedef enum {
@@ -101,13 +102,6 @@ typedef struct {
 } Palette;
 
 extern Palette PALETTE_DEFAULT;
-
-typedef struct {
-    const char *windowName;
-    int width;
-    int height;
-    Palette palette;
-} Configuration;
 
 typedef const FontDefinition *Font;
 
@@ -179,7 +173,6 @@ typedef struct {
 } Instrument;
 
 void sig8_Initialize(const char *windowName);
-void sig8_InitializeEx(Configuration configuration);
 
 #define SIG8_PRE_INIT_EDITORS
 #define SIG8_PRE_INIT_RESOURCES
@@ -205,7 +198,6 @@ extern const uint8_t *SIG8_RESOURCE_BUNDLE;
 
 #define SIG8_PRE_INIT SIG8_PRE_INIT_EDITORS SIG8_PRE_INIT_RESOURCES
 #define Initialize SIG8_PRE_INIT sig8_Initialize
-#define InitializeEx SIG8_PRE_INIT sig8_InitializeEx
 
 void Finalize(void);
 void Quit(void);
@@ -213,9 +205,12 @@ bool ShouldQuit(void);
 void SetCursorShape(CursorShape cursor);
 int GetScreenWidth(void);
 int GetScreenHeight(void);
-Palette GetPalette(void);
 void RunMainLoop(void (*function)(void));
 void SetVSyncEnabled(bool enabled);
+void ResizeScreen(int newWidth, int newHeight);
+void UsePalette(Palette palette);
+Palette GetPalette(void);
+int GetBestColor(int r, int g, int b);
 
 /*
  * Resource / filesystem functions.
