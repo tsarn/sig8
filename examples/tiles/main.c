@@ -1,7 +1,5 @@
 #include "sig8.h"
 
-SpriteSheet spriteSheet;
-TileMap tileMap;
 int t;
 
 void tileCallback(int x, int y, int *sprite, int *mask)
@@ -13,24 +11,16 @@ void tileCallback(int x, int y, int *sprite, int *mask)
 
 void mainLoop(void)
 {
-    static int offsetX = 0;
-    static int offsetY = 0;
-
     ClearScreen(BLUE);
 
-    DrawTileMapEx(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, offsetX, offsetY, 0, tileCallback);
-
-    if (KeyJustPressed("Right")) offsetX += 5;
-    if (KeyJustPressed("Up")) offsetY -= 5;
-    if (KeyJustPressed("Down")) offsetY += 5;
-    if (KeyJustPressed("Left")) offsetX -= 5;
+    DrawTileMapEx(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0, tileCallback);
 
     if (KeyJustPressed("Ctrl+E")) {
-        EditResource(spriteSheet);
+        EditResource(GetCurrentSpriteSheet());
     }
 
     if (KeyJustPressed("E")) {
-        EditResource(tileMap);
+        EditResource(GetCurrentTileMap());
     }
 
     ++t;
@@ -39,12 +29,8 @@ void mainLoop(void)
 int main()
 {
     Initialize("sig8 example: tiles");
-
-    tileMap = LoadTileMap("res://tilemap.dat");
-    UseTileMap(tileMap);
-    spriteSheet = LoadSpriteSheet("res://spritesheet.png");
-    UseSpriteSheet(spriteSheet);
-
+    UseTileMap(LoadTileMap("res://tilemap.dat"););
+    UseSpriteSheet(LoadSpriteSheet("res://spritesheet.png"););
     RunMainLoop(mainLoop);
     return 0;
 }
