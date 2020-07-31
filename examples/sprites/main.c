@@ -4,7 +4,9 @@
 
 SpriteSheet spriteSheet;
 
-#define NUMBER_OF_SPRITES 500
+// depending on the processor, with -O3 it should be possible to hit
+// hundreds of thousands of sprites drawn at 60 fps
+#define NUMBER_OF_SPRITES 100
 #define SPEED_RANGE 50
 
 typedef struct {
@@ -29,15 +31,12 @@ void mainLoop(void)
         objects[i].x = fmodf(objects[i].x + 148, 148);
         objects[i].y = fmodf(objects[i].y + 148, 148);
     }
-
-    DrawString(2, 9, WHITE, Format("FPS: %.1f", 1.0f / t));
 }
 
 int main()
 {
-    Initialize("sig8 example: sprite benchmark");
-    spriteSheet = LoadSpriteSheet("res://spritesheet.png");
-    UseSpriteSheet(spriteSheet);
+    Initialize("sig8 example: sprites");
+    UseSpriteSheet(LoadSpriteSheet("res://spritesheet.png"));
 
     for (int i = 0; i < NUMBER_OF_SPRITES; ++i) {
         objects[i].x = rand() % 148;

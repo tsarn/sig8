@@ -29,8 +29,8 @@ void mainLoop(void)
 int main()
 {
     Initialize("sig8 example: tiles");
-    UseTileMap(LoadTileMap("res://tilemap.dat"););
-    UseSpriteSheet(LoadSpriteSheet("res://spritesheet.png"););
+    UseTileMap(LoadTileMap("res://tilemap.dat"));
+    UseSpriteSheet(LoadSpriteSheet("res://spritesheet.png"));
     RunMainLoop(mainLoop);
     return 0;
 }
