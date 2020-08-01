@@ -68,6 +68,7 @@ void sig8_InitInput(void);
 void sig8_InitAlloc(void);
 void sig8_UpdateScreen(void);
 void sig8_LeaveEditor(void);
+int sig8_GetPlayingTime(int channel);
 
 void sig8_RegisterCallback(int type, Callback callback);
 void sig8_RegisterEventCallback(int type, EventCallback callback);

@@ -155,7 +155,7 @@ typedef struct {
 typedef struct {
     Wave wave;
     Envelope envelopes[NUMBER_OF_ENVELOPES];
-    uint8_t volume; // volume in range [0..255]
+    uint8_t volume; // volume in range [0..15]
     uint8_t speed; // how many frames per one envelope tick
 } Instrument;
 
