@@ -85,6 +85,18 @@ static void DrawSoundSelect(void)
     selected = Modulo(selected, SOUNDLIB_SIZE);
 }
 
+static void DrawSpeedSelect(void)
+{
+    int x = SCREEN_WIDTH - 4 - DOT_SIZE * ENVELOPE_LENGTH + 30;
+    DrawString(x, 10, WHITE, "SPEED");
+
+    int speed = soundLib[selected].instrument.speed;
+    sig8_DrawNumberInput(x + 25, 4, &speed);
+    if (speed < 1) speed = 1;
+    if (speed > 64) speed = 64;
+    soundLib[selected].instrument.speed = speed;
+}
+
 static void DrawPiano(void)
 {
     int x = 6;
@@ -211,6 +223,15 @@ static void DrawEnvelopeButtons(void)
     }
 }
 
+static int GetEnvelopeOrigin(EnvelopeType envelope)
+{
+    if (envelope == ENVELOPE_PITCH || envelope == ENVELOPE_ARPEGGIO) {
+        return (ENVELOPE_RANGE + 1) / 2;
+    } else {
+        return 0;
+    }
+}
+
 static void DrawEnvelopeEditor(void)
 {
     DrawEnvelopeButtons();
@@ -222,17 +243,21 @@ static void DrawEnvelopeEditor(void)
             .height = DOT_SIZE * ENVELOPE_RANGE
     };
 
-    int position = sig8_GetPlayingTime(CHANNEL);
-    if (position >= 0 && position < ENVELOPE_LENGTH) {
-        FillRect(rect.x + position * DOT_SIZE - 1, rect.y - 1, DOT_SIZE + 1, rect.height + 1, WHITE);
+    Envelope *envelope = &soundLib[selected].instrument.envelopes[selectedEnvelope];
+    int time = sig8_GetPlayingTime(CHANNEL, envelope);
+
+    if (time >= 0 && time < ENVELOPE_LENGTH) {
+        FillRect(rect.x + time * DOT_SIZE - 1, rect.y - 1, DOT_SIZE + 1, rect.height + 1, WHITE);
     }
+
+    int origin = GetEnvelopeOrigin(selectedEnvelope);
 
     if (sig8_IsMouseOver(rect)) {
         Position pos = GetMousePosition();
         SetCursorShape(CURSOR_HAND);
         pos.x = (pos.x - rect.x) / DOT_SIZE;
         pos.y = (pos.y - rect.y) / DOT_SIZE;
-        int val = ENVELOPE_RANGE - 1 - pos.y;
+        int val = ENVELOPE_RANGE - 1 - pos.y - origin;
         if (MousePressed(MOUSE_LEFT)) {
             soundLib[selected].instrument.envelopes[selectedEnvelope].value[pos.x] = val;
         } else if (MousePressed(MOUSE_RIGHT)) {
@@ -245,11 +270,66 @@ static void DrawEnvelopeEditor(void)
     for (int i = 0; i < ENVELOPE_LENGTH; ++i) {
         int t = soundLib[selected].instrument.envelopes[selectedEnvelope].value[i];
         for (int j = 0; j < ENVELOPE_RANGE; ++j) {
+            int val = ENVELOPE_RANGE - 1 - j - origin;
             FillRect(
                     rect.x + i * DOT_SIZE, rect.y + j * DOT_SIZE,
                     DOT_SIZE - 1, DOT_SIZE - 1,
-                    (ENVELOPE_RANGE - 1 - j <= t) ? RED : INDIGO
+                    ((t > 0) ? (val >= 0 && val <= t) : (val <= 0 && val >= t)) ? RED : INDIGO
             );
+        }
+    }
+}
+
+static void DrawLoopEditor(void)
+{
+    Rect rect = {
+            .x = SCREEN_WIDTH - 4 - DOT_SIZE * ENVELOPE_LENGTH,
+            .y = 20 + ENVELOPE_RANGE * DOT_SIZE,
+            .width = DOT_SIZE * ENVELOPE_LENGTH,
+            .height = DOT_SIZE - 1
+    };
+
+    int8_t *begin = &soundLib[selected].instrument.envelopes[selectedEnvelope].loopBegin;
+    int8_t *end = &soundLib[selected].instrument.envelopes[selectedEnvelope].loopEnd;
+
+    if (sig8_IsMouseOver(rect)) {
+        Position pos = GetMousePosition();
+        SetCursorShape(CURSOR_HAND);
+
+        int t = (pos.x - rect.x) / DOT_SIZE;
+
+        if (MousePressed(MOUSE_RIGHT)) {
+            if (t > *end) {
+                *end = t;
+            } else {
+                *begin = t;
+            }
+        }
+
+        if (MousePressed(MOUSE_LEFT)) {
+            if (t < *begin) {
+                *begin = t;
+            } else {
+                *end = t;
+            }
+        }
+    }
+
+    DrawString(4, rect.y + 4, WHITE, "LOOP");
+
+    for (int i = 0; i < ENVELOPE_LENGTH; ++i) {
+        FillRect(
+                rect.x + i * DOT_SIZE, rect.y,
+                DOT_SIZE - 1, DOT_SIZE - 1,
+                INDIGO
+        );
+
+        if (i == *begin) {
+            sig8_DrawIcon(rect.x + i * DOT_SIZE, rect.y, 29, GREEN);
+        }
+
+        if (i == *end) {
+            sig8_DrawIcon(rect.x + i * DOT_SIZE, rect.y, 30, GREEN);
         }
     }
 }
@@ -283,8 +363,10 @@ void sig8_SoundEditorTick(void)
     ClearScreen(BLACK);
     DrawPiano();
     DrawSoundSelect();
+    DrawSpeedSelect();
     DrawVolumeSlider();
     DrawWaveButtons();
     DrawEnvelopeEditor();
+    DrawLoopEditor();
     HandleInput();
 }

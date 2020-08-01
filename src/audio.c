@@ -9,6 +9,7 @@ static float masterVolume = 1.0f;
 typedef struct {
     Instrument instrument;
     int playingSince;
+    int stoppedSince;
     float volume;
     bool isPlaying;
     Note note;
@@ -61,13 +62,35 @@ static AudioFrame SILENCE = {
     .volume = 0.0f
 };
 
-int sig8_GetPlayingTime(int channel)
+static int GetPlayingTime(const Envelope *envelope, int time, int stopTime, bool active)
 {
-    if (channels[channel].isPlaying) {
-        return curFrame - channels[channel].playingSince;
-    } else {
+    if (!active) {
+        time -= stopTime;
+    }
+
+    if (time >= envelope->loopBegin && envelope->loopEnd > envelope->loopBegin) {
+        time -= envelope->loopBegin;
+        time %= (envelope->loopEnd - envelope->loopBegin);
+        time += envelope->loopBegin;
+    }
+
+    if (!active) {
+        time += stopTime;
+    }
+
+    return time;
+}
+
+int sig8_GetPlayingTime(int channel, const Envelope *envelope)
+{
+    if (channels[channel].note == STOP_NOTE) {
         return -1;
     }
+
+    int time = (curFrame - channels[channel].playingSince) / channels[channel].instrument.speed;
+    int stopTime = (curFrame - channels[channel].stoppedSince) / channels[channel].instrument.speed;
+
+    return GetPlayingTime(envelope, time, stopTime, channels[channel].isPlaying);
 }
 
 static float Volume(float x)
@@ -77,15 +100,9 @@ static float Volume(float x)
     return (powf(EXP_BASE, x) - 1) / (EXP_BASE - 1);
 }
 
-static int GetEnvelopeValue(const Envelope *envelope, int time, bool active)
+static int GetEnvelopeValue(const Envelope *envelope, int time, int stopTime, bool active)
 {
-    if (!active) {
-        time += envelope->loopEnd;
-    } else if (time >= envelope->loopBegin && envelope->loopEnd > 0) {
-        time -= envelope->loopBegin;
-        time %= (envelope->loopEnd - envelope->loopBegin);
-        time += envelope->loopBegin;
-    }
+    time = GetPlayingTime(envelope, time, stopTime, active);
 
     if (time >= ENVELOPE_LENGTH) {
         return 0;
@@ -135,7 +152,6 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
     (void)userData;
     float *stream = (float*)byteStream;
     int len = byteLen / sizeof(float);
-    static float lastValue = 0.0f;
 
     for (int i = 0; i < len; ++i) {
         if (curSampleIdx == SAMPLES_PER_FRAME) {
@@ -148,6 +164,7 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
                 }
 
                 int duration = audioFrame.time - ch.playingSince;
+                int stopDuration = audioFrame.time - ch.stoppedSince;
                 bool newNote = duration == 0 && ch.isPlaying;
                 float t1 = 0.0f, t2 = 0.0f;
 
@@ -163,12 +180,14 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
                 for (int envelope = 0; envelope < NUMBER_OF_ENVELOPES; ++envelope) {
                     curEnvelope[channel][envelope] = GetEnvelopeValue(
                             &ch.instrument.envelopes[envelope],
-                            duration / ch.instrument.speed, ch.isPlaying
+                            duration / ch.instrument.speed,
+                            stopDuration / ch.instrument.speed, ch.isPlaying
                     );
 
                     nextEnvelope[channel][envelope] = GetEnvelopeValue(
                             &ch.instrument.envelopes[envelope],
-                            (duration + 1) / ch.instrument.speed, ch.isPlaying
+                            (duration + 1) / ch.instrument.speed,
+                            (stopDuration + 1) / ch.instrument.speed, ch.isPlaying
                     );
                 }
 
@@ -198,7 +217,7 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
 
             case SQUARE_WAVE: {
                 int e = curEnvelope[channel][ENVELOPE_DUTY_CYCLE];
-                float duty = .5f * (e + 1) / (ENVELOPE_DUTY_CYCLE_MAX + 1);
+                float duty = .5f * (ENVELOPE_DUTY_CYCLE_MAX - e + 1) / (ENVELOPE_DUTY_CYCLE_MAX + 1);
                 value = (t < duty) ? 1 : -1;
             }
                 break;
@@ -243,10 +262,8 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
         }
 
         totalValue *= audioFrame.volume;
-        float outValue = (lastValue + totalValue) * 0.5f;
-        lastValue = totalValue;
 
-        *stream++ = outValue;
+        *stream++ = totalValue;
         ++curSampleIdx;
     }
 }
@@ -260,7 +277,8 @@ static void PopulateQueue(void)
             channels[ch].instrument.speed = 1;
         }
 
-        if (!channels[ch].isPlaying) {
+        int duration = (curFrame - channels[ch].stoppedSince) / channels[ch].instrument.speed;
+        if (!channels[ch].isPlaying && duration >= ENVELOPE_LENGTH) {
             channels[ch].note = STOP_NOTE;
         }
 
@@ -340,10 +358,8 @@ Instrument NewInstrument(void)
     res.speed = 1;
     res.volume = ENVELOPE_VOLUME_MAX;
     res.wave = SQUARE_WAVE;
-    for (int i = 0; i < ENVELOPE_LENGTH; ++i) {
-        res.envelopes[ENVELOPE_VOLUME].value[i] = ENVELOPE_VOLUME_MAX;
-        res.envelopes[ENVELOPE_DUTY_CYCLE].value[i] = ENVELOPE_DUTY_CYCLE_MAX;
-    }
+    res.envelopes[ENVELOPE_VOLUME].value[0] = ENVELOPE_VOLUME_MAX;
+    res.envelopes[ENVELOPE_VOLUME].loopEnd = 1;
 
     return res;
 }
@@ -378,6 +394,6 @@ void PlayNote(Note note, int channel)
 
 void StopNote(int channel)
 {
-    channels[channel].playingSince = curFrame;
+    channels[channel].stoppedSince = curFrame;
     channels[channel].isPlaying = false;
 }
