@@ -52,11 +52,11 @@ static int samplesSinceStart[SOUND_CHANNELS];
 // How much to offset the wave, used to fix clicking when changing pitch
 static float phaseShift[SOUND_CHANNELS];
 
-// Current values of envelopes
-static int curEnvelope[SOUND_CHANNELS][NUMBER_OF_ENVELOPES];
+// Values of envelopes at the beginning of the frame
+static float curEnvelope[SOUND_CHANNELS][NUMBER_OF_ENVELOPES];
 
-// Next frame values of envelopes, so we can interpolate
-static int nextEnvelope[SOUND_CHANNELS][NUMBER_OF_ENVELOPES];
+// Values of envelopes at the end of the frame
+static float nextEnvelope[SOUND_CHANNELS][NUMBER_OF_ENVELOPES];
 
 static AudioFrame SILENCE = {
         .volume = 0.0f
@@ -100,6 +100,15 @@ static float Volume(float x)
     return (powf(EXP_BASE, x) - 1) / (EXP_BASE - 1);
 }
 
+static inline float InterpolateEnvelope(int channel, EnvelopeType envelope)
+{
+    float v1 = curEnvelope[channel][envelope];
+    float v2 = nextEnvelope[channel][envelope];
+    float x = sinf((float) curSampleIdx / SAMPLES_PER_FRAME * (float)M_PI / 2.0f);
+    x *= x;
+    return v2 * x + v1 * (1.0f - x);
+}
+
 static int GetEnvelopeValue(EnvelopeType envelopeType, const Envelope *envelope, int time, int stopTime, bool active)
 {
     if (envelopeType == ENVELOPE_REL_PITCH) {
@@ -122,6 +131,29 @@ static int GetEnvelopeValue(EnvelopeType envelopeType, const Envelope *envelope,
         }
 
         return envelope->value[time];
+    }
+}
+
+static float inline NormalizeEnvelopeValue(EnvelopeType envelope, int value)
+{
+    if (envelope == ENVELOPE_VOLUME) {
+        return (float)value / ENVELOPE_VOLUME_MAX;
+    }
+
+    if (envelope == ENVELOPE_PITCH) {
+        return (float)value / 8.0f / 12.0f;
+    }
+
+    if (envelope == ENVELOPE_ARPEGGIO) {
+        return (float)value / 12.0f;
+    }
+
+    if (envelope == ENVELOPE_REL_PITCH) {
+        return (float)value / 4.0f / 12.0f;
+    }
+
+    if (envelope == ENVELOPE_DUTY_CYCLE) {
+        return .5f * (float)(ENVELOPE_DUTY_CYCLE_MAX - value + 1) / (ENVELOPE_DUTY_CYCLE_MAX + 1);
     }
 }
 
@@ -150,13 +182,13 @@ static AudioFrame SoundQueuePop(void)
 static float GetArgument(int channel)
 {
     float pitch = 0;
-    pitch += (float) curEnvelope[channel][ENVELOPE_PITCH];
-    pitch += 2.0f * (float) curEnvelope[channel][ENVELOPE_REL_PITCH];
-    pitch += 16.0f * (float) curEnvelope[channel][ENVELOPE_ARPEGGIO];
+    pitch += curEnvelope[channel][ENVELOPE_PITCH];
+    pitch += curEnvelope[channel][ENVELOPE_REL_PITCH];
+    pitch += curEnvelope[channel][ENVELOPE_ARPEGGIO];
 
-    float fr = baseFrequency[channel] * powf(2.0f, pitch / 12.0f / 16.0f);
+    float fr = baseFrequency[channel] * powf(2.0f, pitch);
 
-    if (fr < 20.0f || fr > 6000.0f) {
+    if (fr > 10000.0f) {
         return 0.0f;
     }
 
@@ -180,45 +212,32 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
             for (int channel = 0; channel < SOUND_CHANNELS; ++channel) {
                 ChannelState ch = audioFrame.channels[channel];
                 if (ch.note == STOP_NOTE) {
+                    samplesSinceStart[channel] = 0;
+                    phaseShift[channel] = 0;
+                    for (int envelope = 0; envelope < NUMBER_OF_ENVELOPES; ++envelope) {
+                        curEnvelope[channel][envelope] = NormalizeEnvelopeValue(envelope, 0);
+                    }
                     continue;
                 }
 
                 int duration = audioFrame.time - ch.playingSince;
                 int stopDuration = audioFrame.time - ch.stoppedSince;
-                bool newNote = duration == 0 && ch.isPlaying;
-                float t1 = 0.0f, t2;
-
-                if (newNote) {
-                    samplesSinceStart[channel] = 0;
-                    phaseShift[channel] = 0;
-                } else {
-                    t1 = GetArgument(channel);
-                }
+                float t = GetArgument(channel);
 
                 baseFrequency[channel] = GetNoteFrequency(ch.note);
 
                 for (int envelope = 0; envelope < NUMBER_OF_ENVELOPES; ++envelope) {
-                    curEnvelope[channel][envelope] = GetEnvelopeValue(
+                    curEnvelope[channel][envelope] = nextEnvelope[channel][envelope];
+
+                    nextEnvelope[channel][envelope] = NormalizeEnvelopeValue(envelope, GetEnvelopeValue(
                             envelope,
                             &ch.instrument.envelopes[envelope],
                             duration / ch.instrument.speed,
                             stopDuration / ch.instrument.speed, ch.isPlaying
-                    );
-
-                    if (envelope == ENVELOPE_VOLUME) {
-                        nextEnvelope[channel][envelope] = GetEnvelopeValue(
-                                envelope,
-                                &ch.instrument.envelopes[envelope],
-                                (duration + 1) / ch.instrument.speed,
-                                (stopDuration + 1) / ch.instrument.speed, ch.isPlaying
-                        );
-                    }
+                    ));
                 }
 
-                if (!newNote) {
-                    t2 = GetArgument(channel);
-                    phaseShift[channel] += t1 - t2;
-                }
+                phaseShift[channel] += t - GetArgument(channel);
             }
         }
 
@@ -239,11 +258,8 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
                 value = 2.0f * ((float)rand() / (float)RAND_MAX - .5f);
                 break;
 
-            case SQUARE_WAVE: {
-                int e = curEnvelope[channel][ENVELOPE_DUTY_CYCLE];
-                float duty = .5f * (ENVELOPE_DUTY_CYCLE_MAX - e + 1) / (ENVELOPE_DUTY_CYCLE_MAX + 1);
-                value = (t < duty) ? 1 : -1;
-            }
+            case SQUARE_WAVE:
+                value = (t < InterpolateEnvelope(channel, ENVELOPE_DUTY_CYCLE)) ? 1 : -1;
                 break;
 
             case SAWTOOTH_WAVE:
@@ -265,11 +281,7 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
             value *= Volume((float) ch.instrument.volume / (float) ENVELOPE_VOLUME_MAX);
             value *= ch.volume;
 
-            // interpolate volume envelope
-            float v1 = (float) curEnvelope[channel][ENVELOPE_VOLUME] / ENVELOPE_VOLUME_MAX;
-            float v2 = (float) nextEnvelope[channel][ENVELOPE_VOLUME] / ENVELOPE_VOLUME_MAX;
-            float x = (float) curSampleIdx / SAMPLES_PER_FRAME;
-            value *= v2 * x + v1 * (1.0f - x);
+            value *= InterpolateEnvelope(channel, ENVELOPE_VOLUME);
 
             totalValue += value;
 
