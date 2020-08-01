@@ -9,7 +9,7 @@ static SoundLib soundLib;
 static int selected = 0;
 static EnvelopeType selectedEnvelope = ENVELOPE_VOLUME;
 static Note activeNote;
-static int octave;
+static int selectedOctave;
 
 static const char *waveNames[] = {
         "SQUARE WAVE",
@@ -22,6 +22,7 @@ static const char *waveNames[] = {
 static const char *envelopeNames[] = {
         "VOLUME",
         "PITCH",
+        "R.PITCH",
         "ARPEGG",
         "DUTY",
 };
@@ -56,7 +57,7 @@ static void DrawVolumeSlider(void)
 
     Rect rect = {
             .x = SCREEN_WIDTH - 4 - (ENVELOPE_VOLUME_MAX + 1) * DOT_SIZE,
-            .y = SCREEN_HEIGHT - 10,
+            .y = SCREEN_HEIGHT - 40,
             .width = (ENVELOPE_VOLUME_MAX + 1) * DOT_SIZE,
             .height = DOT_SIZE
     };
@@ -82,32 +83,81 @@ static void DrawVolumeSlider(void)
 
 static void DrawOctaveSelect(void)
 {
-    char buf[2];
+    char buf[4];
     buf[1] = '\0';
 
     for (int i = 1; i <= 7; ++i) {
         Rect rect = {
-                .x = 10 + i * 7,
-                .y = SCREEN_HEIGHT - 40,
+                .x = 8 + (i - 1) * 7,
+                .y = SCREEN_HEIGHT - 41,
                 .width = 5,
                 .height = 6
         };
 
-        buf[0] = (char)('0' + i);
+        buf[0] = (char) ('0' + i);
 
-        DrawString(rect.x, rect.y + 5, (octave == i) ? WHITE : INDIGO, buf);
+        DrawString(rect.x, rect.y + 5, (selectedOctave == i) ? WHITE : INDIGO, buf);
 
         if (sig8_IsMouseOver(rect)) {
             SetCursorShape(CURSOR_HAND);
             if (MouseJustPressed(MOUSE_LEFT)) {
-                octave = i;
+                selectedOctave = i;
             }
         }
 
         if (KeyJustPressed(buf)) {
-            octave = i;
+            selectedOctave = i;
         }
     }
+
+    Note note = soundLib[selected].note;
+    char *name;
+    int octave = ((int) note - C1) / 12 + 1;
+    note -= (octave - 1) * 12;
+
+    switch (note) {
+    case C1:
+        name = "C";
+        break;
+    case C1S:
+        name = "C#";
+        break;
+    case D1:
+        name = "D";
+        break;
+    case D1S:
+        name = "D#";
+        break;
+    case E1:
+        name = "E";
+        break;
+    case F1:
+        name = "F";
+        break;
+    case F1S:
+        name = "F#";
+        break;
+    case G1:
+        name = "G";
+        break;
+    case G1S:
+        name = "G#";
+        break;
+    case A1:
+        name = "A";
+        break;
+    case A1S:
+        name = "A#";
+        break;
+    case B1:
+        name = "B";
+        break;
+    default:
+        name = "?";
+    }
+
+    sprintf(buf, "%s%d", name, octave);
+    DrawString(60, SCREEN_HEIGHT - 36, (activeNote != STOP_NOTE) ? WHITE : INDIGO, buf);
 }
 
 static void DrawSoundSelect(void)
@@ -187,6 +237,11 @@ static void DrawPiano(void)
         if (KeyPressed("N")) note = A4;
         if (KeyPressed("J")) note = A4S;
         if (KeyPressed("M")) note = B4;
+
+        if (KeyPressed("Space")) {
+            note = Modulo((int) soundLib[selected].note - C4, 12) + C4;
+            selectedOctave = Divide((int) soundLib[selected].note - C4, 12) + 4;
+        }
     }
 
     if (note != activeNote) {
@@ -194,7 +249,8 @@ static void DrawPiano(void)
         UseInstrument(soundLib[selected].instrument, CHANNEL);
         Note noteToPlay = activeNote;
         if (noteToPlay != STOP_NOTE) {
-            noteToPlay += (octave - 4) * 12;
+            noteToPlay += (selectedOctave - 4) * 12;
+            soundLib[selected].note = noteToPlay;
         }
         PlayNote(noteToPlay, CHANNEL);
     }
@@ -224,7 +280,7 @@ static void DrawWaveButtons(void)
 
             if (MouseJustPressed(MOUSE_LEFT)) {
                 soundLib[selected].instrument.wave = (Wave) i;
-                if ((int)selectedEnvelope > GetLastEnvelope()) {
+                if ((int) selectedEnvelope > GetLastEnvelope()) {
                     selectedEnvelope = ENVELOPE_VOLUME;
                 }
             }
@@ -260,7 +316,7 @@ static void DrawEnvelopeButtons(void)
 
 static int GetEnvelopeOrigin(EnvelopeType envelope)
 {
-    if (envelope == ENVELOPE_PITCH || envelope == ENVELOPE_ARPEGGIO) {
+    if (envelope == ENVELOPE_PITCH || envelope == ENVELOPE_REL_PITCH || envelope == ENVELOPE_ARPEGGIO) {
         return (ENVELOPE_RANGE + 1) / 2;
     } else {
         return 0;
@@ -386,7 +442,7 @@ void sig8_SoundEditorInit(ManagedResource *what)
     soundLib = (SoundLib) what->resource;
     palette = GetPalette();
     activeNote = STOP_NOTE;
-    octave = 4;
+    selectedOctave = 4;
     UsePalette(PALETTE_DEFAULT);
     UseSoundLib(soundLib);
 }

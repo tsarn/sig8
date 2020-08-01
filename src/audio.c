@@ -59,10 +59,10 @@ static int curEnvelope[SOUND_CHANNELS][NUMBER_OF_ENVELOPES];
 static int nextEnvelope[SOUND_CHANNELS][NUMBER_OF_ENVELOPES];
 
 static AudioFrame SILENCE = {
-    .volume = 0.0f
+        .volume = 0.0f
 };
 
-static int GetPlayingTime(const Envelope *envelope, int time, int stopTime, bool active)
+static inline int GetPlayingTime(const Envelope *envelope, int time, int stopTime, bool active)
 {
     if (!active) {
         time -= stopTime;
@@ -100,20 +100,34 @@ static float Volume(float x)
     return (powf(EXP_BASE, x) - 1) / (EXP_BASE - 1);
 }
 
-static int GetEnvelopeValue(const Envelope *envelope, int time, int stopTime, bool active)
+static int GetEnvelopeValue(EnvelopeType envelopeType, const Envelope *envelope, int time, int stopTime, bool active)
 {
-    time = GetPlayingTime(envelope, time, stopTime, active);
+    if (envelopeType == ENVELOPE_REL_PITCH) {
+        int ans = 0;
+        int t = time;
+        time = 0;
+        stopTime -= t;
+        for (; time <= t; ++time, ++stopTime) {
+            int x = GetPlayingTime(envelope, time, stopTime, (stopTime < 0) || active);
+            if (x < ENVELOPE_LENGTH) {
+                ans += envelope->value[x];
+            }
+        }
+        return ans;
+    } else {
+        time = GetPlayingTime(envelope, time, stopTime, active);
 
-    if (time >= ENVELOPE_LENGTH) {
-        return 0;
+        if (time >= ENVELOPE_LENGTH) {
+            return 0;
+        }
+
+        return envelope->value[time];
     }
-
-    return envelope->value[time];
 }
 
 static float GetNoteFrequency(Note note)
 {
-    return 440.0f * powf(2.0f, ((int)note - 49) / 12.0f);
+    return 440.0f * powf(2.0f, ((int) note - 49) / 12.0f);
 }
 
 static AudioFrame SoundQueuePop(void)
@@ -135,10 +149,16 @@ static AudioFrame SoundQueuePop(void)
 // to the wave generation function.
 static float GetArgument(int channel)
 {
-    float pitch = (float)curEnvelope[channel][ENVELOPE_PITCH];
-    pitch += 16.0f * (float)curEnvelope[channel][ENVELOPE_ARPEGGIO];
+    float pitch = 0;
+    pitch += (float) curEnvelope[channel][ENVELOPE_PITCH];
+    pitch += 2.0f * (float) curEnvelope[channel][ENVELOPE_REL_PITCH];
+    pitch += 16.0f * (float) curEnvelope[channel][ENVELOPE_ARPEGGIO];
 
     float fr = baseFrequency[channel] * powf(2.0f, pitch / 12.0f / 16.0f);
+
+    if (fr < 20.0f || fr > 6000.0f) {
+        return 0.0f;
+    }
 
     float t = fr * samplesSinceStart[channel] * 1.0f / SAMPLE_RATE;
     t += phaseShift[channel];
@@ -149,8 +169,8 @@ static float GetArgument(int channel)
 
 static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
 {
-    (void)userData;
-    float *stream = (float*)byteStream;
+    (void) userData;
+    float *stream = (float *) byteStream;
     int len = byteLen / sizeof(float);
 
     for (int i = 0; i < len; ++i) {
@@ -166,7 +186,7 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
                 int duration = audioFrame.time - ch.playingSince;
                 int stopDuration = audioFrame.time - ch.stoppedSince;
                 bool newNote = duration == 0 && ch.isPlaying;
-                float t1 = 0.0f, t2 = 0.0f;
+                float t1 = 0.0f, t2;
 
                 if (newNote) {
                     samplesSinceStart[channel] = 0;
@@ -179,16 +199,20 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
 
                 for (int envelope = 0; envelope < NUMBER_OF_ENVELOPES; ++envelope) {
                     curEnvelope[channel][envelope] = GetEnvelopeValue(
+                            envelope,
                             &ch.instrument.envelopes[envelope],
                             duration / ch.instrument.speed,
                             stopDuration / ch.instrument.speed, ch.isPlaying
                     );
 
-                    nextEnvelope[channel][envelope] = GetEnvelopeValue(
-                            &ch.instrument.envelopes[envelope],
-                            (duration + 1) / ch.instrument.speed,
-                            (stopDuration + 1) / ch.instrument.speed, ch.isPlaying
-                    );
+                    if (envelope == ENVELOPE_VOLUME) {
+                        nextEnvelope[channel][envelope] = GetEnvelopeValue(
+                                envelope,
+                                &ch.instrument.envelopes[envelope],
+                                (duration + 1) / ch.instrument.speed,
+                                (stopDuration + 1) / ch.instrument.speed, ch.isPlaying
+                        );
+                    }
                 }
 
                 if (!newNote) {
@@ -212,7 +236,7 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
 
             switch (ch.instrument.wave) {
             case NOISE:
-                value = (float)rand() / (float)RAND_MAX;
+                value = 2.0f * ((float)rand() / (float)RAND_MAX - .5f);
                 break;
 
             case SQUARE_WAVE: {
@@ -231,20 +255,20 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
                 break;
 
             case SINE_WAVE:
-                value = sinf(t * 2 * M_PI);
+                value = sinf(t * 2.0f * (float) M_PI);
                 break;
 
             default:
                 break;
             }
 
-            value *= Volume((float)ch.instrument.volume / (float)ENVELOPE_VOLUME_MAX);
+            value *= Volume((float) ch.instrument.volume / (float) ENVELOPE_VOLUME_MAX);
             value *= ch.volume;
 
             // interpolate volume envelope
-            float v1 = (float)curEnvelope[channel][ENVELOPE_VOLUME] / ENVELOPE_VOLUME_MAX;
-            float v2 = (float)nextEnvelope[channel][ENVELOPE_VOLUME] / ENVELOPE_VOLUME_MAX;
-            float x = (float)curSampleIdx / SAMPLES_PER_FRAME;
+            float v1 = (float) curEnvelope[channel][ENVELOPE_VOLUME] / ENVELOPE_VOLUME_MAX;
+            float v2 = (float) nextEnvelope[channel][ENVELOPE_VOLUME] / ENVELOPE_VOLUME_MAX;
+            float x = (float) curSampleIdx / SAMPLES_PER_FRAME;
             value *= v2 * x + v1 * (1.0f - x);
 
             totalValue += value;
@@ -307,12 +331,14 @@ static void AudioFrameCallback(void)
 }
 
 #ifdef SIG8_COMPILE_EDITORS
+
 static void OnEditor(void)
 {
     for (int i = 0; i < SOUND_CHANNELS; ++i) {
         StopNote(i);
     }
 }
+
 #endif
 
 void sig8_InitAudio(void)
@@ -387,13 +413,13 @@ void PlayNote(Note note, int channel)
         return;
     }
 
-    channels[channel].playingSince = curFrame;
+    channels[channel].playingSince = curFrame + 1;
     channels[channel].isPlaying = true;
     channels[channel].note = note;
 }
 
 void StopNote(int channel)
 {
-    channels[channel].stoppedSince = curFrame;
+    channels[channel].stoppedSince = curFrame + 1;
     channels[channel].isPlaying = false;
 }
