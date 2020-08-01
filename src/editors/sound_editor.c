@@ -9,6 +9,7 @@ static SoundLib soundLib;
 static int selected = 0;
 static EnvelopeType selectedEnvelope = ENVELOPE_VOLUME;
 static Note activeNote;
+static int octave;
 
 static const char *waveNames[] = {
         "SQUARE WAVE",
@@ -76,6 +77,36 @@ static void DrawVolumeSlider(void)
                 DOT_SIZE - 1, DOT_SIZE - 1,
                 (i <= t) ? RED : INDIGO
         );
+    }
+}
+
+static void DrawOctaveSelect(void)
+{
+    char buf[2];
+    buf[1] = '\0';
+
+    for (int i = 1; i <= 7; ++i) {
+        Rect rect = {
+                .x = 10 + i * 7,
+                .y = SCREEN_HEIGHT - 40,
+                .width = 5,
+                .height = 6
+        };
+
+        buf[0] = (char)('0' + i);
+
+        DrawString(rect.x, rect.y + 5, (octave == i) ? WHITE : INDIGO, buf);
+
+        if (sig8_IsMouseOver(rect)) {
+            SetCursorShape(CURSOR_HAND);
+            if (MouseJustPressed(MOUSE_LEFT)) {
+                octave = i;
+            }
+        }
+
+        if (KeyJustPressed(buf)) {
+            octave = i;
+        }
     }
 }
 
@@ -161,7 +192,11 @@ static void DrawPiano(void)
     if (note != activeNote) {
         activeNote = note;
         UseInstrument(soundLib[selected].instrument, CHANNEL);
-        PlayNote(activeNote, CHANNEL);
+        Note noteToPlay = activeNote;
+        if (noteToPlay != STOP_NOTE) {
+            noteToPlay += (octave - 4) * 12;
+        }
+        PlayNote(noteToPlay, CHANNEL);
     }
 }
 
@@ -351,6 +386,7 @@ void sig8_SoundEditorInit(ManagedResource *what)
     soundLib = (SoundLib) what->resource;
     palette = GetPalette();
     activeNote = STOP_NOTE;
+    octave = 4;
     UsePalette(PALETTE_DEFAULT);
     UseSoundLib(soundLib);
 }
@@ -365,6 +401,7 @@ void sig8_SoundEditorTick(void)
     DrawSoundSelect();
     DrawSpeedSelect();
     DrawVolumeSlider();
+    DrawOctaveSelect();
     DrawWaveButtons();
     DrawEnvelopeEditor();
     DrawLoopEditor();
