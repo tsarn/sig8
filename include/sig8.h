@@ -134,6 +134,10 @@ typedef enum {
     // Adds pitch, 1/16th of a semi tone per unit
             ENVELOPE_PITCH,
 
+    // Relative pitch, any wave except noise
+    // Adds pitch relatively, 1/8th of a semi tone per unit
+            ENVELOPE_REL_PITCH,
+
     // Arpeggio, any wave except noise
     // Shifts note in increments of semi tones
             ENVELOPE_ARPEGGIO,
