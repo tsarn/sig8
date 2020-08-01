@@ -49,6 +49,36 @@ static int GetLastEnvelope(void)
     }
 }
 
+static void DrawVolumeSlider(void)
+{
+    int t = soundLib[selected].instrument.volume;
+
+    Rect rect = {
+            .x = SCREEN_WIDTH - 4 - (ENVELOPE_VOLUME_MAX + 1) * DOT_SIZE,
+            .y = SCREEN_HEIGHT - 10,
+            .width = (ENVELOPE_VOLUME_MAX + 1) * DOT_SIZE,
+            .height = DOT_SIZE
+    };
+
+    if (sig8_IsMouseOver(rect)) {
+        Position pos = GetMousePosition();
+        SetCursorShape(CURSOR_HAND);
+        if (MousePressed(MOUSE_LEFT)) {
+            soundLib[selected].instrument.volume = (pos.x - rect.x) / DOT_SIZE;
+        }
+    }
+
+    DrawString(rect.x - MeasureString("VOLUME") - 3, rect.y + 4, WHITE, "VOLUME");
+
+    for (int i = 0; i <= ENVELOPE_VOLUME_MAX; ++i) {
+        FillRect(
+                rect.x + i * DOT_SIZE, rect.y,
+                DOT_SIZE - 1, DOT_SIZE - 1,
+                (i <= t) ? RED : INDIGO
+        );
+    }
+}
+
 static void DrawSoundSelect(void)
 {
     sig8_DrawNumberInput(SCREEN_WIDTH - 4 - DOT_SIZE * ENVELOPE_LENGTH, 4, &selected);
@@ -192,13 +222,23 @@ static void DrawEnvelopeEditor(void)
             .height = DOT_SIZE * ENVELOPE_RANGE
     };
 
+    int position = sig8_GetPlayingTime(CHANNEL);
+    if (position >= 0 && position < ENVELOPE_LENGTH) {
+        FillRect(rect.x + position * DOT_SIZE - 1, rect.y - 1, DOT_SIZE + 1, rect.height + 1, WHITE);
+    }
+
     if (sig8_IsMouseOver(rect)) {
         Position pos = GetMousePosition();
         SetCursorShape(CURSOR_HAND);
         pos.x = (pos.x - rect.x) / DOT_SIZE;
         pos.y = (pos.y - rect.y) / DOT_SIZE;
+        int val = ENVELOPE_RANGE - 1 - pos.y;
         if (MousePressed(MOUSE_LEFT)) {
-            soundLib[selected].instrument.envelopes[selectedEnvelope].value[pos.x] = ENVELOPE_RANGE - 1 - pos.y;
+            soundLib[selected].instrument.envelopes[selectedEnvelope].value[pos.x] = val;
+        } else if (MousePressed(MOUSE_RIGHT)) {
+            for (int i = 0; i < ENVELOPE_LENGTH; ++i) {
+                soundLib[selected].instrument.envelopes[selectedEnvelope].value[i] = val;
+            }
         }
     }
 
@@ -243,6 +283,7 @@ void sig8_SoundEditorTick(void)
     ClearScreen(BLACK);
     DrawPiano();
     DrawSoundSelect();
+    DrawVolumeSlider();
     DrawWaveButtons();
     DrawEnvelopeEditor();
     HandleInput();

@@ -1,15 +1,17 @@
 #include "sig8_internal.h"
 
+#define EXP_BASE 10.0f
+
 static SDL_AudioDeviceID audioDevice;
 static int curFrame; // frame count since start of the program
 static float masterVolume = 1.0f;
 
 typedef struct {
     Instrument instrument;
-    Note note;
     int playingSince;
     float volume;
     bool isPlaying;
+    Note note;
 } ChannelState;
 
 static ChannelState channels[SOUND_CHANNELS];
@@ -52,9 +54,28 @@ static float phaseShift[SOUND_CHANNELS];
 // Current values of envelopes
 static int curEnvelope[SOUND_CHANNELS][NUMBER_OF_ENVELOPES];
 
+// Next frame values of envelopes, so we can interpolate
+static int nextEnvelope[SOUND_CHANNELS][NUMBER_OF_ENVELOPES];
+
 static AudioFrame SILENCE = {
     .volume = 0.0f
 };
+
+int sig8_GetPlayingTime(int channel)
+{
+    if (channels[channel].isPlaying) {
+        return curFrame - channels[channel].playingSince;
+    } else {
+        return -1;
+    }
+}
+
+static float Volume(float x)
+{
+    if (x < 0.0f) x = 0.0f;
+    if (x > 1.0f) x = 1.0f;
+    return (powf(EXP_BASE, x) - 1) / (EXP_BASE - 1);
+}
 
 static int GetEnvelopeValue(const Envelope *envelope, int time, bool active)
 {
@@ -98,7 +119,7 @@ static AudioFrame SoundQueuePop(void)
 static float GetArgument(int channel)
 {
     float pitch = (float)curEnvelope[channel][ENVELOPE_PITCH];
-    pitch += 16 * curEnvelope[channel][ENVELOPE_ARPEGGIO];
+    pitch += 16.0f * (float)curEnvelope[channel][ENVELOPE_ARPEGGIO];
 
     float fr = baseFrequency[channel] * powf(2.0f, pitch / 12.0f / 16.0f);
 
@@ -114,6 +135,7 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
     (void)userData;
     float *stream = (float*)byteStream;
     int len = byteLen / sizeof(float);
+    static float lastValue = 0.0f;
 
     for (int i = 0; i < len; ++i) {
         if (curSampleIdx == SAMPLES_PER_FRAME) {
@@ -142,6 +164,11 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
                     curEnvelope[channel][envelope] = GetEnvelopeValue(
                             &ch.instrument.envelopes[envelope],
                             duration / ch.instrument.speed, ch.isPlaying
+                    );
+
+                    nextEnvelope[channel][envelope] = GetEnvelopeValue(
+                            &ch.instrument.envelopes[envelope],
+                            (duration + 1) / ch.instrument.speed, ch.isPlaying
                     );
                 }
 
@@ -192,10 +219,15 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
                 break;
             }
 
-            value *= (int)ch.instrument.volume / 255.0f;
+            value *= Volume((float)ch.instrument.volume / (float)ENVELOPE_VOLUME_MAX);
             value *= ch.volume;
 
-            value *= (float)curEnvelope[channel][ENVELOPE_VOLUME] / ENVELOPE_VOLUME_MAX;
+            // interpolate volume envelope
+            float v1 = (float)curEnvelope[channel][ENVELOPE_VOLUME] / ENVELOPE_VOLUME_MAX;
+            float v2 = (float)nextEnvelope[channel][ENVELOPE_VOLUME] / ENVELOPE_VOLUME_MAX;
+            float x = (float)curSampleIdx / SAMPLES_PER_FRAME;
+            value *= v2 * x + v1 * (1.0f - x);
+
             totalValue += value;
 
             ++samplesSinceStart[channel];
@@ -210,7 +242,11 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
             totalValue = -1.0f;
         }
 
-        *stream++ = totalValue * audioFrame.volume;
+        totalValue *= audioFrame.volume;
+        float outValue = (lastValue + totalValue) * 0.5f;
+        lastValue = totalValue;
+
+        *stream++ = outValue;
         ++curSampleIdx;
     }
 }
@@ -263,6 +299,7 @@ static void OnEditor(void)
 
 void sig8_InitAudio(void)
 {
+    SetMasterVolume(0.5f);
     sig8_RegisterCallback(FRAME_EVENT, AudioFrameCallback);
 #ifdef SIG8_COMPILE_EDITORS
     sig8_RegisterCallback(EDITOR_ENTER_EVENT, OnEditor);
@@ -301,7 +338,7 @@ Instrument NewInstrument(void)
     memset(&res, 0, sizeof res);
 
     res.speed = 1;
-    res.volume = 255;
+    res.volume = ENVELOPE_VOLUME_MAX;
     res.wave = SQUARE_WAVE;
     for (int i = 0; i < ENVELOPE_LENGTH; ++i) {
         res.envelopes[ENVELOPE_VOLUME].value[i] = ENVELOPE_VOLUME_MAX;
@@ -319,7 +356,7 @@ void UseInstrument(Instrument instrument, int channel)
 
 void SetMasterVolume(float volume)
 {
-    masterVolume = volume;
+    masterVolume = Volume(volume);
 }
 
 void SetChannelVolume(int channel, float volume)
