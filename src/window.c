@@ -366,7 +366,11 @@ static void RedrawScreen(void)
     sig8_UpdateScreen();
     UpdateBufferData();
     glViewport(0, 0, windowWidth, windowHeight);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    Color black = ColorFromIndex(0);
+    glClearColor(
+            (float)black.r / 255.0f,
+            (float)black.g / 255.0f,
+            (float)black.b / 255.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     glUseProgram(shader);

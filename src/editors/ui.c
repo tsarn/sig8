@@ -27,33 +27,38 @@ void sig8_DrawNumberInput(int x, int y, int *value)
 {
     Rect rect = {
             .x = x,
-            .y = y,
-            .width = 15,
-            .height = 7
+            .y = y + 1,
+            .width = 3,
+            .height = 5
     };
+
+    UseFont(FONT_TINY);
+    DrawString(x + 5, y + 6, RED, Format("%02d", *value));
+    UseFont(FONT_SMALL);
+
+    sig8_DrawIcon(rect.x, rect.y, 27, INDIGO);
 
     if (sig8_IsMouseOver(rect)) {
         SetCursorShape(CURSOR_HAND);
-        int delta = 1;
-        if (KeyPressed("Ctrl")) {
-            delta = 10;
-        }
-
         if (MouseJustPressed(MOUSE_LEFT)) {
-            *value += delta;
+            --*value;
+        } else if (MouseJustPressed(MOUSE_RIGHT)) {
+            *value -= 10;
         }
-
-        if (MouseJustPressed(MOUSE_RIGHT)) {
-            *value -= delta;
-        }
-
-        *value = Modulo(*value, 256);
     }
 
-    sig8_FillRectR(rect, BLACK);
-    UseFont(FONT_TINY);
-    DrawString(rect.x + 2, y + 6, RED, Format("%03d", *value));
-    UseFont(FONT_MEDIUM);
+    rect.x += 14;
+
+    sig8_DrawIcon(rect.x, rect.y, 28, INDIGO);
+
+    if (sig8_IsMouseOver(rect)) {
+        SetCursorShape(CURSOR_HAND);
+        if (MouseJustPressed(MOUSE_LEFT)) {
+            ++*value;
+        } else if (MouseJustPressed(MOUSE_RIGHT)) {
+            *value += 10;
+        }
+    }
 }
 
 void sig8_DrawSlider(int x, int y, int *value)

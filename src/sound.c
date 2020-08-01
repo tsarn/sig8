@@ -11,6 +11,10 @@ SoundLib LoadSoundLib(const char *path)
 
     if (!data || size != SOUNDLIB_BYTE_SIZE) {
         printf("WARNING: Failed to load sound lib '%s'\n", path);
+        for (int i = 0; i < SOUNDLIB_SIZE; ++i) {
+            result[i].note = C4;
+            result[i].instrument = NewInstrument();
+        }
         return result;
     }
 
@@ -36,6 +40,6 @@ void UseSoundLib(SoundLib soundLib)
 
 void PlaySound(int sound, int channel)
 {
-    SetInstrument(channel, currentSoundLib[sound].instrument);
+    UseInstrument(currentSoundLib[sound].instrument, channel);
     PlayNote(currentSoundLib[sound].note, channel);
 }

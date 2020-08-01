@@ -224,8 +224,7 @@ static void PopulateQueue(void)
             channels[ch].instrument.speed = 1;
         }
 
-        int duration = curFrame - channels[ch].playingSince;
-        if (!channels[ch].isPlaying && duration / channels[ch].instrument.speed >= ENVELOPE_LENGTH) {
+        if (!channels[ch].isPlaying) {
             channels[ch].note = STOP_NOTE;
         }
 
@@ -257,8 +256,7 @@ static void AudioFrameCallback(void)
 static void OnEditor(void)
 {
     for (int i = 0; i < SOUND_CHANNELS; ++i) {
-        channels[i].volume = 0.0f;
-        channels[i].note = STOP_NOTE;
+        StopNote(i);
     }
 }
 #endif
@@ -305,17 +303,15 @@ Instrument NewInstrument(void)
     res.speed = 1;
     res.volume = 255;
     res.wave = SQUARE_WAVE;
-    res.envelopes[ENVELOPE_VOLUME].loopEnd = 1;
-    res.envelopes[ENVELOPE_DUTY_CYCLE].loopEnd = 1;
     for (int i = 0; i < ENVELOPE_LENGTH; ++i) {
-        res.envelopes[ENVELOPE_VOLUME].value[i] = (i == 0) ? ENVELOPE_VOLUME_MAX : 0;
+        res.envelopes[ENVELOPE_VOLUME].value[i] = ENVELOPE_VOLUME_MAX;
         res.envelopes[ENVELOPE_DUTY_CYCLE].value[i] = ENVELOPE_DUTY_CYCLE_MAX;
     }
 
     return res;
 }
 
-void SetInstrument(int channel, Instrument instrument)
+void UseInstrument(Instrument instrument, int channel)
 {
     channels[channel].instrument = instrument;
     PopulateQueue();
