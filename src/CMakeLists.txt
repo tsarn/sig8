@@ -52,6 +52,7 @@ if (SIG8_COMPILE_EDITORS)
 
     target_link_libraries(sig8 PRIVATE stb_image_write::stb_image_write)
     target_sources(sig8 PRIVATE
+            editors/util.c
             editors/editors.h
             editors/history.c
             editors/sprite_editor.c

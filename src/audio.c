@@ -134,7 +134,7 @@ static int GetEnvelopeValue(EnvelopeType envelopeType, const Envelope *envelope,
     }
 }
 
-static float inline NormalizeEnvelopeValue(EnvelopeType envelope, int value)
+static inline float NormalizeEnvelopeValue(EnvelopeType envelope, int value)
 {
     if (envelope == ENVELOPE_VOLUME) {
         return (float)value / ENVELOPE_VOLUME_MAX;
@@ -155,6 +155,8 @@ static float inline NormalizeEnvelopeValue(EnvelopeType envelope, int value)
     if (envelope == ENVELOPE_DUTY_CYCLE) {
         return .5f * (float)(ENVELOPE_DUTY_CYCLE_MAX - value + 1) / (ENVELOPE_DUTY_CYCLE_MAX + 1);
     }
+
+    return 0.0f;
 }
 
 static float GetNoteFrequency(Note note)
@@ -347,7 +349,7 @@ static void AudioFrameCallback(void)
 static void OnEditor(void)
 {
     for (int i = 0; i < SOUND_CHANNELS; ++i) {
-        StopNote(i);
+        channels[i].note = STOP_NOTE;
     }
 }
 

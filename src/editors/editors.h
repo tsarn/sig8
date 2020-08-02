@@ -59,3 +59,4 @@ void sig8_Undo(void);
 void sig8_Redo(void);
 void sig8_BeginUndoableAction(void);
 void sig8_EndUndoableAction(void);
+void sig8_SaveGzipped(void);
