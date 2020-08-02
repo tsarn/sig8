@@ -65,16 +65,25 @@ static HistoryItem HistoryRedo(void)
 
 void sig8_BeginUndoableAction(void)
 {
+    if (curAction.data) {
+        free(curAction.data);
+    }
     int size = sig8_Editing->size;
-    curAction.data = malloc(2 * size);
+    curAction.data = malloc(size);
     memcpy(curAction.data, sig8_Editing->resource, size);
 }
 
 void sig8_EndUndoableAction(void)
 {
+    if (!curAction.data) {
+        return;
+    }
+
     int size = sig8_Editing->size;
     bool anythingChanged = false;
     for (int i = 0; i < size; ++i) {
+        int old = curAction.data[i];
+        int new = sig8_Editing->resource[i];
         curAction.data[i] ^= sig8_Editing->resource[i];
         if (curAction.data[i]) {
             anythingChanged = true;
@@ -84,6 +93,8 @@ void sig8_EndUndoableAction(void)
     if (!anythingChanged) {
         return;
     }
+
+    uint8_t *compressed = malloc(size * 2);
 
     // very simple compression
     int last = curAction.data[0], len = 1, j = 0;
@@ -97,20 +108,21 @@ void sig8_EndUndoableAction(void)
             }
         }
 
-        curAction.data[j++] = len;
-        curAction.data[j++] = last;
+        compressed[j++] = len;
+        compressed[j++] = last;
 
-        last = curAction.data[i];
-        len = 1;
+        if (i < size) {
+            last = curAction.data[i];
+            len = 1;
+        }
     }
 
-    uint8_t *oldData = curAction.data;
-
+    free(curAction.data);
     curAction.data = malloc(j);
-    memcpy(curAction.data, oldData, j);
+    memcpy(curAction.data, compressed, j);
+    free(compressed);
     HistoryPush(curAction);
     curAction.data = NULL;
-    free(oldData);
 }
 
 
