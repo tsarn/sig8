@@ -110,9 +110,9 @@ static void DrawOctaveSelect(void)
         }
     }
 
-    Note note = soundLib[selected].note;
+    int note = soundLib[selected].note;
     char *name;
-    int octave = ((int) note - C1) / 12 + 1;
+    int octave = (note - C1) / 12 + 1;
     note -= (octave - 1) * 12;
 
     switch (note) {
@@ -223,6 +223,7 @@ static void DrawPiano(void)
     }
 
     Note note = (blackNote == STOP_NOTE) ? whiteNote : blackNote;
+    bool doUndo = false;
 
     if (note == STOP_NOTE) {
         if (KeyPressed("Z")) note = C4;
@@ -238,6 +239,10 @@ static void DrawPiano(void)
         if (KeyPressed("J")) note = A4S;
         if (KeyPressed("M")) note = B4;
 
+        if (note != STOP_NOTE) {
+            doUndo = true;
+        }
+
         if (KeyPressed("Space")) {
             note = Modulo((int) soundLib[selected].note - C4, 12) + C4;
             selectedOctave = Divide((int) soundLib[selected].note - C4, 12) + 4;
@@ -250,7 +255,16 @@ static void DrawPiano(void)
         Note noteToPlay = activeNote;
         if (noteToPlay != STOP_NOTE) {
             noteToPlay += (selectedOctave - 4) * 12;
+
+            if (doUndo) {
+                sig8_BeginUndoableAction();
+            }
+
             soundLib[selected].note = noteToPlay;
+
+            if (doUndo) {
+                sig8_EndUndoableAction();
+            }
         }
         PlayNote(noteToPlay, CHANNEL);
     }
@@ -266,7 +280,7 @@ static void DrawWaveButtons(void)
                 .height = 8
         };
 
-        if (soundLib[selected].instrument.wave == (Wave) i) {
+        if (soundLib[selected].instrument.wave == i) {
             RemapColor(WHITE, RED);
         }
 
@@ -278,8 +292,10 @@ static void DrawWaveButtons(void)
         if (sig8_IsMouseOver(rect)) {
             SetCursorShape(CURSOR_HAND);
 
+            sig8_StatusLine = waveNames[i];
+
             if (MouseJustPressed(MOUSE_LEFT)) {
-                soundLib[selected].instrument.wave = (Wave) i;
+                soundLib[selected].instrument.wave = i;
                 if ((int) selectedEnvelope > GetLastEnvelope()) {
                     selectedEnvelope = ENVELOPE_VOLUME;
                 }
@@ -425,6 +441,37 @@ static void DrawLoopEditor(void)
     }
 }
 
+static void DrawButtons(void)
+{
+    int x = SCREEN_WIDTH - 13;
+    int y = SCREEN_HEIGHT - 14;
+    if (sig8_DrawButton(x - 2 * SPRITE_WIDTH, y, (Button) {
+            .sprite = 13,
+            .shortcut = "Ctrl+Z",
+            .hint = "UNDO [CTRL-Z]"
+    }, true)) {
+        sig8_Undo();
+    }
+
+    if (sig8_DrawButton(x - SPRITE_WIDTH, y, (Button) {
+            .sprite = 14,
+            .shortcut = "Ctrl+Y",
+            .hint = "REDO [CTRL-Y]"
+    }, true)) {
+        sig8_Redo();
+    }
+
+    if (sig8_DrawButton(x, y, (Button) {
+            .sprite = 15,
+            .shortcut = "Ctrl+S",
+            .hint = "SAVE [CTRL-S]"
+    }, true)) {
+        // Save();
+    }
+
+    DrawString(80, y + 8, INDIGO, sig8_StatusLine);
+}
+
 static void HandleInput(void)
 {
     if (KeyJustPressed("Escape")) {
@@ -452,7 +499,17 @@ void sig8_SoundEditorTick(void)
     UseSpriteSheet(sig8_EDITORS_SPRITESHEET);
     SetCursorShape(CURSOR_ARROW);
     UseFont(FONT_SMALL);
+    sig8_StatusLine = "";
     ClearScreen(BLACK);
+
+    if (MouseJustPressed(MOUSE_LEFT) || MouseJustPressed(MOUSE_RIGHT)) {
+        sig8_BeginUndoableAction();
+    }
+
+    if (MouseJustReleased(MOUSE_LEFT) || MouseJustReleased(MOUSE_RIGHT)) {
+        sig8_EndUndoableAction();
+    }
+
     DrawPiano();
     DrawSoundSelect();
     DrawSpeedSelect();
@@ -461,5 +518,6 @@ void sig8_SoundEditorTick(void)
     DrawWaveButtons();
     DrawEnvelopeEditor();
     DrawLoopEditor();
+    DrawButtons();
     HandleInput();
 }
