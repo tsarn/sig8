@@ -31,6 +31,12 @@ extern "C" {
 
 #define SOUNDLIB_SIZE 64
 
+#define PATTERN_LENGTH 32
+#define NUMBER_OF_PATTERNS 32
+#define MUSIC_CHANNELS 4
+#define TRACK_LENGTH 32
+#define MUSICLIB_SIZE 8
+
 #define SOUND_CHANNELS 8
 #define ENVELOPE_LENGTH 32
 
@@ -168,6 +174,21 @@ typedef struct {
     uint8_t note;
 } Sound;
 
+typedef struct {
+    struct {
+        uint8_t note;
+        uint8_t instrument;
+    } notes[PATTERN_LENGTH];
+} MusicPattern;
+
+typedef struct {
+    MusicPattern patterns[NUMBER_OF_PATTERNS];
+    int8_t fragments[TRACK_LENGTH][MUSIC_CHANNELS];
+    int8_t loopBegin;
+    int8_t loopEnd;
+    int8_t tempo; // BPM divided by 10
+} Track;
+
 extern Palette PALETTE_DEFAULT;
 
 typedef const FontDefinition *Font;
@@ -180,7 +201,7 @@ extern const Font FONT_LARGE;
 typedef uint8_t *SpriteSheet;
 typedef uint8_t *TileMap;
 typedef Sound *SoundLib;
-
+typedef Track *MusicLib;
 
 void sig8_Initialize(const char *windowName);
 
@@ -324,6 +345,13 @@ SoundLib GetCurrentSoundLib(void);
 void FreeSoundLib(SoundLib soundLib);
 void UseSoundLib(SoundLib soundLib);
 void PlaySound(int sound, int channel);
+
+MusicLib LoadMusicLib(const char *path);
+MusicLib GetCurrentMusicLib(void);
+void FreeMusicLib(MusicLib musicLib);
+void UseMusicLib(MusicLib musicLib);
+void PlayTrack(int track);
+void StopTrack(void);
 
 #ifdef  __cplusplus
 };
