@@ -466,7 +466,7 @@ static void DrawButtons(void)
             .shortcut = "Ctrl+S",
             .hint = "SAVE [CTRL-S]"
     }, true)) {
-        // Save();
+        sig8_SaveGzipped();
     }
 
     DrawString(80, y + 8, INDIGO, sig8_StatusLine);

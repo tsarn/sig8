@@ -1,25 +1,28 @@
 #include "sig8_internal.h"
+#include "stb_image.h"
 
 static SoundLib currentSoundLib;
 
 SoundLib LoadSoundLib(const char *path)
 {
-    SoundLib result = sig8_AllocateResource(RESOURCE_SOUNDLIB, path, SOUNDLIB_BYTE_SIZE);
+    SoundLib result = (SoundLib)sig8_AllocateResource(RESOURCE_SOUNDLIB, path, SOUNDLIB_BYTE_SIZE);
 
-    int size;
-    uint8_t *data = ReadFileContents(path, &size);
+    for (int i = 0; i < SOUNDLIB_SIZE; ++i) {
+        result[i].note = C4;
+        result[i].instrument = NewInstrument();
+    }
 
-    if (!data || size != SOUNDLIB_BYTE_SIZE) {
+    int compressedSize;
+    char *compressed = (char *)ReadFileContents(path, &compressedSize);
+
+    if (!compressed) {
         printf("WARNING: Failed to load sound lib '%s'\n", path);
-        for (int i = 0; i < SOUNDLIB_SIZE; ++i) {
-            result[i].note = C4;
-            result[i].instrument = NewInstrument();
-        }
         return result;
     }
 
-    memcpy(result, data, SOUNDLIB_BYTE_SIZE);
-    free(data);
+    stbi_zlib_decode_buffer((char *)result, SOUNDLIB_BYTE_SIZE, compressed, compressedSize);
+    free(compressed);
+
     return result;
 }
 

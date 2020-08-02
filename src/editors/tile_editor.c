@@ -30,33 +30,6 @@ typedef enum {
 
 static Tool tool = TOOL_DRAW;
 
-static void Save(void)
-{
-    if (!sig8_Editing->path) {
-        return;
-    }
-
-    char *path = ResolvePath(sig8_Editing->path);
-
-    if (!path) {
-        return;
-    }
-
-    FILE *file = fopen(path, "w");
-
-    if (!file) {
-        return;
-    }
-
-    int size;
-    uint8_t *data = stbi_zlib_compress(sig8_Editing->resource, sig8_Editing->size, &size, 8);
-    fwrite(data, size, 1, file);
-
-    fclose(file);
-    free(data);
-    free(path);
-}
-
 static void Copy(void)
 {
     if (!selection.active || selection.resizing) {
@@ -320,7 +293,7 @@ static void DrawTopButtons(void)
             .shortcut = "Ctrl+S",
             .hint = "SAVE [CTRL-S]"
     }, false)) {
-        Save();
+        sig8_SaveGzipped();
     }
 }
 
