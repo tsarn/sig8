@@ -259,11 +259,11 @@ static void AudioCallback(void *userData, uint8_t *byteStream, int byteLen)
                 break;
 
             case SQUARE_WAVE:
-                value = (t < InterpolateEnvelope(channel, ENVELOPE_DUTY_CYCLE)) ? 1 : -1;
+                value = (t < InterpolateEnvelope(channel, ENVELOPE_DUTY_CYCLE)) ? 0.5f : -0.5f;
                 break;
 
             case SAWTOOTH_WAVE:
-                value = 2 * t - 1;
+                value = t - .5f;
                 break;
 
             case TRIANGLE_WAVE:
