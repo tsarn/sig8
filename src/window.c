@@ -516,6 +516,11 @@ void EditResource(void *resource)
         sig8_SoundEditorInit(res);
         break;
 
+    case RESOURCE_MUSICLIB:
+        editorLoop = sig8_MusicEditorTick;
+        sig8_MusicEditorInit(res);
+        break;
+
     default:
         return;
     }

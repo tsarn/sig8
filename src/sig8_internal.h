@@ -36,6 +36,7 @@
 #define SPRITESHEET_BYTE_SIZE (SPRITESHEET_SIZE * SPRITE_WIDTH * SPRITE_HEIGHT)
 #define TILEMAP_BYTE_SIZE (TILEMAP_WIDTH * TILEMAP_HEIGHT)
 #define SOUNDLIB_BYTE_SIZE (SOUNDLIB_SIZE * sizeof(Sound))
+#define MUSICLIB_BYTE_SIZE (MUSICLIB_SIZE * sizeof(Track))
 
 #ifdef SIG8_COMPILE_EDITORS
 #define MAX_EVENT_HANDLERS 32
@@ -53,7 +54,7 @@ typedef enum {
     RESOURCE_SPRITESHEET,
     RESOURCE_TILEMAP,
     RESOURCE_SOUNDLIB,
-    RESOURCE_MUSIC,
+    RESOURCE_MUSICLIB,
 } ResourceType;
 
 typedef void (*EventCallback)(SDL_Event*);
@@ -103,5 +104,8 @@ void sig8_TileEditorTick(void);
 
 void sig8_SoundEditorInit(ManagedResource *what);
 void sig8_SoundEditorTick(void);
+
+void sig8_MusicEditorInit(ManagedResource *what);
+void sig8_MusicEditorTick(void);
 
 #endif
