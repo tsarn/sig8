@@ -82,8 +82,6 @@ void sig8_EndUndoableAction(void)
     int size = sig8_Editing->size;
     bool anythingChanged = false;
     for (int i = 0; i < size; ++i) {
-        int old = curAction.data[i];
-        int new = sig8_Editing->resource[i];
         curAction.data[i] ^= sig8_Editing->resource[i];
         if (curAction.data[i]) {
             anythingChanged = true;
