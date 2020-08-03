@@ -210,9 +210,19 @@ static int DrawCharacter(int x, int y, int color, char ch)
     }
 }
 
-void DrawString(int x, int y, int color, const char *string)
+void DrawString(int x, int y, int color, const char *fmt, ...)
 {
-    for (const char *c = string; *c; ++c) {
+    va_list args;
+    va_start(args, fmt);
+    int len = vsnprintf(NULL, 0, fmt, args);
+    va_end(args);
+
+    char str[len + 1];
+    va_start(args, fmt);
+    vsnprintf(str, len + 1, fmt, args);
+    va_end(args);
+
+    for (const char *c = str; *c; ++c) {
         x += currentFont->horizontalStep + DrawCharacter(x, y, color, *c);
     }
 }

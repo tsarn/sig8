@@ -82,8 +82,8 @@ static void Fill(int x, int y, int color)
             {.x = 0, .y = -1},
     };
 
-    Position *queue = TempAlloc(width * height * sizeof(Position));
-    uint8_t *used = TempAlloc(width * height);
+    Position *queue = malloc(width * height * sizeof(Position));
+    uint8_t *used = malloc(width * height);
     memset(used, 0, width * height);
     int front = 0;
     int back = 0;
@@ -127,6 +127,9 @@ static void Fill(int x, int y, int color)
             }
         }
     }
+
+    free(used);
+    free(queue);
 }
 
 static void UseTool(Tool tool)
@@ -145,7 +148,7 @@ static void UseTool(Tool tool)
         sig8_EndUndoableAction();
     } else if (tool == FLIP_H || tool == FLIP_V || tool == ROTATE) {
         sig8_BeginUndoableAction();
-        uint8_t *data = TempAlloc(width * height);
+        uint8_t *data = malloc(width * height);
         uint8_t *ptr = data;
 
         for (int j = 0; j < height; ++j) {
@@ -173,6 +176,8 @@ static void UseTool(Tool tool)
                 }
             }
         }
+
+        free(data);
 
         sig8_EndUndoableAction();
     } else {
@@ -400,9 +405,8 @@ static void DrawStatusBar(void)
     DrawTopButtons();
     FillRect(0, SCREEN_HEIGHT - TOOLBAR_SIZE, SCREEN_WIDTH, TOOLBAR_SIZE, DARK_BLUE);
 
-    char *string = Format("#%03d", selected);
     UseFont(FONT_SMALL);
-    DrawString(SCREEN_WIDTH - 23, SCREEN_HEIGHT - 2, RED, string);
+    DrawString(SCREEN_WIDTH - 23, SCREEN_HEIGHT - 2, RED, "#%03d", selected);
     DrawString(2, SCREEN_HEIGHT - 2, GRAY, sig8_StatusLine);
 
     if (activeTool == BRUSH) {
