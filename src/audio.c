@@ -423,7 +423,7 @@ void SetChannelVolume(int channel, float volume)
 void PlayNote(Note note, int channel)
 {
     if (note == STOP_NOTE) {
-        StopNote(channel);
+        ReleaseNote(channel);
         return;
     }
 
@@ -432,8 +432,13 @@ void PlayNote(Note note, int channel)
     channels[channel].note = note;
 }
 
-void StopNote(int channel)
+void ReleaseNote(int channel)
 {
     channels[channel].stoppedSince = curFrame + 1;
     channels[channel].isPlaying = false;
+}
+
+void StopNote(int channel)
+{
+    channels[channel].note = STOP_NOTE;
 }

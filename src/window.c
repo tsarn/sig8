@@ -94,6 +94,7 @@ void sig8_Initialize(const char *windowName)
     sig8_InitWindow(windowName);
     sig8_InitGLES();
     sig8_InitAudio();
+    sig8_InitMusic();
     sig8_InitInput();
 #ifdef SIG8_COMPILE_EDITORS
     const uint8_t *old = GetResourceBundle();

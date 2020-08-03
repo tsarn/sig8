@@ -331,6 +331,7 @@ void DrawTileMapEx(int x, int y, int width, int height, int offsetX, int offsetY
 Instrument NewInstrument(void);
 void UseInstrument(Instrument instrument, int channel);
 void PlayNote(Note note, int channel);
+void ReleaseNote(int channel);
 void StopNote(int channel);
 void SetMasterVolume(float volume);
 void SetChannelVolume(int channel, float volume);

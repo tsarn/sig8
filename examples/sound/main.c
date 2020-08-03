@@ -17,7 +17,7 @@ static void mainLoop(void)
     }
 
     if (KeyJustReleased("Space")) {
-        StopNote(0);
+        ReleaseNote(0);
     }
 }
 
