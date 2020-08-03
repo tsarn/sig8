@@ -6,7 +6,6 @@ add_library(sig8 STATIC
         resources/font_tiny.c
         resources/font_small.c
         resources/font_medium.c
-        resources/font_large.c
         window.c
         input.c
         audio.c
