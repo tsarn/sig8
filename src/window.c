@@ -90,7 +90,6 @@ void sig8_Initialize(const char *windowName)
     screenBufferSize = screenWidth * screenHeight * sizeof(Color);
     screenBuffer = malloc(screenBufferSize);
 
-    sig8_InitAlloc();
     sig8_InitScreen(screenBuffer);
     sig8_InitWindow(windowName);
     sig8_InitGLES();

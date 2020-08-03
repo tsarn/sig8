@@ -266,11 +266,7 @@ void EditResource(void *resource);
  */
 Color ColorFromHex(const char *hex);
 Color ColorFromIndex(int color);
-void* TempAlloc(int n);
-char *Format(const char *fmt, ...);
 float GetDelta(void);
-int Modulo(int a, int b);
-int Divide(int a, int b);
 bool AnyEventsHappened(void);
 
 /*
@@ -294,7 +290,7 @@ void ResetColors(void);
 void DrawPixel(int x, int y, int color);
 int GetPixel(int x, int y);
 void UseFont(Font font);
-void DrawString(int x, int y, int color, const char *string);
+void DrawString(int x, int y, int color, const char *fmt, ...);
 int MeasureString(const char *string);
 void StrokeRect(int x, int y, int w, int h, int color);
 void FillRect(int x, int y, int w, int h, int color);

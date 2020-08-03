@@ -114,8 +114,8 @@ static void Fill(int x, int y, int tile)
         return;
     }
 
-    Position *queue = TempAlloc(TILEMAP_BYTE_SIZE * sizeof(Position));
-    uint8_t *used = TempAlloc(TILEMAP_BYTE_SIZE);
+    Position *queue = malloc(TILEMAP_BYTE_SIZE * sizeof(Position));
+    uint8_t *used = malloc(TILEMAP_BYTE_SIZE);
     memset(used, 0, TILEMAP_BYTE_SIZE);
     int front = 0;
     int back = 0;
@@ -162,6 +162,9 @@ static void Fill(int x, int y, int tile)
             }
         }
     }
+
+    free(used);
+    free(queue);
 }
 
 static void Clear(void)
@@ -308,12 +311,12 @@ static void DrawStatusBar(void)
     DrawString(2, SCREEN_HEIGHT - 2, GRAY, sig8_StatusLine);
 
     if (spriteTabOpen) {
-        DrawString(SCREEN_WIDTH - 23, SCREEN_HEIGHT - 2, RED, Format("#%03d", selectedSprite));
+        DrawString(SCREEN_WIDTH - 23, SCREEN_HEIGHT - 2, RED, "#%03d", selectedSprite);
         --selectedSpriteRegion;
         sig8_DrawSlider(SCREEN_WIDTH - 60, SCREEN_HEIGHT - 8, &selectedSpriteRegion);
         ++selectedSpriteRegion;
     } else if (selected.x != -1) {
-        DrawString(SCREEN_WIDTH - 32, SCREEN_HEIGHT - 2, RED, Format("%03d:%03d", selected.x, selected.y));
+        DrawString(SCREEN_WIDTH - 32, SCREEN_HEIGHT - 2, RED, "%03d:%03d", selected.x, selected.y);
     }
 }
 

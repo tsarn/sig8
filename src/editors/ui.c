@@ -33,7 +33,7 @@ void sig8_DrawNumberInput(int x, int y, int *value)
     };
 
     UseFont(FONT_TINY);
-    DrawString(x + 5, y + 6, RED, Format("%02d", *value));
+    DrawString(x + 5, y + 6, RED, "%02d", *value);
     UseFont(FONT_SMALL);
 
     sig8_DrawIcon(rect.x, rect.y, 27, INDIGO);

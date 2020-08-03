@@ -66,7 +66,6 @@ void sig8_InitGLESPixelBuffer(void);
 void sig8_InitScreen(Color *screen);
 void sig8_InitAudio(void);
 void sig8_InitInput(void);
-void sig8_InitAlloc(void);
 void sig8_UpdateScreen(void);
 void sig8_LeaveEditor(void);
 int sig8_GetPlayingTime(int channel, const Envelope *envelope);
@@ -77,6 +76,16 @@ bool sig8_EmitEvent(int type, SDL_Event *event);
 
 void *sig8_AllocateResource(ResourceType type, const char *path, int size);
 void sig8_FreeResource(void *resource);
+
+static inline int Modulo(int a, int b)
+{
+    return (a % b + b) % b;
+}
+
+static inline int Divide(int a, int b)
+{
+    return (a - Modulo(a, b)) / b;
+}
 
 #ifdef SIG8_COMPILE_EDITORS
 

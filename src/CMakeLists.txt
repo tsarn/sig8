@@ -1,6 +1,5 @@
 add_library(sig8 STATIC
         ../include/sig8.h
-        util.c
         sig8_internal.h
         graphics.c
         resources/font_tiny.c
@@ -9,7 +8,6 @@ add_library(sig8 STATIC
         window.c
         input.c
         audio.c
-        alloc.c
         events.c
         tilemap.c
         fs.c
