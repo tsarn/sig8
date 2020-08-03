@@ -34,7 +34,7 @@ extern "C" {
 #define PATTERN_LENGTH 32
 #define NUMBER_OF_PATTERNS 32
 #define MUSIC_CHANNELS 4
-#define TRACK_LENGTH 32
+#define TRACK_LENGTH 16
 #define MUSICLIB_SIZE 8
 
 #define SOUND_CHANNELS 8
@@ -196,7 +196,6 @@ typedef const FontDefinition *Font;
 extern const Font FONT_TINY;
 extern const Font FONT_SMALL;
 extern const Font FONT_MEDIUM;
-extern const Font FONT_LARGE;
 
 typedef uint8_t *SpriteSheet;
 typedef uint8_t *TileMap;
