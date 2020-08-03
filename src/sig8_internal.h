@@ -65,10 +65,12 @@ void sig8_InitGLES(void);
 void sig8_InitGLESPixelBuffer(void);
 void sig8_InitScreen(Color *screen);
 void sig8_InitAudio(void);
+void sig8_InitMusic(void);
 void sig8_InitInput(void);
 void sig8_UpdateScreen(void);
 void sig8_LeaveEditor(void);
 int sig8_GetPlayingTime(int channel, const Envelope *envelope);
+void sig8_GetMusicState(bool *playing, int *track, int *fragment, int *row);
 
 void sig8_RegisterCallback(int type, Callback callback);
 void sig8_RegisterEventCallback(int type, EventCallback callback);

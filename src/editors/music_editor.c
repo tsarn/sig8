@@ -15,6 +15,19 @@ static int selectedInstrument;
 static int selectedChannel;
 static int offset;
 static int notePreviewDuration;
+static int playingRow;
+
+static void UpdateState(void)
+{
+    bool playing;
+    int track, fragment, row;
+    sig8_GetMusicState(&playing, &track, &fragment, &row);
+    if (playing && track == selected && fragment == selectedFragment) {
+        playingRow = row;
+    } else {
+        playingRow = -1;
+    }
+}
 
 static void PlayNotePreview(void)
 {
@@ -80,8 +93,8 @@ static void DrawChannels(void)
             int noteColor = DARK_RED;
             int instrumentColor = DARK_GREEN;
 
-            if (idx == selectedRow) {
-                if (i == selectedChannel) {
+            if (idx == selectedRow || idx == playingRow) {
+                if (i == selectedChannel || idx == playingRow) {
                     sig8_FillRectR(r, WHITE);
                     noteColor = instrumentColor = GRAY;
                 } else {
@@ -232,8 +245,8 @@ static void DrawTempoSelect(void)
 
     int tempo = musicLib[selected].tempo;
     sig8_DrawNumberInput(x + 28, 4, &tempo);
-    if (tempo < 4) tempo = 4;
-    if (tempo > 30) tempo = 30;
+    if (tempo < 1) tempo = 1;
+    if (tempo > 99) tempo = 99;
     musicLib[selected].tempo = tempo;
 }
 
@@ -304,6 +317,16 @@ static void HandleInput(void)
         selectedChannel = Modulo(selectedChannel - 1, MUSIC_CHANNELS);
     }
 
+    if (KeyJustPressed("Space")) {
+        bool isPlaying;
+        sig8_GetMusicState(&isPlaying, NULL, NULL, NULL);
+        if (isPlaying) {
+            StopTrack();
+        } else {
+            PlayTrack(selected);
+        }
+    }
+
     int note = -1;
 
     if (KeyJustPressed("Z")) note = C4;
@@ -331,7 +354,7 @@ static void HandleInput(void)
             if (note != STOP_NOTE) {
                 PlayNotePreview();
             } else {
-                StopNote(CHANNEL);
+                ReleaseNote(CHANNEL);
             }
             MoveSelection(1);
         }
@@ -360,7 +383,7 @@ void sig8_MusicEditorTick(void)
 {
     if (notePreviewDuration > 0) {
         if (--notePreviewDuration == 0) {
-            StopNote(CHANNEL);
+            ReleaseNote(CHANNEL);
         }
     }
 
@@ -371,6 +394,7 @@ void sig8_MusicEditorTick(void)
 
     ClearScreen(BLACK);
     HandleInput();
+    UpdateState();
     DrawTrackSelect();
     DrawFragmentSelect();
     DrawTempoSelect();
