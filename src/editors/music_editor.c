@@ -14,6 +14,15 @@ static int selectedRow;
 static int selectedInstrument;
 static int selectedChannel;
 static int offset;
+static int notePreviewDuration;
+
+static void PlayNotePreview(void)
+{
+    int pattern = musicLib[selected].fragments[selectedFragment][selectedChannel] - 1;
+    UseInstrument(soundLib[selectedInstrument].instrument, CHANNEL);
+    PlayNote(musicLib[selected].patterns[pattern].notes[selectedRow].note, CHANNEL);
+    notePreviewDuration = 6 * FRAME_RATE / musicLib[selected].tempo;
+}
 
 static void DrawChannels(void)
 {
@@ -171,10 +180,6 @@ static void DrawOctaveSelect(void)
                 selectedOctave = i;
             }
         }
-
-        if (KeyJustPressed(buf)) {
-            selectedOctave = i;
-        }
     }
 }
 
@@ -323,8 +328,11 @@ static void HandleInput(void)
             }
             musicLib[selected].patterns[pattern].notes[selectedRow].note = note;
             musicLib[selected].patterns[pattern].notes[selectedRow].instrument = selectedInstrument;
-            UseInstrument(soundLib[selectedInstrument].instrument, CHANNEL);
-            PlayNote(note, CHANNEL);
+            if (note != STOP_NOTE) {
+                PlayNotePreview();
+            } else {
+                StopNote(CHANNEL);
+            }
             MoveSelection(1);
         }
     }
@@ -350,6 +358,12 @@ void sig8_MusicEditorInit(ManagedResource *what)
 
 void sig8_MusicEditorTick(void)
 {
+    if (notePreviewDuration > 0) {
+        if (--notePreviewDuration == 0) {
+            StopNote(CHANNEL);
+        }
+    }
+
     UseSpriteSheet(sig8_EDITORS_SPRITESHEET);
     SetCursorShape(CURSOR_ARROW);
     UseFont(FONT_SMALL);
@@ -364,4 +378,3 @@ void sig8_MusicEditorTick(void)
     DrawOctaveSelect();
     DrawInstrumentSelect();
 }
-

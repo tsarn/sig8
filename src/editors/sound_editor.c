@@ -104,10 +104,6 @@ static void DrawOctaveSelect(void)
                 selectedOctave = i;
             }
         }
-
-        if (KeyJustPressed(buf)) {
-            selectedOctave = i;
-        }
     }
 
     int note = soundLib[selected].note;
