@@ -3,6 +3,7 @@
 #include "stb_image.h"
 
 static MusicLib currentMusicLib;
+static SoundLib currentSoundLib;
 
 static bool isMusicPlaying;
 static int currentTrack;
@@ -34,9 +35,9 @@ static void MusicCallback()
             int instrument = currentMusicLib[currentTrack].patterns[pattern].notes[currentRow].instrument;
             int note = currentMusicLib[currentTrack].patterns[pattern].notes[currentRow].note;
             if (note == STOP_NOTE) {
-                ReleaseNote(i);
+                StopNote(i);
             } else {
-                UseInstrument(GetCurrentSoundLib()[instrument].instrument, i);
+                UseInstrument(currentSoundLib[instrument].instrument, i);
                 PlayNote(note, i);
             }
         }
@@ -100,6 +101,7 @@ void UseMusicLib(MusicLib musicLib)
 void PlayTrack(int track)
 {
     isMusicPlaying = true;
+    currentSoundLib = GetCurrentSoundLib();
     currentTrack = track;
     currentFragment = 0;
     currentRow = -1;
